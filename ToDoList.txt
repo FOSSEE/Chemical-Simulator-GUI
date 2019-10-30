@@ -1,0 +1,20 @@
+Components with Energy Streams
+
+1.  Heater
+2.  Cooler
+3.  CompSep
+4.  Pump
+5.  Adiabatic Compressor
+6.  Adiabatic Expander
+7.  Shortcut Column (x2)
+8.  Distillation Column (x2)
+9.  PFR
+10. Conversion Reactor
+
+Components having Thermo_Packages
+
+1.  Adiabatic Compressor
+2.  material stream
+3.  Shortcut Column
+4.  Adiabatic Expander
+5.  flash
