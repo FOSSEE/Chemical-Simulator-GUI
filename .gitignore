@@ -1,0 +1,5 @@
+OMChem/__pycache__/*
+__pycache__/*
+Simulator/Flowsheet*
+Simulator/simulateEQN.mos
+.vscode/settings.json

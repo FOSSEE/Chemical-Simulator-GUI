@@ -70,7 +70,7 @@ class componentSelector(QDialog,ui_dialog):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-    def addCompToList(self,comp):
+    def addCompToList(self,comp):       # which list?
         self.item = QListWidgetItem()
         self.item.setText(comp)
         self.listWidget.addItem(self.item)
@@ -80,8 +80,10 @@ class componentSelector(QDialog,ui_dialog):
         self.tableWidget.removeRow(self.tableWidget.currentRow())
         
         compound_selected.remove(item)	
+
     def Show_Error(self):
         QMessageBox.about(self, 'Important', "Selected Compound is not Available")
+    
     def cancel(self):
         compound_selected.clear()
         self.tableWidget.setRowCount(0)
