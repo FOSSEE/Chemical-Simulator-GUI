@@ -30,6 +30,7 @@ class Container():
     def updateConn(self,key,value):
         self.conn[key].append(value)
         self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
+        
     def addUnitOp(self,obj):
         if(obj in self.unitOp):
             pass
@@ -41,6 +42,7 @@ class Container():
         for i in self.unitOp:
             if(i.name==name):
                 return i
+                
     def addCompounds(self,comp):
         self.compounds = comp
 

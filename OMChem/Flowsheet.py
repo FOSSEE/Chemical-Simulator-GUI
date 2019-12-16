@@ -14,9 +14,9 @@ class Flowsheet():
 		self.compounds = []
 		self.interface = ''
 		self.omc_path = None
-		self.curr_path = os.getcwd()
-		self.sim_dir_path = os.path.join(self.curr_path, self.sim_name)
-		self.Flomo_path = os.path.join(self.sim_dir_path,'Flowsheet.mo')
+		self.curr_path = os.getcwd()		# Chemical-Simulator-GUI
+		self.sim_dir_path = os.path.join(self.curr_path, self.sim_name) # Chemical-Simulator-GUI/Simulator
+		self.Flomo_path = os.path.join(self.sim_dir_path,'Flowsheet.mo') 
 		self.eqn_mos_path = os.path.join(self.sim_dir_path,'simulateEQN.mos')
 		self.sm_mos_path = os.path.join(self.sim_dir_path,'simulateSM.mos')
 		self.resdata = []
@@ -37,15 +37,15 @@ class Flowsheet():
 		    raise
 
 	def add_UnitOpn(self,unitop,flag):
-                f=(unitop,flag)
-                self.UnitOpn.append(f)
+		f=(unitop,flag)
+		self.UnitOpn.append(f)
+
 	def remove_UnitOpn(self,unitop):
 		self.UnitOpn.remove(unitop)
 
 	def add_comp_list(self,comp):
 		self.compounds = comp
 	
-
 	def send_for_simulationEqn(self):
 		self.resdata = []
 		self.omc_path = self.get_omc_path()
@@ -263,8 +263,6 @@ class Flowsheet():
 		self.send_for_simulationEqn()
 
 	
-
-
 	def simulateSM(self,ip,op):
 		self.sim_method = 'SM'
 		self.data = []

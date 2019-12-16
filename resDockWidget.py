@@ -81,7 +81,8 @@ class resdockWidget(QDockWidget,ui_dialog):
 
     def resultTree(self):
         self.resultsCategory(self.comboBox.currentText())
-    def results(self):
+        
+    def results(self):              # Should be named as selecting object whose result is to be displayed
         self.nameType={}
         for i in self.Container.unitOp:
             #nameslist.append(i.name)

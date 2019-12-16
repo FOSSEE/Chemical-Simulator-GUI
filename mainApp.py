@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QTextDocument ,QTextCursor ,QTextCharFormat ,QFont ,QPixmap
 from PyQt5.uic import loadUiType
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel, QUndoStack
 from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
@@ -25,41 +25,58 @@ from resDockWidget import resdockWidget
 from helper import helperFunc
 import datetime
 from container import Container
+
 ui,_ = loadUiType('main.ui')
-#comp_dict is a dictionary in which keys are the type of component and value is a list [counter_of_that_particular_type ,Number of ip,Number of op]
+
+# comp_dict is a dictionary in which keys are the type of component and value is a list [counter_of_that_particular_type ,Number of ip,Number of op]
 comp_dict ={'MatStm':[1,1,1],'EngStm':[1,1,1],'Mixer':[1,4,1],'Splitter':[1,1,4],'Flash':[1,1,2],'Heater':[1,1,1],'Valve':[1,1,1],'Cooler':[1,1,1],'CompSep':[1,1,2],'Pump':[1,1,1],'AdiaComp':[1,1,1],'AdiaExp':[1,1,1],'DistCol':[1,2,2],'ShortCol':[1,1,2]}
 
 '''
     MainApp class is responsible for all the main App Ui operations
 '''
 class MainApp(QMainWindow,ui):
+    '''
+        Initializing the application
+    '''
     def __init__(self):
         QMainWindow.__init__(self)
+        
+        # Loading and setting up style sheet
         self.setupUi(self)
         style = open('light.css','r')
         style = style.read()
-        
-        self.zoomcount = 0
-        self.Container = Container(self.textBrowser)
         self.setStyleSheet(style)
-        self.comp =componentSelector(self)
+        
+        # Initializing attributes
+        self.zoomcount = 0
+
+        # Creating instances of classes for the main app
+        self.Container = Container(self.textBrowser)        
+        self.comp = componentSelector(self)
+
+        # Setting up interactive canvas        
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
-        self.comp.show()
+        self.graphicsView.keyPressEvent=self.deleteCall
         self.setDockNestingEnabled(True)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.addDockWidget(Qt.BottomDockWidgetArea,self.dockWidget_2)
+        
+        # Setting up undo stack
+        # self.undoStack = QUndoStack(self)
+        
+        # Calling initialisation functions
         self.buttonHandler()
         self.menuBar()
-        self.graphicsView.keyPressEvent=self.deleteCall
+        self.comp.show()
         
 
     '''
         MenuBar function handels all the all the operations of 
-        menu bar like,new,zoom,comounds selector,Simulation options.
+        menu bar like new,zoom,comounds selector, simulation options.
     '''    
     def menuBar(self):
         self.actionSelect_compouns.triggered.connect(self.selectCompounds)
@@ -70,6 +87,8 @@ class MainApp(QMainWindow,ui):
         self.actionHelp.triggered.connect(self.help)
         self.actionSequential_mode.triggered.connect(partial(self.simulate,'SM'))
         self.actionEquation_oriented.triggered.connect(partial(self.simulate,'EQN'))
+        # self.actionUndo_2.triggered.connect(self.undoStack.undo)
+        # self.actionRedo.triggered.connect(self.undoStack.redo)
 
     '''
         Handles all the buttons of different components.
@@ -115,7 +134,7 @@ class MainApp(QMainWindow,ui):
         return time
 
     '''
-        Simulate function is responsible forthe simulation
+        Simulate function is responsible for the simulation
         of the designed flowsheet in a particular mode
         selected by the user.
     '''
@@ -127,7 +146,7 @@ class MainApp(QMainWindow,ui):
         self.res.show()
     
     '''
-        Resets the zoom level to default scalling
+        Resets the zoom level to default scaling
     '''
     def zoomReset(self):
         if(self.zoomcount>0):
@@ -152,14 +171,16 @@ class MainApp(QMainWindow,ui):
         self.zoomcount +=1
   
     '''
-        Instanciate a NodeItem object for selected type of
+        Instantiate a NodeItem object for selected type of
         component and added that on canvas/flowsheeting area.
     '''    
     def component(self,conntype):
         if(self.comp.isCompSelected()):
-            box=None
-            box = NodeItem(conntype,self.Container)
-            print(box)
+            # box=None
+            box = NodeItem(conntype,self.Container)     # Returns the unit operation with NodeItem, NodeSocket initialized
+            # print(box)
+            # addNodeItem = AddNodeItemCommand(self,box)
+            # self.undoStack.push(addNodeItem)
             self.scene.addItem(box)
             box.setPos(2500-30, 2500-30)
         else:
@@ -177,7 +198,7 @@ class MainApp(QMainWindow,ui):
         self.comp.show()
 
     '''
-        handels all the operations which will happen when delete button is called.
+        Handels all the operations which will happen when delete button is pressed.
     '''
     def deleteCall(self,event):
         try:
@@ -188,14 +209,17 @@ class MainApp(QMainWindow,ui):
             print(e)
 
     '''
-        deletes the selected item from the canvas and also the objects 
+        Deletes the selected item from the canvas and also the objects 
         created for that type.
     '''
     def delete(self,l):
+        # if isinstance(l,NodeItem):
+            # l = [l]
         for item in l:
             self.scene.removeItem(item)
             if hasattr(item,'Input'):
                 for x in item.Input:
+
                     if x.newLine:
                         
                         self.scene.removeItem(x.newLine)
@@ -227,6 +251,20 @@ class MainApp(QMainWindow,ui):
                 self.textBrowser.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
                 del item.obj
             del item
+
+# class AddNodeItemCommand(QUndoCommand):
+
+#     def __init__(self,mainApp,box):
+#         super(AddNodeItemCommand, self).__init__()
+#         self.mainApp = mainApp
+#         self.box = box
+
+#     def redo(self):
+#         self.mainApp.scene.addItem(self.box)
+#         self.box.setPos(2500-30, 2500-30)
+
+#     def undo(self):
+#         self.mainApp.delete(self.box)
         
 
 '''
@@ -274,6 +312,7 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         ctrl2_3 = QtCore.QPointF(midptx, self.pointB.y())
         path.cubicTo(ctrl1_3, ctrl2_3, self.pointB)
         self.setPath(path)
+
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
         painter.drawPath(self.path())
@@ -340,6 +379,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         self.brush = QtGui.QBrush()
         self.brush.setStyle(QtCore.Qt.SolidPattern)
         self.brush.setColor(QtGui.QColor(180,20,90,255))
+        
         # Pen.
         self.pen = QtGui.QPen()
         self.pen.setStyle(QtCore.Qt.SolidLine)
@@ -480,7 +520,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.selPen.setWidth(2)
         self.selPen.setColor(QtGui.QColor(222,192,222))
  
-    def initUi(self):
+    def initUi(self):           # Should be rather named as initialize sockets
         self.Input , self.Output = self.initializeSockets(self.type)
     
     def shape(self):
@@ -526,6 +566,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
             Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
             return Input,Output
+    
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)
         for output in self.Output:
@@ -536,6 +577,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             for line in input.inLines:
                 line.pointA = line.source.getCenter()
                 line.pointB = line.target.getCenter()
+    
     def mouseDoubleClickEvent(self, event):
         self.setPos(event.scenePos().x()-250,event.scenePos().y())
         self.dockWidget.show()
