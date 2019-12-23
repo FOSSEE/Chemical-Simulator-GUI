@@ -170,9 +170,9 @@ class MainApp(QMainWindow,ui):
         if self.thrd:
             thread_id = self.thrd.ident
             print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
-            # print('____________________Going to terminate the new process created for omc____________________')
-            # self.Container.flowsheet.process.terminate()
-            # print('____________________New process created for omc is terminated.____________________')
+            print('____________________Going to terminate the new process created for omc____________________')
+            self.Container.flowsheet.process.terminate()
+            print('____________________New process created for omc is terminated.____________________')
             res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
             self.textBrowser.append("<span style=\"color:red\">["+str(self.currentTime())+"]<b> Terminating the simulation </b></span>")
             print('____________________Simulation thread terminated____________________')
