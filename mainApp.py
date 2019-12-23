@@ -104,6 +104,7 @@ class MainApp(QMainWindow,ui):
         # self.actionRedo.triggered.connect(self.undoStack.redo)
         self.actionSave_2.triggered.connect(self.save)
         self.actionOpen.triggered.connect(self.open)
+        self.actionTerminate.triggered.connect(self.terminate)
 
     '''
         Handles all the buttons of different components.
@@ -162,6 +163,9 @@ class MainApp(QMainWindow,ui):
         self.addDockWidget(Qt.LeftDockWidgetArea, self.res)
         self.res.show()
     
+    def terminate(self):
+        print('----------------------------terminate called-----------------------------')
+
     '''
         Resets the zoom level to default scaling
     '''

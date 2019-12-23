@@ -13,6 +13,7 @@ class Container():
         self.unitOp = []
         self.thermoPackage = None
         self.compounds = None
+        self.flowsheet = None
         self.conn = defaultdict(list)
         self.op=defaultdict(list)
         self.ip=defaultdict(list)
@@ -71,14 +72,14 @@ class Container():
         except Exception as e:
             print(e)
 
-    def msgBrowser(self,f):
-        std = f.stdout.decode("utf-8")
+    def msgBrowser(self):
+        std = self.flowsheet.stdout.decode("utf-8")
         if(std):
             stdout = str(std)
             stdout = stdout.replace("\n","<br/>")
             self.msg.append("<span style=\"color:green\">"+stdout+"</span>")
         
-        stde = f.stderr.decode("utf-8")
+        stde = self.flowsheet.stderr.decode("utf-8")
         if(stde):
             stdout = str(stde)
             stdout = stdout.replace("\n","<br/>")
@@ -88,26 +89,26 @@ class Container():
         print(mode)
         self.compounds = compound_selected
         self.connection()
-        f = Flowsheet()
-        f.add_comp_list(self.compounds)
+        self.flowsheet = Flowsheet()
+        self.flowsheet.add_comp_list(self.compounds)
         print("######## connection master#########\n",self.conn)
         for i in self.unitOp :
             if i in self.opl:
                 print("here",i)
-                f.add_UnitOpn(i,1)
+                self.flowsheet.add_UnitOpn(i,1)
             else:
-                f.add_UnitOpn(i,0)
+                self.flowsheet.add_UnitOpn(i,0)
         if mode=='SM':
             self.msg.append("<span>["+str(self.currentTime())+"] Simulating in <b>Sequential</b> mode ... </span>")
-            f.simulateSM(self.ip,self.op)
-            self.msgBrowser(f)
-            self.result=f.resdata
+            self.flowsheet.simulateSM(self.ip,self.op)
+            self.msgBrowser()
+            self.result=self.flowsheet.resdata
             print("under SEQ mode simulation")
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.currentTime())+"] Simulating in <b>equation</b> mode ... </span>")
-            f.simulateEQN()
-            self.msgBrowser(f)
-            self.result=f.resdata
+            self.flowsheet.simulateEQN()
+            self.msgBrowser()
+            self.result=self.flowsheet.resdata
             print("under Eqn mode simulation")
 
 def flatlist(lst):

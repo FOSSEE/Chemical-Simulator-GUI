@@ -148,7 +148,7 @@
      <x>0</x>
      <y>0</y>
      <width>1068</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -178,6 +178,8 @@
     </property>
     <addaction name="actionEquation_oriented"/>
     <addaction name="actionSequential_mode"/>
+    <addaction name="separator"/>
+    <addaction name="actionTerminate"/>
    </widget>
    <widget class="QMenu" name="menuComponds">
     <property name="title">
@@ -256,8 +258,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>221</width>
-          <height>956</height>
+          <width>222</width>
+          <height>978</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1192,6 +1194,11 @@
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionTerminate">
+   <property name="text">
+    <string>Terminate</string>
    </property>
   </action>
  </widget>
