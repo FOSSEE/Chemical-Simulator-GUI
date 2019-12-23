@@ -14,8 +14,8 @@ class Flowsheet():
 		self.compounds = []
 		self.interface = ''
 		self.omc_path = None
-		self.curr_path = os.getcwd()		# Chemical-Simulator-GUI
-		self.sim_dir_path = os.path.join(self.curr_path, self.sim_name) # Chemical-Simulator-GUI/Simulator
+		self.root_dir = os.getcwd()		# Chemical-Simulator-GUI
+		self.sim_dir_path = os.path.join(self.root_dir, self.sim_name) # Chemical-Simulator-GUI/Simulator
 		self.Flomo_path = os.path.join(self.sim_dir_path,'Flowsheet.mo') 
 		self.eqn_mos_path = os.path.join(self.sim_dir_path,'simulateEQN.mos')
 		self.sm_mos_path = os.path.join(self.sim_dir_path,'simulateSM.mos')
@@ -61,7 +61,7 @@ class Flowsheet():
 			#print(s)
 			#print("############### StdOut ################")
 			print(self.stdout)
-			os.chdir(self.curr_path)
+			os.chdir(self.root_dir)
 			#os.system(self.omc_path + ' -s ' + simpath)
 			print("Hello")
 		if self.sim_method == 'Eqn':
@@ -297,7 +297,7 @@ class Flowsheet():
 			print("################################11")	
 				
 		for unitop in self.unit:
-			os.chdir(self.curr_path)
+			os.chdir(self.root_dir)
 			self.data = []
 			if unitop.type not in ['MatStm','EngStm']:
 				inpstms = unitop.InputStms
@@ -379,7 +379,7 @@ class Flowsheet():
 				sim = os.path.join(self.sim_dir_path,unitop.name.lower()+'.mos')
 				process = Popen([self.omc_path, '-s',sim], stdout=PIPE, stderr=PIPE)
 				self.stdout, self.stderr = process.communicate()
-				os.chdir(self.curr_path)
+				os.chdir(self.root_dir)
 				#s = subprocess.check_output([self.omc_path, '-s',simpath])
 				#print(s)
 				print("############### StdOut ################")
@@ -396,7 +396,7 @@ class Flowsheet():
 					for row in csvreader:
 						self.resdata.append(row)
 				
-				os.chdir(self.curr_path)
+				os.chdir(self.root_dir)
 				if type(inpstms) is list:
 					for stm in inpstms:
 						for key, value in stm.Prop.items():

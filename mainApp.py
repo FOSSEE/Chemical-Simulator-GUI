@@ -27,6 +27,7 @@ import datetime
 from container import Container
 from Graphics import Graphics
 import pickle
+import threading
 
 ui,_ = loadUiType('main.ui')
 
@@ -51,6 +52,7 @@ class MainApp(QMainWindow,ui):
         
         # Initializing attributes
         self.zoomcount = 0
+        self.thrd = None
 
         # Creating instances of classes for the main app
         self.Container = Container(self.textBrowser)        
@@ -152,7 +154,9 @@ class MainApp(QMainWindow,ui):
         selected by the user.
     '''
     def simulate(self,mode):
-        self.Container.simulate(mode)
+        self.thrd = threading.Thread(target=self.Container.simulate, args=(mode,))
+        self.thrd.start()
+        # self.Container.simulate(mode)
         self.dockWidget_2.show()
         self.res = resdockWidget(self.Container)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.res)
