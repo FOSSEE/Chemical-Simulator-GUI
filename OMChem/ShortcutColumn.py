@@ -1,24 +1,36 @@
 from OMChem.EngStm import EngStm
 class ShortcutColumn():
-    def __init__(self,name=("ShortcutCol",1),condP = None, rebP = None, LKey = None, HKey = None):
+    counter = 1
+    def __init__(self,name='ShortCol',condP = None, rebP = None, LKey = None, HKey = None):
         self.condP = condP
         self.rebP = rebP
         self.LKey = LKey
         self.HKey = HKey
         self.LKeyMolFrac = None
         self.HKeyMolFrac = None
-        self.name = name[0]
+        #self.name = name[0]
+        self.name = name + str(ShortcutColumn.counter) 
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
+       
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
-        self.count = name[1]
+        #self.count = name[1]
+        self.count = ShortcutColumn.counter
         self.condType=''
         self.actR = None
         self.thermoPackage='Raoults_Law'
         self.type = 'ShortCol'
+
+        # new 
+        self.no_of_input = 1 
+        self.no_of_output = 2  
+        ShortcutColumn.counter += 1 
+
+    def getname(self):
+        return self.name
 
     def modesList(self):
         return []

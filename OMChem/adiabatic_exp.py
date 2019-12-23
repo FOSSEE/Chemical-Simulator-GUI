@@ -1,18 +1,29 @@
 from OMChem.EngStm import EngStm
 class AdiaExp():
-    def __init__(self,name=('AdiaExp',1), eff = None):
+    counter = 1
+    def __init__(self,name='AdiaExp', eff = None):
         self.eff = eff
-        self.name = name[0]
+        #self.name = name[0]
+        self.name = name + str(AdiaExp.counter) 
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
         self.EngStms = EngStm(name='EngStm'+self.name)
-        self.count = name[1]
+        #self.count = name[1]
+        self.count = AdiaExp.counter
         self.type = 'AdiaExp'
         self.thermoPackage ="Raoults_Law"
         self.mode = None
         self.modeVal = None
+
+        # new 
+        self.no_of_input = 1 
+        self.no_of_output = 1  
+        AdiaExp.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms

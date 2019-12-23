@@ -4,8 +4,10 @@ import sys
 from collections import defaultdict
 
 class MatStm():
-    def __init__(self,name =None,CompNames = [],Temperature=300,Pressure=101325,VapPhasMolFrac=None,VapPhasMasFrac=None,LiqPhasMolFrac=None,LiqPhasMasFrac=None,CompMolFrac = [1.0], CompMasFrac = [], MolFlow=100, MasFlow=None,**kwargs):
-        self.name = name[0]
+    counter = 1
+    def __init__(self,name ='MatStm',CompNames = [],Temperature=300,Pressure=101325,VapPhasMolFrac=None,VapPhasMasFrac=None,LiqPhasMolFrac=None,LiqPhasMasFrac=None,CompMolFrac = [1.0], CompMasFrac = [], MolFlow=100, MasFlow=None,**kwargs):
+        # self.name = name[0]
+        self.name = name + str(MatStm.counter) 
         self.type = 'MatStm'
         self.T = Temperature
         self.P = Pressure
@@ -20,7 +22,8 @@ class MatStm():
         self.MasFlow = MasFlow
         self.OM_data_init = ''
         self.OM_data_eqn = ''
-        self.count = name[1]
+        # self.count = name[1]
+        self.count = MatStm.counter
         self.thermoPackage ="Raoults_Law"
         self.mode1 = "P"
         self.mode1val = ""
@@ -28,8 +31,6 @@ class MatStm():
         self.mode2val = ""
 
         # self.ValEntList =  {"T":T," P":P," VapPhasMolFrac":vapPhasMolFrac," CompNames":CompNames," CompMolFrac[1]":CompMolFrac," CompMasFrac":CompMasFrac," MolFlow[1]":MolFlow," MasFlow[1]":MasFlow}
-
-
         # self.OMProp = {
         #     'Pressure': self.mode1,
         #     'Temperature': self.mode2,
@@ -50,7 +51,6 @@ class MatStm():
         # }
         self.startDict = {}
         self.eqnDict = {}
-        
 
         self.Prop = {
 
@@ -106,12 +106,20 @@ class MatStm():
             'totMasFlo[2]':None,
             'totMolFlo[3]':None,
             'totMasFlo[3]':None
-
         }
+
+        
+        # new 
+        self.no_of_input = 1 
+        self.no_of_output = 1   
+        MatStm.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def modesList(self):
         return ["PT","PH","PVF","TVF","PS"]   
-        
+
     def paramgetter(self,mode):
         dict = {}
         if(mode=="PT"):
@@ -136,6 +144,7 @@ class MatStm():
             dict = {self.mode1:None,self.mode2:None,"CompMolFrac":None,"MolFlow":None,"thermoPackage":None}
         
         return dict
+
     def paramsetter(self,dict):
         self.mode1val = dict[self.mode1]
         self.mode2val = dict[self.mode2]

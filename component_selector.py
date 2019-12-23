@@ -88,6 +88,9 @@ class componentSelector(QDialog,ui_dialog):
         compound_selected.clear()
         self.tableWidget.setRowCount(0)
         self.reject()
+    
+    def getComp(self):
+        return compound_selected
 
 
 

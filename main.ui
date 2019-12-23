@@ -148,7 +148,7 @@
      <x>0</x>
      <y>0</y>
      <width>1068</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -156,13 +156,13 @@
      <string>File</string>
     </property>
     <addaction name="actionNew_Flowsheet"/>
+    <addaction name="actionSave_2"/>
+    <addaction name="actionOpen"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionUndo_2"/>
-    <addaction name="actionRedo"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -256,8 +256,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>222</width>
-          <height>978</height>
+          <width>221</width>
+          <height>956</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1184,19 +1184,14 @@
     <string>save</string>
    </property>
   </action>
-  <action name="actionUndo">
+  <action name="actionSave_2">
    <property name="text">
-    <string>Undo</string>
+    <string>Save</string>
    </property>
   </action>
-  <action name="actionUndo_2">
+  <action name="actionOpen">
    <property name="text">
-    <string>Undo</string>
-   </property>
-  </action>
-  <action name="actionRedo">
-   <property name="text">
-    <string>Redo</string>
+    <string>Open</string>
    </property>
   </action>
  </widget>

@@ -1,13 +1,22 @@
 class Mixer():
-    def __init__(self,name='mixer',NOI=5,Pcal = 'Inlet_Average'):
+    counter = 1 #
+    def __init__(self,name='Mixer',NOI=5,Pcal = 'Inlet_Average'):
         self.NOI = NOI
         self.Pcal = Pcal
-        self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = []
         self.OutputStms = None
         self.type = 'Mixer'
+
+        # new 
+        self.name = name + str(Mixer.counter) 
+        self.no_of_input = 4 
+        self.no_of_output = 1  
+        Mixer.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def modesList(self):
         return []   
@@ -15,8 +24,10 @@ class Mixer():
     def paramgetter(self,mode=None):
         dict = {}
         return dict
+
     def paramsetter(self,dict):
         self.NOI = dict["NOI"]
+
     def OM_Flowsheet_Init(self, addedcomp):
         self.OM_data_init = ''
         comp_count = len(addedcomp)
@@ -35,7 +46,6 @@ class Mixer():
         self.InputStms = InputStms
         self.OutputStms = OutputStms
 
-
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
         comp_count = len(addedcomp)
@@ -46,4 +56,3 @@ class Mixer():
             strcount += 1
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')
         return self.OM_data_eqn
-

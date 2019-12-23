@@ -1,9 +1,10 @@
 from OMChem.EngStm import EngStm
 class Heater():
+    counter = 1
     def __init__(self,name='Heater',PressureDrop = None, eff = None):
         self.PressureDrop = PressureDrop
         self.eff = eff
-        self.name = name
+        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
@@ -22,6 +23,15 @@ class Heater():
                 'tempInc':None,
                 'heatAdd':None,
             }
+
+        # new 
+        self.name = name + str(Heater.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 1  
+        Heater.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms

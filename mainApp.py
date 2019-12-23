@@ -25,11 +25,13 @@ from resDockWidget import resdockWidget
 from helper import helperFunc
 import datetime
 from container import Container
+from Graphics import Graphics
+import pickle
 
 ui,_ = loadUiType('main.ui')
 
 # comp_dict is a dictionary in which keys are the type of component and value is a list [counter_of_that_particular_type ,Number of ip,Number of op]
-comp_dict ={'MatStm':[1,1,1],'EngStm':[1,1,1],'Mixer':[1,4,1],'Splitter':[1,1,4],'Flash':[1,1,2],'Heater':[1,1,1],'Valve':[1,1,1],'Cooler':[1,1,1],'CompSep':[1,1,2],'Pump':[1,1,1],'AdiaComp':[1,1,1],'AdiaExp':[1,1,1],'DistCol':[1,2,2],'ShortCol':[1,1,2]}
+#comp_dict ={'MatStm':[1,1,1],'EngStm':[1,1,1],'Mixer':[1,4,1],'Splitter':[1,1,4],'Flash':[1,1,2],'Heater':[1,1,1],'Valve':[1,1,1],'Cooler':[1,1,1],'CompSep':[1,1,2],'Pump':[1,1,1],'AdiaComp':[1,1,1],'AdiaExp':[1,1,1],'DistCol':[1,2,2],'ShortCol':[1,1,2]}
 
 '''
     MainApp class is responsible for all the main App Ui operations
@@ -53,13 +55,22 @@ class MainApp(QMainWindow,ui):
         # Creating instances of classes for the main app
         self.Container = Container(self.textBrowser)        
         self.comp = componentSelector(self)
+        '''self.Container = self.graphics.getContainer(self.textBrowser)
+        self.comp = self.graphics.getComponentSelector()'''
+        
 
         # Setting up interactive canvas        
-        self.scene = QGraphicsScene()
+        '''self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
+        self.graphicsView.keyPressEvent=self.deleteCall'''
+        self.graphics = Graphics()
+        self.scene = self.graphics.getScene()
+        self.graphicsView.setScene(self.scene)
+        self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.deleteCall
+        
         self.setDockNestingEnabled(True)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
@@ -89,6 +100,8 @@ class MainApp(QMainWindow,ui):
         self.actionEquation_oriented.triggered.connect(partial(self.simulate,'EQN'))
         # self.actionUndo_2.triggered.connect(self.undoStack.undo)
         # self.actionRedo.triggered.connect(self.undoStack.redo)
+        self.actionSave_2.triggered.connect(self.save)
+        self.actionOpen.triggered.connect(self.open)
 
     '''
         Handles all the buttons of different components.
@@ -107,7 +120,7 @@ class MainApp(QMainWindow,ui):
         self.pushButton_13.clicked.connect(partial(self.component,'CompSep'))
         self.pushButton_15.clicked.connect(partial(self.component,'AdiaComp'))
         self.pushButton_16.clicked.connect(partial(self.component,'AdiaExp'))
-
+    
     '''
         Displays help box
     '''
@@ -177,7 +190,9 @@ class MainApp(QMainWindow,ui):
     def component(self,conntype):
         if(self.comp.isCompSelected()):
             # box=None
-            box = NodeItem(conntype,self.Container)     # Returns the unit operation with NodeItem, NodeSocket initialized
+            #box = NodeItem(conntype,self.Container)     # Returns the unit operation with NodeItem, NodeSocket initialized
+            box = self.graphics.createNodeItem(conntype, self.Container)
+            
             # print(box)
             # addNodeItem = AddNodeItemCommand(self,box)
             # self.undoStack.push(addNodeItem)
@@ -185,6 +200,8 @@ class MainApp(QMainWindow,ui):
             box.setPos(2500-30, 2500-30)
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")
+            self.comp.show()
+
 
     '''
         New is used to delete all the existing work.
@@ -251,347 +268,43 @@ class MainApp(QMainWindow,ui):
                 self.textBrowser.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
                 del item.obj
             del item
-
-# class AddNodeItemCommand(QUndoCommand):
-
-#     def __init__(self,mainApp,box):
-#         super(AddNodeItemCommand, self).__init__()
-#         self.mainApp = mainApp
-#         self.box = box
-
-#     def redo(self):
-#         self.mainApp.scene.addItem(self.box)
-#         self.box.setPos(2500-30, 2500-30)
-
-#     def undo(self):
-#         self.mainApp.delete(self.box)
-        
-
-'''
-============================================================
----   GRAPHICS CLASSES
-============================================================
-'''
-class NodeLine(QtWidgets.QGraphicsPathItem):
-    def __init__(self, pointA, pointB , socket):
-        super(NodeLine, self).__init__()
-        self._pointA = pointA
-        self._pointB = pointB
-        self.socket = socket
-        self._source = None
-        self._target = None
-        self.setZValue(-1)
-        self.setBrush(QtGui.QColor(0,0,255,255))
-        self.pen = QtGui.QPen()
-
-        self.pen.setStyle(QtCore.Qt.SolidLine)
-        self.pen.setWidth(1)
-        self.pen.setColor(QtGui.QColor(0,0,255,255))
-        self.setPen(self.pen)
-  
-    def updatePath(self):
-        path = QtGui.QPainterPath()
-        path.moveTo(self.pointA)
-        midptx = 0.5*(self.pointA.x() + self.pointB.x())
-                
- 
-        ctrl1_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-        ctrl2_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-        pt1 = QtCore.QPointF(midptx , self.pointA.y())
-        path.cubicTo(ctrl1_1, ctrl2_1, pt1)
-                
-        path.moveTo(pt1)
-
-        ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
-        ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
-        pt2 = QtCore.QPointF(midptx , self.pointB.y())
-        path.cubicTo(ctrl1_2, ctrl2_2, pt2)
-        path.moveTo(pt2)
-
-        ctrl1_3 = QtCore.QPointF(midptx, self.pointB.y())
-        ctrl2_3 = QtCore.QPointF(midptx, self.pointB.y())
-        path.cubicTo(ctrl1_3, ctrl2_3, self.pointB)
-        self.setPath(path)
-
-    def paint(self, painter, option, widget):
-        painter.setPen(self.pen)
-        painter.drawPath(self.path())
- 
-    @property
-    def pointA(self):
-        #print('a')
-        return self._pointA
- 
-    @pointA.setter
-    def pointA(self, point):
-        #print('seta')
-        self._pointA = point
-        self.updatePath()
- 
-    @property
-    def pointB(self):
-        #print('b')
-        return self._pointB
- 
-    @pointB.setter
-    def pointB(self, point):
-        #print('set b')
-        self._pointB = point
-        self.updatePath()
- 
-    @property
-    def source(self):
-        #print('source')
-        return self._source
- 
-    @source.setter
-    def source(self, widget):
-        #print('set source')
-        self._source = widget
- 
-    @property
-    def target(self):
-        #print('target')
-        return self._target
- 
-    @target.setter
-    def target(self, widget):
-        #print('set target')
-        self._target = widget
-
-    def __delete__(self,instance):
-        del self._source
-        del self._target
-        del self._pointA
-        del self._pointB
- 
-class NodeSocket(QtWidgets.QGraphicsItem):
-    def __init__(self, rect, parent, socketType,container):
-        super(NodeSocket, self).__init__(parent)
-        self.rect = rect
-        self.type = socketType
-        self.parent=parent
-        self.container=container
-        self.newLine=None
-        self.otherLine=None
     
-        # Brush.
-        self.brush = QtGui.QBrush()
-        self.brush.setStyle(QtCore.Qt.SolidPattern)
-        self.brush.setColor(QtGui.QColor(180,20,90,255))
+    '''
+        Function for saving the current canvas items and compound_selected
+    '''
+    def save(self):
+        def jdefault(o):
+            return o.__dict__
+
+        data = []
+        for i in self.Container.unitOp:
+            data.append(i)
         
-        # Pen.
-        self.pen = QtGui.QPen()
-        self.pen.setStyle(QtCore.Qt.SolidLine)
-        self.pen.setWidth(1)
-        self.pen.setColor(QtGui.QColor(20,20,20,255))
- 
-        # Lines.
-        self.outLines = []
-        self.inLines = []
+        data.append(self.comp.getComp())
 
-    def shape(self):
-        path = QtGui.QPainterPath()
-        path.addEllipse(self.boundingRect())
-        return path
- 
-    def boundingRect(self):
-        return QtCore.QRectF(self.rect)
- 
-    def paint(self, painter, option, widget):
-        painter.setBrush(self.brush)
-        painter.setPen(self.pen)
-        painter.drawEllipse(self.rect)
+        fileFormat = 'sim'
+        initialPath = QDir.currentPath() + 'untitled.' + fileFormat
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save As",
+                                                  initialPath, "%s Files (*.%s);; All Files (*)" %
+                                                  (fileFormat.upper(), fileFormat))
+        with open(fileName, 'wb') as f: #'saved_file.sim'
+            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
-    def mousePressEvent(self, event):
-        if self.type == 'op':
-            rect = self.boundingRect()
-            pointA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
-            pointA = self.mapToScene(pointA)
-            pointB = self.mapToScene(event.pos())
-            self.newLine = NodeLine(pointA, pointB ,'op')
-            self.outLines.append(self.newLine)
-            self.scene().addItem(self.newLine)    
-        elif self.type == 'in':
-            rect = self.boundingRect()
-            pointA = self.mapToScene(event.pos())
-            pointB = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
-            pointB = self.mapToScene(pointB)
-            self.newLine = NodeLine(pointA, pointB, 'in')
-            self.inLines.append(self.newLine)
-            self.scene().addItem(self.newLine)
-        else:
-            super(NodeSocket, self).mousePressEvent(event)
+    '''
+        Function for loading previous saved canvas and simulation 
+        ***Not finished yet***
+    '''
+    def open(self):
+        fileFormat = 'sim'
+        initialPath = QDir.currentPath() + 'untitled.' + fileFormat
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open As",
+                                                  initialPath, "%s Files (*.%s);; All Files (*)" %
+                                                  (fileFormat.upper(), fileFormat))
+        with open(fileName, 'rb') as f:
+            obj = pickle.load(f)
         
-    def mouseMoveEvent(self, event):
-        if self.type == 'op':
-            pointB = self.mapToScene(event.pos())
-            self.newLine.pointB = pointB
-            if self.otherLine:
-                self.otherLine.pointB=pointB
-            
-        elif self.type == 'in':
-            pointA = self.mapToScene(event.pos())
-            self.newLine.pointA = pointA
-            if self.otherLine:
-                self.otherLine.pointA=pointA
-        else:
-            super(NodeSocket, self).mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
-        item.otherLine=self.newLine
-        if (self.type == 'op') and (item.type == 'in'):
-            self.newLine.source = self
-            self.newLine.target = item
-            item.inLines.append(self.newLine)
-            self.newLine.pointB = item.getCenter()
-            self.container.updateConn(self.newLine.source.parent.obj,self.newLine.target.parent.obj)
-        elif (self.type =='in') and (item.type == 'op'):
-            self.newLine.source = item
-            self.newLine.target = self
-            item.outLines.append(self.newLine)
-            self.newLine.pointA = item.getCenter()
-            self.container.updateConn(self.newLine.source.parent.obj,self.newLine.target.parent.obj)                
-        else:
-            self.scene().removeItem(self.newLine)
-            if(self.newLine in self.inLines):
-                self.inLines.remove(self.newLine)
-            if(self.newLine in self.outLines):
-                self.outLines.remove(self.newLine)
-            del self.newLine
-            super(NodeSocket, self).mouseReleaseEvent(event)
-
-    def getCenter(self):
-        rect = self.boundingRect()
-        center = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
-        center = self.mapToScene(center)
-        return center
- 
- 
-class NodeItem(QtWidgets.QGraphicsItem):
-    def __init__(self,comptype,container):
-        l = ['Mixer','Splitter']
-        super(NodeItem, self).__init__()
-        self.name = comptype + str(comp_dict[comptype][0])
-        self.type = comptype
-
-        self.setToolTip(self.name)
-        self.nin = comp_dict[comptype][1]
-        self.nop = comp_dict[comptype][2]
-        self.obj = helperFunc(self.type,self.name,comp_dict[comptype][0])
-        self.container=container
-        self.container.addUnitOp(self.obj)
-        if(self.type not in l):
-            self.mainwindow=findMainWindow()
-            self.dockWidget=dockWidget(self.name,self.type,self.obj)
-            self.mainwindow.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
-            self.dockWidget.hide()
-        
-        comp_dict[comptype][0]+=1
-        self.pic=QtGui.QPixmap("icons/"+self.type+".png")
-        self.rect = QtCore.QRect(0,0,self.pic.width(),self.pic.height())
-        self.text = QGraphicsTextItem(self)
-        f = QFont()
-        f.setPointSize(8)
-        self.text.setFont(f)
-        self.text.setDefaultTextColor(QtGui.QColor(73,36,73,255))
-        self.text.setParentItem(self)
-        self.text.setPos(-2.5, self.rect.height()-15)
-        self.text.setPlainText(self.name) 
-        
-        #self.text.setPlainText(self.name)
-        self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsMovable)
-        self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsSelectable)
-        self.initUi()
-    
-        # Brush
-        self.brush = QtGui.QBrush()
-        self.brush.setStyle(QtCore.Qt.SolidPattern)
-        self.brush.setColor(QtGui.QColor(80,0,90,255))
-        # Pen.
-        self.pen = QtGui.QPen()
-        self.pen.setStyle(QtCore.Qt.SolidLine)
-        self.pen.setWidth(1)
-        self.pen.setColor(QtGui.QColor(20,20,20,255))
-    
-        self.selPen = QtGui.QPen()
-        self.selPen.setStyle(QtCore.Qt.SolidLine)
-        self.selPen.setWidth(2)
-        self.selPen.setColor(QtGui.QColor(222,192,222))
- 
-    def initUi(self):           # Should be rather named as initialize sockets
-        self.Input , self.Output = self.initializeSockets(self.type)
-    
-    def shape(self):
-        path = QtGui.QPainterPath()
-        path.addRect(self.boundingRect())
-        return path
- 
-    def boundingRect(self):
-        return QtCore.QRectF(self.rect)
- 
-    def paint(self, painter, option, widget):
-        if self.isSelected():
-            painter.setPen(self.selPen)
-            painter.drawRect(QtCore.QRectF(self.rect))
-        else:
-            painter.setPen(self.pen)
-        
-        painter.drawPixmap(self.rect,self.pic)
-    
-    def initializeSockets(self,type):
-        if(self.type=="Flash" or self.type=="CompSep"):
-            Input = [NodeSocket(QtCore.QRect(-2.5+5.5,(self.rect.height()*x/(self.nin+1))-8,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-7.5,(self.rect.height()*x*0.90/(self.nop+1))-4,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-        elif(self.type=="AdiaComp" or self.type=="AdiaExp"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
-            Input = [NodeSocket(QtCore.QRect(-3.5,(self.rect.height()*x/(self.nin+1))-6,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-6,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-        elif(self.type=="Cooler" or self.type=="Heater"):
-            Input = [NodeSocket(QtCore.QRect(3.5,(self.rect.height()*x/(self.nin+1))-4,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-4,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-
-        elif(self.type=="Pump"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-10,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-2.5,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-        elif(self.type=="DistCol" or self.type=="ShortCol"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-12,5,5), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-67,5,5), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-        elif(self.type=="MatStm"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
-            return Input,Output
-    
-    def mouseMoveEvent(self, event):
-        super(NodeItem, self).mouseMoveEvent(event)
-        for output in self.Output:
-            for line in output.outLines:
-                line.pointA = line.source.getCenter()
-                line.pointB = line.target.getCenter()
-        for input in self.Input:
-            for line in input.inLines:
-                line.pointA = line.source.getCenter()
-                line.pointB = line.target.getCenter()
-    
-    def mouseDoubleClickEvent(self, event):
-        self.setPos(event.scenePos().x()-250,event.scenePos().y())
-        self.dockWidget.show()
-        
-'''
-    Global function to find the (open) QMainWindow in application
-'''        
-def findMainWindow():
-    app = QApplication.instance()
-    for widget in app.topLevelWidgets():
-        if isinstance(widget, QMainWindow):
-            return widget
-    return None
-
+        for i in obj:
+            print(i)
 
 def main():
     app = QApplication(sys.argv)

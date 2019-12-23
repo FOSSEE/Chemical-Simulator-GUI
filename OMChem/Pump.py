@@ -1,8 +1,9 @@
 from OMChem.EngStm import EngStm
 class Pump():
+    counter = 1
     def __init__(self,name='Pump',eff = None):
         self.eff = eff
-        self.name = name
+        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
@@ -13,6 +14,14 @@ class Pump():
         self.type = 'Pump'
         self.mode = None
         self.modeVal = None
+        # new 
+        self.name = name + str(Pump.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 1  
+        Pump.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms
@@ -27,7 +36,6 @@ class Pump():
         return dict
         
     def paramsetter(self,dict):
-        
         self.eff = dict['eff']
         self.modeVal = dict[self.mode]
 
