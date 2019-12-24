@@ -27,6 +27,8 @@ import datetime
 from container import Container
 from Graphics import Graphics
 import pickle
+import os
+import sys
 
 ui,_ = loadUiType('main.ui')
 
@@ -189,15 +191,9 @@ class MainApp(QMainWindow,ui):
     '''    
     def component(self,conntype):
         if(self.comp.isCompSelected()):
-            # box=None
-            #box = NodeItem(conntype,self.Container)     # Returns the unit operation with NodeItem, NodeSocket initialized
-            box = self.graphics.createNodeItem(conntype, self.Container)
-            
-            # print(box)
-            # addNodeItem = AddNodeItemCommand(self,box)
-            # self.undoStack.push(addNodeItem)
-            self.scene.addItem(box)
-            box.setPos(2500-30, 2500-30)
+            self.type = conntype
+            self.obj = helperFunc(self.type)
+            self.Container.addUnitOp(self.obj,self.scene,self.graphics)
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")
             self.comp.show()
