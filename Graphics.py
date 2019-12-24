@@ -4,10 +4,6 @@ import sys
 import numpy as np
 from OMChem.Flowsheet import Flowsheet
 from OMChem.MatStm import MatStm
-from OMChem.Mixer import Mixer
-from OMChem.Heater import Heater
-from OMChem.Splitter import Splitter
-from OMChem.ShortcutColumn import ShortcutColumn
 
 import pandas as pd
 from PyQt5.QtCore import *
@@ -20,31 +16,31 @@ from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
+from component_selector import componentSelector
 from component_selector import *
 from dockWidget import dockWidget
 from resDockWidget import resdockWidget
-from helper import helperFunc
+
 import datetime
 from container import Container
+
+
 
 class Graphics(QDialog):
 
     def __init__(self):
         QDialog.__init__(self)
         self.scene = QGraphicsScene()
-        self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex) 
+        self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
     
     def getScene(self):
         return self.scene
 
-    '''def getContainer(self, textBrowser):
-        return Container(textBrowser)
-
     def getComponentSelector(self):
-        return componentSelector(self)'''
+        return componentSelector(self)
 
-    def createNodeItem(self, conntype, container):
-        return NodeItem(conntype, container)
+    def createNodeItem(self,unitOpr):
+        return NodeItem(unitOpr)
 
 class NodeLine(QtWidgets.QGraphicsPathItem):
     def __init__(self, pointA, pointB , socket):
@@ -140,12 +136,11 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         del self._pointB
  
 class NodeSocket(QtWidgets.QGraphicsItem):
-    def __init__(self, rect, parent, socketType,container):
+    def __init__(self, rect, parent, socketType):
         super(NodeSocket, self).__init__(parent)
         self.rect = rect
         self.type = socketType
         self.parent=parent
-        self.container=container
         self.newLine=None
         self.otherLine=None
     
@@ -213,19 +208,26 @@ class NodeSocket(QtWidgets.QGraphicsItem):
 
     def mouseReleaseEvent(self, event):
         item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
+        stm = ['MatStm','EngStm']
         item.otherLine=self.newLine
         if (self.type == 'op') and (item.type == 'in'):
             self.newLine.source = self
             self.newLine.target = item
             item.inLines.append(self.newLine)
             self.newLine.pointB = item.getCenter()
-            self.container.updateConn(self.newLine.source.parent.obj,self.newLine.target.parent.obj)
+            if self.newLine.source.parent.obj.type not in stm:
+                self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
+            if self.newLine.target.parent.obj.type not in stm:
+                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
         elif (self.type =='in') and (item.type == 'op'):
             self.newLine.source = item
             self.newLine.target = self
             item.outLines.append(self.newLine)
             self.newLine.pointA = item.getCenter()
-            self.container.updateConn(self.newLine.source.parent.obj,self.newLine.target.parent.obj)                
+            if self.newLine.source.parent.obj.type not in stm:
+                self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
+            if self.newLine.target.parent.obj.type not in stm:
+                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)                
         else:
             self.scene().removeItem(self.newLine)
             if(self.newLine in self.inLines):
@@ -242,34 +244,28 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         return center
  
 class NodeItem(QtWidgets.QGraphicsItem):
-    def __init__(self,comptype,container):
+    def __init__(self,unitOpr):
         l = ['Mixer','Splitter']
         super(NodeItem, self).__init__()
-        self.type = comptype
-        
-        # for creating unit operation objects without helper function
-        if (self.type == 'MatStm'):
-            self.obj = MatStm(CompNames=compound_selected)
-        elif (self.type == 'ShortCol'):     # the only class that class name and type does not match
-            self.obj = ShortcutColumn()
-        else:
-            self.obj = eval(self.type)()
 
+        self.obj = unitOpr
 
-        #self.obj = myhelperFunc(self.type) 
-        self.name = self.obj.getname()
-        self.pos = None
+        self.name = self.obj.name
+        self.type = self.obj.type
         self.setToolTip(self.name)
-        self.nin = self.obj.no_of_input
-        self.nop = self.obj.no_of_output
-    
-        self.container=container
-        self.container.addUnitOp(self.obj)
-        if(self.type not in l):
+        self.nin = self.obj.no_of_inputs
+        self.nop = self.obj.no_of_outputs
+        
+        self.dockWidget = None
+        
+
+        
+        if(self.obj.type not in l):
+            self.dockWidget = dockWidget(self.obj.name,self.obj.type,self.obj)
             self.mainwindow= findMainWindow(self)
-            self.dockWidget=dockWidget(self.name,self.type,self.obj)
             self.mainwindow.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
             self.dockWidget.hide()
+    
 
         self.pic=QtGui.QPixmap("icons/"+self.type+".png")
         self.rect = QtCore.QRect(0,0,self.pic.width(),self.pic.height())
@@ -322,32 +318,31 @@ class NodeItem(QtWidgets.QGraphicsItem):
     
     def initializeSockets(self,type):
         if(self.type=="Flash" or self.type=="CompSep"):
-            Input = [NodeSocket(QtCore.QRect(-2.5+5.5,(self.rect.height()*x/(self.nin+1))-8,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-7.5,(self.rect.height()*x*0.90/(self.nop+1))-4,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(-2.5+5.5,(self.rect.height()*x/(self.nin+1))-8,4,4), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-7.5,(self.rect.height()*x*0.90/(self.nop+1))-4,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
         elif(self.type=="AdiaComp" or self.type=="AdiaExp"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
-            Input = [NodeSocket(QtCore.QRect(-3.5,(self.rect.height()*x/(self.nin+1))-6,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-6,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(-3.5,(self.rect.height()*x/(self.nin+1))-6,4,4), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-6,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
         elif(self.type=="Cooler" or self.type=="Heater"):
-            Input = [NodeSocket(QtCore.QRect(3.5,(self.rect.height()*x/(self.nin+1))-4,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-4,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(3.5,(self.rect.height()*x/(self.nin+1))-4,4,4), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-4,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
         elif(self.type=="Pump"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-10,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-2.5,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-10,4,4), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-2.5,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
         elif(self.type=="DistCol" or self.type=="ShortCol"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-12,5,5), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-67,5,5), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-12,5,5), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-67,5,5), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
         elif(self.type=="MatStm"):
-            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'in',self.container) for x in range(1,self.nin+1) ]
-            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'op',self.container) for x in range(1,self.nop+1)]
+            Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'in') for x in range(1,self.nin+1) ]
+            Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
 
     def mouseMoveEvent(self, event):
-        #print(event.scenePos())
         super(NodeItem, self).mouseMoveEvent(event)
         for output in self.Output:
             for line in output.outLines:
@@ -357,10 +352,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
             for line in input.inLines:
                 line.pointA = line.source.getCenter()
                 line.pointB = line.target.getCenter()
-        self.pos = event.scenePos()
-    
+                
     def mouseDoubleClickEvent(self, event):
-        self.setPos(event.scenePos().x()-250,event.scenePos().y())
+        #self.setPos(event.scenePos().x()-250,event.scenePos().y())
         self.dockWidget.show()
         
 def findMainWindow(self):

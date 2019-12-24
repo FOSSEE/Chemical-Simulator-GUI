@@ -5,9 +5,22 @@ from OMChem.Heater import Heater
 from component_selector import *
 from collections import defaultdict
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.uic import loadUiType
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel
+from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
+import PyQt5.QtCore as QtCore
+import PyQt5.QtWidgets as QtWidgets
+from dockWidget import dockWidget
 import datetime
 import itertools
+import json
+import pickle 
+import os
+import sys
+
 class Container():
     def __init__(self,msgbrowser):
         self.unitOp = []
@@ -21,35 +34,20 @@ class Container():
         self.msg.setText("")
         self.opl=[]
         self.result=[]
+        
 
 
     def currentTime(self):
         now = datetime.datetime.now()
         time = str(now.hour) + ":" + str(now.minute) + ":" +str(now.second)
         return time
+
+
     
     def updateConn(self,key,value):
         self.conn[key].append(value)
         self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
-        
-    def addUnitOp(self,obj):
-        if(obj in self.unitOp):
-            pass
-        else:
-            self.unitOp.append(obj)
-            self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
-
-    def fetchObject(self,name):
-        for i in self.unitOp:
-            if(i.name==name):
-                return i
-                
-    def addCompounds(self,comp):
-        self.compounds = comp
-
-    def add_thermoPackage(self,thermo):
-        self.thermoPackage = thermo
-        
+   
     def connection(self):
         try:
             self.op.clear()
@@ -72,6 +70,36 @@ class Container():
         except Exception as e:
             print(e)
 
+
+    def addUnitOp(self,obj,scene,graphics):
+        box = None
+        self.obj = obj
+        self.scene = scene
+        self.graphics = graphics
+        box  = self.graphics.createNodeItem(self.obj)
+        self.scene.addItem(box)
+        box.setPos(2500-30, 2500-30)
+        
+
+        if(obj in self.unitOp):
+            pass
+        else:
+            self.unitOp.append(obj)
+            
+            self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
+
+    def fetchObject(self,name):
+        for i in self.unitOp:
+            if(i.name==name):
+                return i
+    def addCompounds(self,comp):
+        self.compounds = comp
+
+    def add_thermoPackage(self,thermo):
+        self.thermoPackage = thermo
+        
+    
+
     def msgBrowser(self):
         std = self.flowsheet.stdout.decode("utf-8")
         if(std):
@@ -86,18 +114,17 @@ class Container():
             self.msg.append("<span style=\"color:red\">"+stdout+"</span>")
     
     def simulate(self,mode):
+        print("SIMULATE")
         print(mode)
         self.compounds = compound_selected
-        self.connection()
+        #self.connection()
         self.flowsheet = Flowsheet()
         self.flowsheet.add_comp_list(self.compounds)
         print("######## connection master#########\n",self.conn)
         for i in self.unitOp :
-            if i in self.opl:
                 print("here",i)
-                self.flowsheet.add_UnitOpn(i,1)
-            else:
-                self.flowsheet.add_UnitOpn(i,0)
+                self.flowsheet.add_UnitOpn(i)
+            
         if mode=='SM':
             self.msg.append("<span>["+str(self.currentTime())+"] Simulating in <b>Sequential</b> mode ... </span>")
             self.flowsheet.simulateSM(self.ip,self.op)

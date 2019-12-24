@@ -4,10 +4,9 @@ import sys
 from collections import defaultdict
 
 class MatStm():
-    counter = 1
-    def __init__(self,name ='MatStm',CompNames = [],Temperature=300,Pressure=101325,VapPhasMolFrac=None,VapPhasMasFrac=None,LiqPhasMolFrac=None,LiqPhasMasFrac=None,CompMolFrac = [1.0], CompMasFrac = [], MolFlow=100, MasFlow=None,**kwargs):
-        # self.name = name[0]
-        self.name = name + str(MatStm.counter) 
+    counter = 1;
+    def __init__(self,CompNames = [],Temperature=300,Pressure=101325,VapPhasMolFrac=None,VapPhasMasFrac=None,LiqPhasMolFrac=None,LiqPhasMasFrac=None,CompMolFrac = [1.0], CompMasFrac = [], MolFlow=100, MasFlow=None,**kwargs):
+        self.name = 'MatStm' + str(MatStm.counter)
         self.type = 'MatStm'
         self.T = Temperature
         self.P = Pressure
@@ -22,35 +21,20 @@ class MatStm():
         self.MasFlow = MasFlow
         self.OM_data_init = ''
         self.OM_data_eqn = ''
-        # self.count = name[1]
         self.count = MatStm.counter
         self.thermoPackage ="Raoults_Law"
         self.mode1 = "P"
         self.mode1val = ""
         self.mode2 = "T"
         self.mode2val = ""
-
-        # self.ValEntList =  {"T":T," P":P," VapPhasMolFrac":vapPhasMolFrac," CompNames":CompNames," CompMolFrac[1]":CompMolFrac," CompMasFrac":CompMasFrac," MolFlow[1]":MolFlow," MasFlow[1]":MasFlow}
-        # self.OMProp = {
-        #     'Pressure': self.mode1,
-        #     'Temperature': self.mode2,
-        #     'Liquid Phase Mole Fraction': 'liqPhasMolFrac',
-        #     'Liquid Phase Mas Fraction': 'liqPhasMasFrac',
-        #     'Vapour Phase Mole Fraction': 'vapPhasMolFrac',
-        #     'Vapour Phase Mas Fraction': 'vapPhasMasFrac',
-        #     'Total Molar Flow': 'totMolFlo[1]',
-        #     'Total Mas Flow': 'totMasFlo[1]',
-        #     'Av. Molecular Weight': 'MW[1]',
-        #     'Comp Mole Fraction': ['compMolFrac[1,1]','compMolFrac[1,2]','compMolFrac[1,3]'],
-        #     'Comp Mas Fraction': ['compMasFrac[1,1]','compMasFrac[1,2]','compMasFrac[1,3]'],
-        #     'Comp Molar Flow': ['compMolFlo[1,1]','compMolFlo[1,2]','compMolFlo[1,3]'],
-        #     'Comp Mas Flow': ['compMasFlo[1,1]','compMasFlo[1,2]','compMasFlo[1,3]'],
-        #     'Molar Specific Heat': 'phasMolSpHeat[1]',
-        #     'Molar Enthalpy': 'phasMolEnth[1]',
-        #     'Molar Entropy': 'phasMolEntr[1]'
-        # }
+        self.no_of_inputs = 1
+        self.no_of_outputs = 1
+        self.x = 2500-30
+        self.y = 2500-30
+        MatStm.counter+=1
         self.startDict = {}
         self.eqnDict = {}
+        
 
         self.Prop = {
 
@@ -106,20 +90,11 @@ class MatStm():
             'totMasFlo[2]':None,
             'totMolFlo[3]':None,
             'totMasFlo[3]':None
+
         }
-
-        
-        # new 
-        self.no_of_input = 1 
-        self.no_of_output = 1   
-        MatStm.counter += 1  
-
-    def getname(self):
-        return self.name
 
     def modesList(self):
         return ["PT","PH","PVF","TVF","PS"]   
-
     def paramgetter(self,mode):
         dict = {}
         if(mode=="PT"):
@@ -144,7 +119,6 @@ class MatStm():
             dict = {self.mode1:None,self.mode2:None,"CompMolFrac":None,"MolFlow":None,"thermoPackage":None}
         
         return dict
-
     def paramsetter(self,dict):
         self.mode1val = dict[self.mode1]
         self.mode2val = dict[self.mode2]
@@ -360,92 +334,7 @@ class MatStm():
             print(e)
             print('error')
 
-        # self.OMVapProp = {
-        #     'Pressure': self.mode1,
-        #     'Temperature': self.mode2,
-        #     'Total Molar Flow': 'totMolFlo[3]',
-        #     'Total Mas Flow': 'totMasFlo[3]',
-        #     'Comp Mole Fraction': ['compMolFrac[3,1]','compMolFrac[3,2]','compMolFrac[3,3]'],
-        #     'Comp Mas Fraction': ['compMasFrac[3,1]','compMasFrac[3,2]','compMasFrac[3,3]'],
-        #     'Comp Molar Flow': ['compMolFlo[3,1]','compMolFlo[3,2]','compMolFlo[3,3]'],
-        #     'Comp Mas Flow': ['compMasFlo[3,1]','compMasFlo[3,2]','compMasFlo[3,3]'],
-        #     'Av. Molecular Weight': 'phasMolEnth[3]',
-        #     'Molar Specific Heat': 'phasMolSpHeat[3]',
-        #     'Molar Enthalpy': 'phasMolEnth[3]',
-        #     'Molar Entropy': 'phasMolEntr[3]'}
-
-
-
-        # self.VapProp = {
-        #     self.mode1:None,
-        #     self.mode2:None,
-        #     'liqPhasMolFrac':None,
-        #     'liqPhasMasFrac':None,
-        #     'vapPhasMolFrac':None,
-        #     'vapPhasMasFrac':None,
-        #     'totMolFlo[3]':None,
-        #     'totMasFlo[3]':None,
-        #     'MW[1]':None,
-        #     'compMolFrac[3,1]':None,
-        #     'compMolFrac[3,2]':None,
-        #     'compMolFrac[3,3]':None,
-        #     'compMasFrac[3,1]':None,
-        #     'compMasFrac[3,2]':None,
-        #     'compMasFrac[3,3]'None,
-        #     'compMolFlo[3,1]':None,
-        #     'compMolFlo[3,2]':None,
-        #     'compMolFlo[3,3]':None,
-        #     'compMasFlo[3,1]':None,
-        #     'compMasFlo[3,2]':None,
-        #     'compMasFlo[3,3]':None,
-        #     'phasMolSpHeat[3]':None,
-        #     'phasMolEnth[3]':None,
-        #     'phasMolEntr[3]':None
-        #     }
-
-
-        # self.OMLiqProp = {
-        #     'Pressure': self.mode1,
-        #     'Temperature': self.mode2,
-        #     'Total Molar Flow': 'totMolFlo[2]',
-        #     'Total Mas Flow': 'totMasFlo[2]',
-        #     'Comp Mole Fraction': ['compMolFrac[2,1]','compMolFrac[2,2]','compMolFrac[2,3]'],
-        #     'Comp Mas Fraction': ['compMasFrac[2,1]','compMasFrac[2,2]','compMasFrac[2,3]'],
-        #     'Comp Molar Flow': ['compMolFlo[2,1]','compMolFlo[2,2]','compMolFlo[2,3]'],
-        #     'Comp Mas Flow': ['compMasFlo[2,1]','compMasFlo[2,2]','compMasFlo[2,3]'],
-        #     'Av. Molecular Weight': 'MW[2]',
-        #     'Molar Specific Heat': 'phasMolSpHeat[2]',
-        #     'Molar Enthalpy': 'phasMolEnth[2]',
-        #     'Molar Entropy': 'phasMolEntr[2]'}
-
-
-        # self.LiqProp = {
-        #     self.mode1:P,
-        #     self.mode2:None,
-        #     'liqPhasMolFrac':None,
-        #     'liqPhasMasFrac':None,
-        #     'vapPhasMolFrac':None,
-        #     'vapPhasMasFrac':None,
-        #     'totMolFlo[2]':None,
-        #     'totMasFlo[2]':None,
-        #     'MW[1]':None,
-        #     'compMolFrac[2,1]':None,
-        #     'compMolFrac[2,2]':None,
-        #     'compMolFrac[2,3]':None,
-        #     'compMasFrac[2,1]':None,
-        #     'compMasFrac[2,2]':None,
-        #     'compMasFrac[2,3]'None,
-        #     'compMolFlo[2,1]':None,
-        #     'compMolFlo[2,2]':None,
-        #     'compMolFlo[2,3]':None,
-        #     'compMasFlo[2,1]':None,
-        #     'compMasFlo[2,2]':None,
-        #     'compMasFlo[2,3]':None,
-        #     'phasMolSpHeat[2]':None,
-        #     'phasMolEnth[2]':None,
-        #     'phasMolEntr[2]':None
-        #     }
-
+       
     def OM_Flowsheet_Init(self,addedcomp):
         self.OM_data_init = ''
         self.OM_data_init = self.OM_data_init + ("model ms"+str(self.count)+"\n")
@@ -485,26 +374,3 @@ class MatStm():
         return self.OM_data_eqn
 
       
-        # if self.P:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + '.P=' + str(self.P) + ';\n')
-        # if self.T:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + '.T=' + str(self.T) + ';\n')
-        # if self.VapPhasMolFrac:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + '.vapPhasMolFrac=' + str(self.VapPhasMolFrac) + ';\n')
-        
-
-        # if self.CompMolFrac != []:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + ".compMolFrac[1,:] = {")
-        #     mf = str(self.CompMolFrac).strip('[').strip(']')
-        #     self.OM_data_eqn = self.OM_data_eqn + mf + ('};\n')
-        # if self.CompMasFrac != []:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + ".compMasFrac[1,:] = {")
-        #     Mf = str(self.CompMasFrac).strip('[').strip(']')
-        #     self.OM_data_eqn = self.OM_data_eqn + Mf + ('};\n')
-        
-        # if self.MolFlow:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + ".totMolFlo[1] = " + str(self.MolFlow) + ";\n")
-        # if self.MasFlow:
-        #     self.OM_data_eqn = self.OM_data_eqn + (self.name + ".totMasFlo[1] = " + str(self.MasFlow) + ";\n")
-
-        # return self.OM_data_eqn
