@@ -95,19 +95,31 @@ class MainApp(QMainWindow,ui):
         menu bar like new,zoom,comounds selector, simulation options.
     '''    
     def menuBar(self):
-        self.actionSelect_compouns.triggered.connect(self.selectCompounds)
+        self.actionSelect_compounds.triggered.connect(self.selectCompounds)
+        self.actionSelect_compounds.setShortcut('Ctrl+C')
         self.actionZoomIn.triggered.connect(self.zoomin)
+        self.actionZoomIn.setShortcut('Ctrl++')
         self.actionNew_Flowsheet.triggered.connect(self.new)
+        self.actionNew_Flowsheet.setShortcut('Ctrl+N')
         self.actionZoomOut.triggered.connect(self.zoomout)
+        self.actionZoomOut.setShortcut('Ctrl+-')
         self.actionResetZoom.triggered.connect(self.zoomReset)
+        self.actionResetZoom.setShortcut('Ctrl+R')
         self.actionHelp.triggered.connect(self.help)
+        self.actionHelp.setShortcut('Ctrl+H')
         self.actionSequential_mode.triggered.connect(partial(self.simulate,'SM'))
+        self.actionSequential_mode.setShortcut('Ctrl+M')
         self.actionEquation_oriented.triggered.connect(partial(self.simulate,'EQN'))
+        self.actionEquation_oriented.setShortcut('Ctrl+E')
         # self.actionUndo_2.triggered.connect(self.undoStack.undo)
         # self.actionRedo.triggered.connect(self.undoStack.redo)
         self.actionSave_2.triggered.connect(self.save)
+        self.actionSave_2.setShortcut('Ctrl+S')
         self.actionOpen.triggered.connect(self.open)
+        self.actionOpen.setShortcut('Ctrl+O')
         self.actionTerminate.triggered.connect(self.terminate)
+        self.actionTerminate.setShortcut('Ctrl+T')
+
 
     '''
         Handles all the buttons of different components.
@@ -189,7 +201,7 @@ class MainApp(QMainWindow,ui):
         if(self.zoomcount>0):
             for i in range(self.zoomcount):
                 self.zoomout()
-        elif(self.zoomcount<0):
+        elif(self.zoomcount<0): 
             for i in range(abs(self.zoomcount)):
                 self.zoomin()
 

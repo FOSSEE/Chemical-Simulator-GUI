@@ -185,7 +185,7 @@
     <property name="title">
      <string>Compounds</string>
     </property>
-    <addaction name="actionSelect_compouns"/>
+    <addaction name="actionSelect_compounds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -256,7 +256,7 @@
        <widget class="QWidget" name="scrollAreaWidgetContents">
         <property name="geometry">
          <rect>
-          <x>0</x>
+          <x>-5</x>
           <y>0</y>
           <width>222</width>
           <height>978</height>
@@ -1111,7 +1111,7 @@
    <addaction name="actionEquation_oriented"/>
    <addaction name="actionSequential_mode"/>
    <addaction name="separator"/>
-   <addaction name="actionSelect_compouns"/>
+   <addaction name="actionSelect_compounds"/>
   </widget>
   <action name="actionZoomIn">
    <property name="icon">
@@ -1158,7 +1158,7 @@
     <string>Sequential mode</string>
    </property>
   </action>
-  <action name="actionSelect_compouns">
+  <action name="actionSelect_compounds">
    <property name="icon">
     <iconset>
      <normaloff>icons/compoundSelector.png</normaloff>icons/compoundSelector.png</iconset>
