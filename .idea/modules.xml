@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Chemical-Simulator-GUI.iml" filepath="$PROJECT_DIR$/.idea/Chemical-Simulator-GUI.iml" />
-      <module fileurl="file://$USER_HOME$/PycharmProjects/uniqacLLE/.idea/uniqacLLE.iml" filepath="$USER_HOME$/PycharmProjects/uniqacLLE/.idea/uniqacLLE.iml" />
-    </modules>
-  </component>
-</project>

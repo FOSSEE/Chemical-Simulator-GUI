@@ -4,4 +4,3 @@ Simulator/Flowsheet*
 Simulator/simulateEQN.mos
 .vscode/settings.json
 __pycache__/*
-.idea/*
