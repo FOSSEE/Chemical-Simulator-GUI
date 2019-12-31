@@ -233,7 +233,7 @@ class Flowsheet():
 
         for unitop in self.UnitOpn:
             if unitop.type != 'MatStm':
-                self.data.append(unitop.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
             else:
                 self.data.append(unitop.OM_Flowsheet_Init(self.compounds))
                     
@@ -256,7 +256,7 @@ class Flowsheet():
                 if unitop.type == 'MatStm':
                     self.data.append(unitop.OM_Flowsheet_Eqn(self.compounds,'Eqn'))
                 else:
-                    self.data.append(unitop.send_to_flowsheet(self.compounds).OM_Flowsheet_Equation(self.compounds))
+                    self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds))
             else:
                 pass
         with open(self.Flomo_path, 'w') as txtfile:
@@ -266,7 +266,7 @@ class Flowsheet():
 
         with open(self.eqn_mos_path, 'w') as mosFile:
             mosFile.write('loadModel(Modelica);\n')
-            mosFile.write("loadFile(\"Simulator\package.mo\");\n")
+            mosFile.write("loadFile(\"Simulator/package.mo\");\n")
             mosFile.write("loadFile(\"Flowsheet.mo\");\n")
             mosFile.write("simulate(Flowsheet, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n")
 
@@ -330,27 +330,27 @@ class Flowsheet():
                     self.data.append("parameter Simulator.Files.Chemsep_Database." + ucase +' '+ ucase + "; \n")
                 
                 print("##############compounds added")
-                self.data.append(unitop.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
                 
                 if type(outstms) is list:
                     for stm in outstms:
-                        self.data.append(stm.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
                 else:
-                    self.data.append(outstms.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(outstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
                 
                 
                 if engstms:
-                    self.data.append(engstms.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(engstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
 
                 if type(inpstms) is list:
                     for stm in inpstms:
-                        self.data.append(stm.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
                 else:
-                    self.data.append(inpstms.send_to_flowsheet(self.compounds).OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(inpstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
                 
                 self.data.append('equation\n')
                 print("##################equation")
-                self.data.append(unitop.send_to_flowsheet(self.compounds).OM_Flowsheet_Equation(self.compounds))
+                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds))
                 '''
                 if type(outstms) is list:
                     for stm in outstms:
@@ -363,10 +363,10 @@ class Flowsheet():
                 if type(inpstms) is list:
                     for stm in inpstms:
                         #stm.GetEquationValues()
-                        self.data.append(stm.send_to_flowsheet(self.compounds).OM_Flowsheet_Equation(self.compounds,'SM'))
+                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds,'SM'))
                 else:
                     #inpstms.GetEquationValues()
-                    self.data.append(inpstms.send_to_flowsheet(self.compounds).OM_Flowsheet_Equation(self.compounds,'SM'))
+                    self.data.append(inpstms.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds,'SM'))
 
                 # os.chdir(self.sim_dir_path)
                 unitmofile = os.path.join(self.sim_dir_path,unitop.name.lower()+'.mo')

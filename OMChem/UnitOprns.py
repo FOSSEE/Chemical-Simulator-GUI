@@ -85,9 +85,9 @@ class UnitOpr():
 
           
             
-      for i in self.parameters:
+      for k,v in self.parameters.items():
         self.OM_data_init += ', '
-        self.OM_data_init += i[0] + ' = ' + str(i[1])
+        self.OM_data_init += k + ' = ' + str(v)
         self.OM_data_init += ');\n' 
 
     else: 
@@ -96,9 +96,9 @@ class UnitOpr():
       comp = comp.replace("'", "")  
       self.OM_data_init += ',comp = {' + comp + '}'
 
-      for i in self.parameters:
+      for k,v in self.parameters.items():
         self.OM_data_init += ', '
-        self.OM_data_init += i[0] + ' = ' + str(i[1])
+        self.OM_data_init += k + ' = ' + str(v)
 
       self.OM_data_init += ');\n'
 
@@ -129,7 +129,7 @@ class UnitOpr():
     else:
       self.OM_data_eqn += ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')    
     
-    if self.mode:  
+    if self.mode:
       self.OM_data_eqn += (self.name + '.' + self.mode + '=' + self.modeVal + ';\n')    
 
     return self.OM_data_eqn

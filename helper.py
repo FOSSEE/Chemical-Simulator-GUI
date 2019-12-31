@@ -35,7 +35,7 @@ class HeaterClass():
         self.no_of_outputs = 1
         self.x = 2500-30
         self.y = 2500-30
-        self.addedcomp = None
+        # self.addedcomp = None
         self.extra = None
         self.Prop = {
             'pressDrop':None,
@@ -46,16 +46,15 @@ class HeaterClass():
         }
         HeaterClass.counter+=1
 
-    def modesList(self):
-        return ["heatAdd","outT","outVapPhasMolFrac","tempInc","enFlo"] 
+        self.modesList =  ["heatAdd","outT","outVapPhasMolFrac","tempInc","enFlo"] 
 
     def paramgetter(self,mode="heatAdd"):
         self.mode = mode
         dict = {"pressDrop":None,"eff":None,self.mode:None}
         return dict
 
-    def add_compounds(self,addedcomp):
-        self.addedcomp = addedcomp
+    # def add_compounds(self,addedcomp):
+    #     self.addedcomp = addedcomp
         
         
         
@@ -80,10 +79,10 @@ class HeaterClass():
             
 
 
-    def send_to_flowsheet(self,addedcomp):
-        self.addedcomp = addedcomp
+    def send_to_flowsheet(self):
+        # self.addedcomp = addedcomp
         parameters = [['pressDrop',self.pressDrop],['eff',self.eff]]
-        Inst = UnitOpr(self.name,HeaterClass.counter,'Heater',parameters,self.mode,self.modeVal,False,None,self.extra,None,self.no_of_inputs,self.no_of_outputs)
+        Inst = UnitOpr(name=self.name,counter=HeaterClass.counter,Type='Heater',parameters=parameters,mode=self.mode,modeVal=self.modeVal,ThermoPackReq=False,thermoPack=None,extra=self.extra,multidict=None,inputs=self.no_of_inputs,outputs=self.no_of_outputs)
         Inst.connect(self.InputStms,self.OutputStms)
         return Inst
 
@@ -106,7 +105,7 @@ class CoolerClass():
         self.no_of_outputs = 1
         self.x = 2500-30
         self.y = 2500-30
-        self.addedcomp = None
+        # self.addedcomp = None
         self.extra = None
         self.Prop = {
             'pressDrop':None,
@@ -153,7 +152,7 @@ class CoolerClass():
 
     def send_to_flowsheet(self,addedcomp):
         self.addedcomp = addedcomp
-        parameters = [['pressDrop',self.pressDrop],['eff',self.eff]]
+        parameters = {'pressDrop': self.pressDrop, 'eff': self.eff }
         Inst = UnitOpr(self.name,CoolerClass.counter,'Cooler',parameters,self.mode,self.modeVal,False,None,self.extra,None,self.no_of_inputs,self.no_of_outputs)
         Inst.connect(self.InputStms,self.OutputStms)
         return Inst        
@@ -180,7 +179,7 @@ class AdiaCompClass():
         self.no_of_outputs = 1
         self.x = 2500-30
         self.y = 2500-30
-        self.addedcomp = None
+        # self.addedcomp = None
         self.extra = ['Adiabatic_Compressor']
         AdiaCompClass.counter+=1
 
@@ -264,7 +263,7 @@ class AdiaExpClass():
             # Input stream if flag is 1
             self.InputStms.append(UnitOpr)
             print("INPUT CONNECTION")
-        else :
+        else:
             print("OUTPUT CONNECTION")
             self.OutputStms.append(UnitOpr)    
 

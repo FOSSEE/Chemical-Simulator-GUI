@@ -28,7 +28,7 @@ class dockWidget(QDockWidget,ui_dialog):
         self.dict = {}
 
     def modes(self):
-        modesList = self.obj.modesList()
+        modesList = self.obj.modesList
         if(modesList):
             for j in modesList:
                 self.comboBox.addItem(str(j))

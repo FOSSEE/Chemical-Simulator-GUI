@@ -22,7 +22,7 @@ from component_selector import componentSelector
 from component_selector import *
 from dockWidget import dockWidget
 from resDockWidget import resdockWidget
-from helper import helperFunc
+from UnitOperations import helperFunc
 import datetime
 from container import Container
 from Graphics import Graphics
