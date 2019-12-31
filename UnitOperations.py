@@ -15,7 +15,6 @@ import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from component_selector import *
 
-
 class UnitOperation():
     counter = 1
     
@@ -37,6 +36,7 @@ class UnitOperation():
         self.parameters = {}
         # self.input_parameters = {}
         self.extra = None
+        self.ForNaming = None
         self.multidict = None
         self.ThermoPackReq = False
         self.thermoPackage = None
@@ -61,9 +61,9 @@ class UnitOperation():
             else:
                 self.modeVal = params[self.mode]
 
-    def connect(self,InputStms,OutputStms):
-        self.InputStms = InputStms
-        self.OutputStms = OutputStms
+    # def connect(self,InputStms,OutputStms):
+    #     self.InputStms = InputStms
+    #     self.OutputStms = OutputStms
 
     def add_connection(self,flag,UnitOpr):
         if flag==1:
@@ -74,10 +74,12 @@ class UnitOperation():
             print("OUTPUT CONNECTION")
             self.OutputStms.append(UnitOpr)
 
-    def send_to_flowsheet(self):
-        Inst = UnitOpr(name=self.name,counter=type(self).counter,Type='Heater',parameters=self.parameters,mode=self.mode,modeVal=self.modeVal,ThermoPackReq=self.ThermoPackReq,thermoPack=self.thermoPackage,extra=self.extra,multidict=self.multidict,inputs=self.no_of_inputs,outputs=self.no_of_outputs)
-        Inst.connect(self.InputStms,self.OutputStms)
-        return Inst
+    # def send_to_flowsheet(self):
+    #     Inst = UnitOpr(name=self.name,counter=type(self).counter,Type='Heater',parameters=self.parameters,mode=self.mode,modeVal=self.modeVal,ThermoPackReq=self.ThermoPackReq,thermoPack=self.thermoPackage,extra=self.extra,multidict=self.multidict,inputs=self.no_of_inputs,outputs=self.no_of_outputs)
+    #     # Inst.connect(self.InputStms,self.OutputStms)
+    #     Inst.InputStms = self.InputStms
+    #     Inst.OutputStms = self.OutputStms
+    #     return Inst
 
 class HeaterClass(UnitOperation):
 
@@ -96,6 +98,7 @@ class HeaterClass(UnitOperation):
         }
         self.modesList = ["heatAdd","outT","outVapPhasMolFrac","tempInc","enFlo"] 
         self.extra = None
+        self.ForNaming = None
         self.pressDrop = pressDrop
         self.eff = eff
         self.parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
@@ -119,6 +122,7 @@ class CoolerClass(UnitOperation):
         }
         self.modesList = ["heatRem","outT","outVapPhasMolFrac","tempDrop","enFlo"]
         self.extra = None
+        self.ForNaming = None
         self.pressDrop = pressDrop
         self.eff = eff
         self.parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
@@ -135,6 +139,7 @@ class AdiaCompClass(UnitOperation):
         self.no_of_outputs = 1
         self.modesList = ["pressInc","outP","reqPow"]
         self.extra = ['Adiabatic_Compressor']
+        self.ForNaming = ['Adiabatic_Compressor']
         self.ThermoPackReq = True
         self.thermoPackage ="Raoults_Law"
         self.eff = eff
@@ -152,6 +157,7 @@ class AdiaExpClass(UnitOperation):
         self.no_of_outputs = 1
         self.modesList = ["pressDrop","outP","genPow"]
         self.extra = ['Adiabatic_Expander']
+        self.ForNaming = ['Adiabatic_Expander']
         self.ThermoPackReq = True
         self.thermoPackage ="Raoults_Law"
         self.eff = eff
@@ -162,7 +168,7 @@ class AdiaExpClass(UnitOperation):
 
 def helperFunc(type):
     if(type=="MatStm"):
-        return MatStm(CompNames=compound_selected)
+        return MatStm(CompNames=compound_selected)  
     else:
         return eval(type+"Class")()
     

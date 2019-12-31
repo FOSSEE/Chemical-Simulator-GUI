@@ -23,6 +23,102 @@ class Flowsheet():
         self.stdout=None
         self.stderr=None
     
+    def OM_Flowsheet_Initialize(self,unitOpr):
+        unitOpr.OM_data_init = ''
+
+        if(unitOpr.ThermoPackReq):
+            if len(unitOpr.extra)>1:
+                for i in range(unitOpr.extra):
+                    latest = ''
+                    for j in range(unitOpr.extra[i]):
+                        if unitOpr.extra[i][j]!='.':
+                            latest += unitOpr.extra[i][j]
+                        unitOpr.ForNaming[i] = latest   
+
+
+
+        if(unitOpr.ThermoPackReq):
+            if len(unitOpr.extra)==1:
+                for i in unitOpr.extra:
+                    unitOpr.OM_data_init += ('model '+i+str(unitOpr.counter)+'\n')
+                    unitOpr.OM_data_init += ('extends Simulator.Unit_Operations.'+i+';\n')
+                    unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPack+';\n')
+                    unitOpr.OM_data_init += ('end '+i+str(unitOpr.counter)+';\n')
+
+                    unitOpr.OM_data_init += i+str(unitOpr.counter) + ' ' + unitOpr.name + '(NOC = ' + str(len(self.compounds)) 
+
+            else:
+                for i in range(len(unitOpr.extra)):
+                    if i!=(len(unitOpr.extra)-1):
+                        unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
+                        unitOpr.OM_data_init += ('extends Simulator.Unit_Operations.'+unitOpr.extra[i]+';\n')
+                        unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPack+';\n')
+                        unitOpr.OM_data_init += ('end '+unitOpr.ForNaming[i]+str(unitOpr.counter)+';\n')
+                    else:
+                        unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
+                        unitOpr.OM_data_init += ('extends Simulator.Unit_Operations.'+unitOpr.extra[i]+';\n')
+                        for j in range(len(unitOpr.extra)-1):
+                            unitOpr.OM_data_init += (unitOpr.ForNaming[j] + str(unitOpr.counter) +' ' + unitOpr.ForNaming[j] + '#' + unitOpr.multidict[j] + ';\n')
+
+                            unitOpr.OM_data_init += ('end '+unitOpr.ForNaming[i]+str(unitOpr.counter)+';\n')
+
+                    unitOpr.OM_data_init += unitOpr.ForNaming[i] + str(unitOpr.counter) + ' ' + unitOpr.ForNaming + '(NOC = ' + str(len(self.compounds))
+                 
+            comp = str(self.compounds).strip('[').strip(']')
+            comp = comp.replace("'", "")  
+            unitOpr.OM_data_init += ',comp = {' + comp + '}'
+
+                    
+                        
+            for k,v in unitOpr.parameters.items():
+                unitOpr.OM_data_init += ', '
+                unitOpr.OM_data_init += k + ' = ' + str(v)
+                unitOpr.OM_data_init += ');\n' 
+
+        else: 
+            unitOpr.OM_data_init += 'Simulator.Unit_Operations.' + unitOpr.type + ' ' + unitOpr.name + '(NOC = ' + str(len(self.compounds))
+            comp = str(self.compounds).strip('[').strip(']')
+            comp = comp.replace("'", "")  
+            unitOpr.OM_data_init += ',comp = {' + comp + '}'
+
+            for k,v in unitOpr.parameters.items():
+                unitOpr.OM_data_init += ', '
+                unitOpr.OM_data_init += k + ' = ' + str(v)
+
+            unitOpr.OM_data_init += ');\n'
+
+                #print("HERE WE GO")
+                #print(unitOpr.OM_data_init)
+
+        return unitOpr.OM_data_init  
+
+
+
+
+    def OM_Flowsheet_Equation(self,unitOpr):
+        unitOpr.OM_data_eqn = ''
+
+        if len(unitOpr.InputStms)>1:
+            strcount = 1
+            for strm in unitOpr.InputStms:
+                unitOpr.OM_data_eqn += ('connect(' + strm.name + '.outlet,' + unitOpr.name + '.inlet[' + str(strcount) + ']);\n')
+                strcount += 1
+        else:
+            unitOpr.OM_data_eqn += ('connect(' + unitOpr.name + '.inlet,' + unitOpr.InputStms[0].name + '.outlet);\n')
+
+        if len(unitOpr.OutputStms)>1:
+            strcount = 1
+            for strm in unitOpr.OutputStms:
+                unitOpr.OM_data_eqn += ('connect(' + strm.name + '.inlet,' + unitOpr.name + '.outlet[' + str(strcount) + ']);\n')
+                strcount += 1
+        else:
+            unitOpr.OM_data_eqn += ('connect(' + unitOpr.name + '.outlet,' + unitOpr.OutputStms[0].name + '.inlet);\n')    
+        
+        if unitOpr.mode:
+            unitOpr.OM_data_eqn += (unitOpr.name + '.' + unitOpr.mode + '=' + unitOpr.modeVal + ';\n')    
+
+        return unitOpr.OM_data_eqn
+
     
     def get_omc_path(self):
         try:
@@ -233,7 +329,7 @@ class Flowsheet():
 
         for unitop in self.UnitOpn:
             if unitop.type != 'MatStm':
-                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                self.data.append(self.OM_Flowsheet_Initialize(unitop))
             else:
                 self.data.append(unitop.OM_Flowsheet_Init(self.compounds))
                     
@@ -256,7 +352,7 @@ class Flowsheet():
                 if unitop.type == 'MatStm':
                     self.data.append(unitop.OM_Flowsheet_Eqn(self.compounds,'Eqn'))
                 else:
-                    self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds))
+                    self.data.append(self.OM_Flowsheet_Equation(unitop))
             else:
                 pass
         with open(self.Flomo_path, 'w') as txtfile:
@@ -330,27 +426,27 @@ class Flowsheet():
                     self.data.append("parameter Simulator.Files.Chemsep_Database." + ucase +' '+ ucase + "; \n")
                 
                 print("##############compounds added")
-                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                self.data.append(self.OM_Flowsheet_Initialize(unitop))
                 
                 if type(outstms) is list:
                     for stm in outstms:
-                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                        self.data.append(self.OM_Flowsheet_Initialize(stm))
                 else:
-                    self.data.append(outstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(self.OM_Flowsheet_Initialize(outstms))
                 
                 
                 if engstms:
-                    self.data.append(engstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(self.OM_Flowsheet_Initialize(engstms))
 
                 if type(inpstms) is list:
                     for stm in inpstms:
-                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                        self.data.append(self.OM_Flowsheet_Initialize(stm))
                 else:
-                    self.data.append(inpstms.send_to_flowsheet().OM_Flowsheet_Initialize(self.compounds))
+                    self.data.append(self.OM_Flowsheet_Initialize(inpstms))
                 
                 self.data.append('equation\n')
                 print("##################equation")
-                self.data.append(unitop.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds))
+                self.data.append(self.OM_Flowsheet_Equation(unitop))
                 '''
                 if type(outstms) is list:
                     for stm in outstms:
@@ -363,10 +459,10 @@ class Flowsheet():
                 if type(inpstms) is list:
                     for stm in inpstms:
                         #stm.GetEquationValues()
-                        self.data.append(stm.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds,'SM'))
+                        self.data.append(self.OM_Flowsheet_Equation(stm))
                 else:
                     #inpstms.GetEquationValues()
-                    self.data.append(inpstms.send_to_flowsheet().OM_Flowsheet_Equation(self.compounds,'SM'))
+                    self.data.append(self.OM_Flowsheet_Equation(inpstms))
 
                 # os.chdir(self.sim_dir_path)
                 unitmofile = os.path.join(self.sim_dir_path,unitop.name.lower()+'.mo')
