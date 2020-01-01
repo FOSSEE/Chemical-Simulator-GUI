@@ -18,11 +18,10 @@ from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
-from component_selector import componentSelector
 from component_selector import *
 from dockWidget import dockWidget
 from resDockWidget import resdockWidget
-from UnitOperations import helperFunc
+from UnitOperations import *
 import datetime
 from container import Container
 from Graphics import Graphics
@@ -223,10 +222,13 @@ class MainApp(QMainWindow,ui):
         Instantiate a NodeItem object for selected type of
         component and added that on canvas/flowsheeting area.
     '''    
-    def component(self,conntype):
+    def component(self,unitOpType):
         if(self.comp.isCompSelected()):
-            self.type = conntype
-            self.obj = helperFunc(self.type)
+            self.type = unitOpType
+            if(self.type=="MatStm"):
+                self.obj = MatStm(CompNames=compound_selected)  
+            else:
+                self.obj = eval(self.type+"Class")()
             self.Container.addUnitOp(self.obj,self.scene,self.graphics)
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")

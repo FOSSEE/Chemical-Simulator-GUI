@@ -1,6 +1,5 @@
 from OMChem.Flowsheet import Flowsheet
 from OMChem.MatStm import MatStm
-from OMChem.UnitOprns import UnitOpr
 from OMChem.EngStm import EngStm
 from Graphics import Graphics
 from PyQt5.QtCore import *
@@ -164,13 +163,5 @@ class AdiaExpClass(UnitOperation):
         self.parameters = {'eff':self.eff}
         # self.input_parameters = {"eff":self.eff,"thermoPackage":self.thermoPackage}
         type(self).counter += 1
-
-
-def helperFunc(type):
-    if(type=="MatStm"):
-        return MatStm(CompNames=compound_selected)  
-    else:
-        return eval(type+"Class")()
-    
         
 
