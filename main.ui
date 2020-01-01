@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1068</width>
-    <height>810</height>
+    <height>803</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -148,7 +148,7 @@
      <x>0</x>
      <y>0</y>
      <width>1068</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -178,8 +178,6 @@
     </property>
     <addaction name="actionEquation_oriented"/>
     <addaction name="actionSequential_mode"/>
-    <addaction name="separator"/>
-    <addaction name="actionTerminate"/>
    </widget>
    <widget class="QMenu" name="menuComponds">
     <property name="title">
@@ -193,12 +191,19 @@
     </property>
     <addaction name="actionHelp"/>
    </widget>
+   <widget class="QMenu" name="menuUtility">
+    <property name="title">
+     <string>Utility</string>
+    </property>
+    <addaction name="actionBinary_Phase_Envelope"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuSimulation"/>
    <addaction name="menuComponds"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuUtility"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -256,10 +261,10 @@
        <widget class="QWidget" name="scrollAreaWidgetContents">
         <property name="geometry">
          <rect>
-          <x>-5</x>
+          <x>0</x>
           <y>0</y>
-          <width>222</width>
-          <height>978</height>
+          <width>238</width>
+          <height>878</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1196,9 +1201,9 @@
     <string>Open</string>
    </property>
   </action>
-  <action name="actionTerminate">
+  <action name="actionBinary_Phase_Envelope">
    <property name="text">
-    <string>Terminate</string>
+    <string>Binary Phase Envelope</string>
    </property>
   </action>
  </widget>

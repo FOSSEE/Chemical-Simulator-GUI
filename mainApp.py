@@ -20,6 +20,7 @@ import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from component_selector import *
 from dockWidget import dockWidget
+from Bin_Phase_env import *
 from resDockWidget import resdockWidget
 from UnitOperations import *
 import datetime
@@ -118,6 +119,7 @@ class MainApp(QMainWindow,ui):
         self.actionOpen.setShortcut('Ctrl+O')
         self.actionTerminate.triggered.connect(self.terminate)
         self.actionTerminate.setShortcut('Ctrl+T')
+        self.actionBinary_Phase_Envelope.triggered.connect(self.BinPhaseEnv)
 
 
     '''
@@ -148,6 +150,17 @@ class MainApp(QMainWindow,ui):
         msgBox.setText("For any Help or Suggestion you can contact us at\n contact-om@fossee.in or at <a href='https://www.fossee.in'>Visit fossee.in!</a>")
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.exec_()
+
+    def BinPhaseEnv(self):
+        #compounds = self.comp.getComp()
+        if len(self.comp.getComp())<2:
+            QMessageBox.about(self, 'Important', "Please select atleast 2 Compounds first")
+            self.comp.show()
+            #compunds = self.comp.getComp()
+        else: 
+
+            self.bin_phase = Bin_Phase_env(self.comp)
+            self.bin_phase.show() 
 
     '''
         Shows Compounds Selector Dialog
