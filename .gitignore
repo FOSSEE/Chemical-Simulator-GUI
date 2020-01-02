@@ -1,6 +1,10 @@
 OMChem/__pycache__/*
 __pycache__/*
+Simulator/Databases/__pycache__/*
 Simulator/Flowsheet*
+Simulator/Graph*
+Simulator/database.mo
+Simulator/PlotGraph.mos
 Simulator/simulateEQN.mos
 .vscode/settings.json
 __pycache__/*
