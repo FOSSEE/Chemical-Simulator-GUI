@@ -92,7 +92,10 @@ class Bin_Phase_env(QWidget,ui_dialog):
         #print("") 
     def get_omc_path(self):
         try:
-            if os.path.exists('/opt/local/bin/omc'):
+            self.omhome = os.environ.get('OPENMODELICAHOME')
+            if self.omhome is None:
+		        self.omhome = os.path.split(os.path.split(os.path.realpath(spawn.find_executable("omc")))[0])[0]
+            elif os.path.exists('/opt/local/bin/omc'):
                 self.omhome = '/opt/local'
             elif os.path.exists('/usr/bin/omc'):
                 self.omhome = '/usr'    
