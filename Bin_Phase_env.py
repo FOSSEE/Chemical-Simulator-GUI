@@ -242,6 +242,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
         
         view_box = plt.plotItem.vb
 
+        self.tool_tip = ""
 
 
         def pressEvent(evt):
@@ -262,10 +263,12 @@ class Bin_Phase_env(QWidget,ui_dialog):
             if colour.red()==255 or colour.blue()==255:
                 self.lineEdit_x.setText(str(round(mousepoint.x(),3)))
                 self.lineEdit_y.setText(str(round(mousepoint.y(),3)))
+                self.tool_tip = str(round(mousepoint.x(),3)) + ", " + str(round(mousepoint.y(),3))
                 QApplication.setOverrideCursor(QCursor(QtCore.Qt.CrossCursor))
             else:
                 self.lineEdit_x.setText("")
                 self.lineEdit_y.setText("")
+                self.tool_tip = ""
                 QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
                     
 
@@ -278,6 +281,8 @@ class Bin_Phase_env(QWidget,ui_dialog):
                     self.lineEdit_x.setText("")
                     self.lineEdit_y.setText("")
                     QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
+                else:
+                    i.setToolTip(self.tool_tip)    
 
 
            # print(items)    

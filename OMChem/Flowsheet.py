@@ -42,7 +42,7 @@ class Flowsheet():
                 for i in unitOpr.extra:
                     unitOpr.OM_data_init += ('model '+i+str(unitOpr.counter)+'\n')
                     unitOpr.OM_data_init += ('extends Simulator.Unit_Operations.'+i+';\n')
-                    unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPack+';\n')
+                    unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPackage+';\n')
                     unitOpr.OM_data_init += ('end '+i+str(unitOpr.counter)+';\n')
 
                     unitOpr.OM_data_init += i+str(unitOpr.counter) + ' ' + unitOpr.name + '(NOC = ' + str(len(self.compounds)) 
@@ -52,7 +52,7 @@ class Flowsheet():
                     if i!=(len(unitOpr.extra)-1):
                         unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
                         unitOpr.OM_data_init += ('extends Simulator.Unit_Operations.'+unitOpr.extra[i]+';\n')
-                        unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPack+';\n')
+                        unitOpr.OM_data_init += ('extends Simulator.Files.Thermodynamic_Packages.'+unitOpr.thermoPackage+';\n')
                         unitOpr.OM_data_init += ('end '+unitOpr.ForNaming[i]+str(unitOpr.counter)+';\n')
                     else:
                         unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
