@@ -389,7 +389,7 @@ class Flowsheet():
             for k,v in op.items():
                 print("Print K",k)
                 if(set(v) & set(common)):
-                    print("*****************common matstm***************")
+                    print("*****************common MaterialStream***************")
                     if((i in self.unit) and (k in self.unit)):
                         print("both exist")
                         pass

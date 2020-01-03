@@ -18,18 +18,20 @@ from component_selector import componentSelector
 from component_selector import *
 from dockWidget import dockWidget
 from resDockWidget import resdockWidget
-
 import datetime
-from container import Container
+from container import *
+from Streams import *
+from UnitOperations import *
 
 
-
-class Graphics(QDialog):
+class Graphics(QDialog, QtWidgets.QGraphicsItem):
 
     def __init__(self):
         QDialog.__init__(self)
+        QtWidgets.QGraphicsItem.__init__(self)
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
+        self.pos = None
     
     def getScene(self):
         return self.scene
@@ -39,6 +41,80 @@ class Graphics(QDialog):
 
     def createNodeItem(self,unitOpr):
         return NodeItem(unitOpr)
+
+    def boundingRect(self):
+        return QtCore.QRectF(self.rect)
+
+    def mouseDoubleClickEvent(self, event):
+        print("Hello")
+        self.pos = event.scenePos()
+        print(self.pos)
+        return super().mouseDoubleClickEvent()
+    
+    def loadCanvas(self, obj):
+        stm = ['MaterialStream','EngStm']
+        
+        compounds = obj[-1]
+        obj.pop()
+        
+        componentSelector.setCompounds(compounds)
+        
+        for i in obj:
+            if(i in unitOp):
+                pass
+            else:
+                unitOp.append(i)
+            new_box = self.createNodeItem(i)
+            self.scene.addItem(new_box)
+            new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
+            
+        for i in obj:
+            if i.type == "MaterialStream":
+                eval(i.type).counter += 1
+            elif i.type not in stm:
+                #eval(i.type+"Class").counter += 1
+                #print(eval(i.type+"Class"))
+                ip = i.InputStms
+                op = i.OutputStms
+                for j in ip:
+                    pointA = NodeItem.getInstances(j.name)
+                    pointB = NodeItem.getInstances(i.name)
+                    rect = pointA.Output[0].boundingRect()
+                    pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
+                    pointAA = pointA.Output[0].mapToScene(pointAA)
+                    rectB = pointB.Input[0].boundingRect()
+                    pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
+                    pointBB = pointB.Input[0].mapToScene(pointBB)
+                    self.new_line = NodeLine(pointAA, pointBB, 'in')
+                    #self.new_line = NodeLine(pointA.Output[0].scenePos(), pointB.Input[0].scenePos(), 'in')
+                    self.new_line.source = pointA.Output[0]
+                    self.new_line.target = pointB.Input[0]
+                    pointA.Output[0].outLines.append(self.new_line)
+                    pointB.Input[0].inLines.append(self.new_line)
+                    self.scene.addItem(self.new_line)
+                    self.new_line.draw()      
+                    #print(pointA.Output[0].outLines[0].source, pointB.Input[0].inLines)          
+                for k in op:
+                    pointA = NodeItem.getInstances(i.name)
+                    pointB = NodeItem.getInstances(k.name)
+                    rect = pointA.Output[0].boundingRect()
+                    pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
+                    pointAA = pointA.Output[0].mapToScene(pointAA)
+                    rectB = pointB.Input[0].boundingRect()
+                    pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
+                    pointBB = pointB.Input[0].mapToScene(pointBB)
+                    self.new_line = NodeLine(pointAA, pointBB, 'out')
+                    self.new_line.source = pointA.Output[0]
+                    self.new_line.target = pointB.Input[0]
+                    pointA.Output[0].outLines.append(self.new_line)
+                    pointB.Input[0].inLines.append(self.new_line)
+                    self.scene.addItem(self.new_line)
+                    self.new_line.draw()
+                    #print(pointA.Output[0].outLines, pointB.Input[0].inLines)          
+           
+            
+
+                      
 
 class NodeLine(QtWidgets.QGraphicsPathItem):
     def __init__(self, pointA, pointB , socket):
@@ -51,80 +127,112 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         self.setZValue(-1)
         self.setBrush(QtGui.QColor(0,0,255,255))
         self.pen = QtGui.QPen()
-
         self.pen.setStyle(QtCore.Qt.SolidLine)
         self.pen.setWidth(1)
         self.pen.setColor(QtGui.QColor(0,0,255,255))
         self.setPen(self.pen)
-  
+
     def updatePath(self):
+
+        if (self._pointB.x() - self._pointA.x()) < 30:
+            path = QtGui.QPainterPath()
+            midptx = (self.pointA.x() + 13)
+    
+            ctrl1_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
+            ctrl2_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
+            pt1 = QtCore.QPointF(midptx , self.pointA.y())
+            path.moveTo(pt1)
+            path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
+
+            ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
+            ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
+            pt2 = QtCore.QPointF(midptx , max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            path.cubicTo(ctrl1_2, ctrl2_2, pt2)
+            path.moveTo(pt2)
+
+            ctrl1_3 = QtCore.QPointF(midptx, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            ctrl2_3 = QtCore.QPointF(midptx, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            pt3 = QtCore.QPointF(self.pointB.x()-13,  max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            path.cubicTo(ctrl1_3, ctrl2_3, pt3)
+            path.moveTo(pt3)
+
+            ctrl1_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            ctrl2_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+            pt4 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
+            path.cubicTo(ctrl1_4, ctrl2_4, pt4)
+            path.moveTo(pt4)
+
+            ctrl1_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
+            ctrl2_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
+            pt5 = QtCore.QPointF(self.pointB.x(), self.pointB.y())
+            path.cubicTo(ctrl1_5, ctrl2_5, pt5)
+            path.moveTo(pt5)
+
+            self.setPath(path)
+            return
+
         path = QtGui.QPainterPath()
         path.moveTo(self.pointA)
         midptx = 0.5*(self.pointA.x() + self.pointB.x())
-                
  
         ctrl1_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
         ctrl2_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
         pt1 = QtCore.QPointF(midptx , self.pointA.y())
-        path.cubicTo(ctrl1_1, ctrl2_1, pt1)
-                
-        path.moveTo(pt1)
+        path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
+        #path.moveTo(pt1)
 
         ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
         ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
         pt2 = QtCore.QPointF(midptx , self.pointB.y())
         path.cubicTo(ctrl1_2, ctrl2_2, pt2)
-        path.moveTo(pt2)
+        #path.moveTo(pt2)
 
         ctrl1_3 = QtCore.QPointF(midptx, self.pointB.y())
         ctrl2_3 = QtCore.QPointF(midptx, self.pointB.y())
         path.cubicTo(ctrl1_3, ctrl2_3, self.pointB)
+        #path.cubicTo(ctrl1_3, ctrl2_3, self.pointB)
+        #path.moveTo(self.pointB)
         self.setPath(path)
 
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
         painter.drawPath(self.path())
  
+    def draw(self):
+        self.updatePath()
+
     @property
     def pointA(self):
-        #print('a')
         return self._pointA
  
     @pointA.setter
     def pointA(self, point):
-        #print('seta')
         self._pointA = point
         self.updatePath()
  
     @property
     def pointB(self):
-        #print('b')
         return self._pointB
  
     @pointB.setter
     def pointB(self, point):
-        #print('set b')
         self._pointB = point
         self.updatePath()
  
     @property
     def source(self):
-        #print('source')
         return self._source
  
     @source.setter
     def source(self, widget):
-        #print('set source')
         self._source = widget
  
     @property
     def target(self):
-        #print('target')
         return self._target
  
     @target.setter
     def target(self, widget):
-        #print('set target')
         self._target = widget
 
     def __delete__(self,instance):
@@ -132,7 +240,9 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         del self._target
         del self._pointA
         del self._pointB
- 
+
+# this is used to store the position of node socket when it is double clicked
+lstt = []
 class NodeSocket(QtWidgets.QGraphicsItem):
     def __init__(self, rect, parent, socketType):
         super(NodeSocket, self).__init__(parent)
@@ -155,6 +265,16 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         # Lines.
         self.outLines = []
         self.inLines = []
+        
+    def drawLoop(self, pointA, pointB):
+        line1 = QLineF(pointA.x(), pointA.y(), pointA.x(), pointA.y()+200)
+        line2 = QLineF(pointB.x(), pointB.y(), pointB.x(), min(pointA.y(),pointB.y()) +200)
+        line3 = QLineF(pointB.x(), min(pointA.y(),pointB.y()) +200, pointA.x(), pointA.y()+200)
+        self.scene().addLine(line1, self.pen)
+        self.scene().addLine(line2, self.pen)
+        self.scene().addLine(line3, self.pen)
+
+        
 
     def shape(self):
         path = QtGui.QPainterPath()
@@ -188,14 +308,13 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.scene().addItem(self.newLine)
         else:
             super(NodeSocket, self).mousePressEvent(event)
-        
+
     def mouseMoveEvent(self, event):
         if self.type == 'op':
             pointB = self.mapToScene(event.pos())
             self.newLine.pointB = pointB
             if self.otherLine:
-                self.otherLine.pointB=pointB
-            
+                self.otherLine.pointB=pointB       
         elif self.type == 'in':
             pointA = self.mapToScene(event.pos())
             self.newLine.pointA = pointA
@@ -225,7 +344,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if self.newLine.source.parent.obj.type not in stm:
                 self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
             if self.newLine.target.parent.obj.type not in stm:
-                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)                
+                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
         else:
             self.scene().removeItem(self.newLine)
             if(self.newLine in self.inLines):
@@ -233,15 +352,41 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if(self.newLine in self.outLines):
                 self.outLines.remove(self.newLine)
             del self.newLine
-            super(NodeSocket, self).mouseReleaseEvent(event)
+            super(NodeSocket, self).mouseReleaseEvent(event) 
+    
+    
+
+    def mouseDoubleClickEvent(self, event):
+        if (len(lstt)== 0):
+            lstt.append(self.mapToScene(event.pos()))
+            print(lstt)
+        else:
+            print("clicked")
+            print("before fun")
+            self.drawLoop(self.mapToScene(event.pos()), lstt[-1])
+            lstt.clear()
+
+        super(NodeSocket, self).mouseDoubleClickEvent(event)
 
     def getCenter(self):
         rect = self.boundingRect()
         center = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
         center = self.mapToScene(center)
         return center
- 
+
+    
+# all created node items will be put inside this list 
+# it is used for returning the node item object based on unit operation object's name
+lst = []
+
 class NodeItem(QtWidgets.QGraphicsItem):
+    
+    @staticmethod
+    def getInstances(namee):
+        for i in lst:
+            if i.name == namee:
+                return i
+
     def __init__(self,unitOpr):
         l = ['Mixer','Splitter']
         super(NodeItem, self).__init__()
@@ -255,8 +400,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.nop = self.obj.no_of_outputs
         
         self.dockWidget = None
-        
-
+        lst.append(self)
         
         if(self.obj.type not in l):
             self.dockWidget = dockWidget(self.obj.name,self.obj.type,self.obj)
@@ -264,7 +408,6 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.mainwindow.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
             self.dockWidget.hide()
     
-
         self.pic=QtGui.QPixmap("icons/"+self.type+".png")
         self.rect = QtCore.QRect(0,0,self.pic.width(),self.pic.height())
         self.text = QGraphicsTextItem(self)
@@ -346,10 +489,14 @@ class NodeItem(QtWidgets.QGraphicsItem):
             for line in output.outLines:
                 line.pointA = line.source.getCenter()
                 line.pointB = line.target.getCenter()
+                #print(line.source)
         for input in self.Input:
             for line in input.inLines:
                 line.pointA = line.source.getCenter()
                 line.pointB = line.target.getCenter()
+                #print(line.source)
+        self.pos = event.scenePos()
+        self.obj.setPos(self.pos)
                 
     def mouseDoubleClickEvent(self, event):
         #self.setPos(event.scenePos().x()-250,event.scenePos().y())

@@ -30,6 +30,7 @@ class UnitOperation():
         self.Prop = {}
         self.x = 2500-30
         self.y = 2500-30
+        self.pos = None
         self.Prop = {}
         self.modeslist = []
         self.parameters = {}
@@ -68,6 +69,9 @@ class UnitOperation():
         else :
             print("OUTPUT CONNECTION")
             self.OutputStms.append(UnitOpr)
+
+    def setPos(self,pos):
+        self.pos = pos
 
     def OM_Flowsheet_Initialize(self):
         self.OM_data_init = ''

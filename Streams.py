@@ -31,6 +31,7 @@ class MaterialStream():
         self.no_of_outputs = 1
         self.x = 2500-30
         self.y = 2500-30
+        self.pos = None
         MaterialStream.counter+=1
         self.startDict = {}
         self.eqnDict = {}
@@ -150,7 +151,10 @@ class MaterialStream():
             self.Prop['xm_pc[3,'+str(i+1)+']'] = None
             self.Prop['F_pc[3,'+str(i+1)+']'] = None
             self.Prop['Fm_pc[3,'+str(i+1)+']'] = None
-            
+    
+    def setPos(self,pos):
+        self.pos = pos
+
     def GetMinEqnValues(self):
         x_pclist = []
         for i in range(0,len(self.CompNames)):

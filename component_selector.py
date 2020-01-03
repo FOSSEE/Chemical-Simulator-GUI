@@ -154,6 +154,12 @@ class componentSelector(QDialog,ui_dialog):
         else:
             self.Show_Error()
 
+    @staticmethod
+    def setCompounds(compounds):
+        #compound_selected = compounds
+        for i in compounds:
+            compound_selected.append(i)
+
     def addToTable(self,a):
         try:
             rowPosition = self.tableWidget.rowCount()

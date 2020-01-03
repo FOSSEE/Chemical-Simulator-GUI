@@ -21,8 +21,8 @@ from resDockWidget import resdockWidget
 from UnitOperations import *
 from Streams import *
 import datetime
-from container import Container
-from Graphics import Graphics
+from container import *
+from Graphics import *
 import pickle
 import threading
 import os
@@ -77,12 +77,10 @@ class MainApp(QMainWindow,ui):
         
         # Setting up undo stack
         # self.undoStack = QUndoStack(self)
-        
         # Calling initialisation functions
         self.buttonHandler()
         self.menuBar()
         self.comp.show()
-        
 
     '''
         MenuBar function handels all the all the operations of 
@@ -275,51 +273,40 @@ class MainApp(QMainWindow,ui):
             self.scene.removeItem(item)
             if hasattr(item,'Input'):
                 for x in item.Input:
-
-                    if x.newLine:
-                        
+                    if x.newLine: 
                         self.scene.removeItem(x.newLine)
                         del x.newLine
-                        
                     if x.otherLine:
-                        
                         self.scene.removeItem(x.otherLine)
                         del x.otherLine
             if hasattr(item,'Output'):
                 for x in item.Output:
-                    if x.newLine:
-                                           
+                    if x.newLine:                
                         self.scene.removeItem(x.newLine)
-                        del x.newLine
-                        
+                        del x.newLine 
                     if x.otherLine:
-                    
                         self.scene.removeItem(x.otherLine)
                         del x.otherLine
             if hasattr(item,'obj'):
-                self.Container.unitOp.remove(item.obj)
+                unitOp.remove(item.obj)
                 for k in list(self.Container.conn):
                     if item.obj==k:
                         del self.Container.conn[k]
-
                     elif item.obj in self.Container.conn[k]:
                         self.Container.conn[k].remove(item.obj)
                 self.textBrowser.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
                 del item.obj
             del item
-    
+
     '''
         Function for saving the current canvas items and compound_selected
     '''
     def save(self):
-        def jdefault(o):
-            return o.__dict__
-
         data = []
-        for i in self.Container.unitOp:
+        for i in unitOp:
             data.append(i)
-        
-        data.append(self.comp.getComp())
+        data.append(compound_selected)
+        print(data)
 
         fileFormat = 'sim'
         initialPath = QDir.currentPath() + 'untitled.' + fileFormat
@@ -331,7 +318,6 @@ class MainApp(QMainWindow,ui):
 
     '''
         Function for loading previous saved canvas and simulation 
-        ***Not finished yet***
     '''
     def open(self):
         fileFormat = 'sim'
@@ -341,9 +327,8 @@ class MainApp(QMainWindow,ui):
                                                   (fileFormat.upper(), fileFormat))
         with open(fileName, 'rb') as f:
             obj = pickle.load(f)
-        
-        for i in obj:
-            print(i)
+
+        self.graphics.loadCanvas(obj)
 
 def main():
     app = QApplication(sys.argv)

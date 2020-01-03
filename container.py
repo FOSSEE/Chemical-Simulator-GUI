@@ -17,10 +17,12 @@ import json
 import pickle 
 import os
 import sys
-
+unitOp = []
 class Container():
+    
+
     def __init__(self,msgbrowser):
-        self.unitOp = []
+        #self.unitOp = []
         self.thermoPackage = None
         self.compounds = None
         self.flowsheet = None
@@ -31,15 +33,11 @@ class Container():
         self.msg.setText("")
         self.opl=[]
         self.result=[]
-        
-
 
     def currentTime(self):
         now = datetime.datetime.now()
         time = str(now.hour) + ":" + str(now.minute) + ":" +str(now.second)
         return time
-
-
     
     def updateConn(self,key,value):
         self.conn[key].append(value)
@@ -67,7 +65,6 @@ class Container():
         except Exception as e:
             print(e)
 
-
     def addUnitOp(self,obj,scene,graphics):
         box = None
         self.obj = obj
@@ -76,17 +73,16 @@ class Container():
         box  = self.graphics.createNodeItem(self.obj)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
-        
 
-        if(obj in self.unitOp):
+        if(obj in unitOp):
             pass
         else:
-            self.unitOp.append(obj)
-            
+            #self.unitOp.append(obj)
+            unitOp.append(obj)
             self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
 
     def fetchObject(self,name):
-        for i in self.unitOp:
+        for i in unitOp:
             if(i.name==name):
                 return i
                 
@@ -95,8 +91,6 @@ class Container():
 
     def add_thermoPackage(self,thermo):
         self.thermoPackage = thermo
-        
-    
 
     def msgBrowser(self):
         std = self.flowsheet.stdout.decode("utf-8")
@@ -119,7 +113,7 @@ class Container():
         self.flowsheet = Flowsheet()
         self.flowsheet.add_comp_list(self.compounds)
         print("######## connection master#########\n",self.conn)
-        for i in self.unitOp :
+        for i in unitOp :
                 print("here",i)
                 self.flowsheet.add_UnitOpn(i)
             

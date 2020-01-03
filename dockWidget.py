@@ -77,7 +77,9 @@ class dockWidget(QDockWidget,ui_dialog):
                         self.x_pclist.append(l)
                 else:
                     print("elseloop")
-                    l = QLineEdit()                                                      
+                    l = QLineEdit()
+                    # if i.Pdel is not None:
+                    #     l.setText(i.Pdel)                                                      
                     self.formLayout.addRow(QLabel(i+":"),l )
                     self.inputdict[i] = l
             
