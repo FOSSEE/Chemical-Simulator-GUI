@@ -33,7 +33,7 @@ class Mixer():
         comp_count = len(addedcomp)
         
         self.OM_data_init = self.OM_data_init + (
-        "Simulator.Unit_Operations.Mixer " + self.name + "(NOC = " + str(comp_count))
+        "Simulator.Unit_Operations.Mixer " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

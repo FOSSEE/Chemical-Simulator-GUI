@@ -40,7 +40,7 @@ class CompSep():
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStms.name+';\n'
         self.OM_data_init = self.OM_data_init + (
-        "Simulator.Unit_Operations.Compound_Separator " + self.name + "(NOC = " + str(comp_count))
+        "Simulator.Unit_Operations.Compound_Separator " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

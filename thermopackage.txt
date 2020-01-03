@@ -1,6 +1,6 @@
-Raoults_Law
+RaoultsLaw
 NRTL
 INIQUAC
 UNIFAC
-Peng_Robinson
-Grayson_Streed
+PengRobinson
+GraysonStreed

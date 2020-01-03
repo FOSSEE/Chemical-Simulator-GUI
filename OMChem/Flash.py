@@ -41,7 +41,7 @@ class Flash():
         self.OM_data_init = self.OM_data_init + ("end fls"+str(self.count)+";\n")
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "fls"+str(self.count)+" "+ self.name + "(NOC = " + str(comp_count))
+        "fls"+str(self.count)+" "+ self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

@@ -1,3 +1,6 @@
 Stoichiometrycheck
 Arhenious
-Reaction_Manager
+BaseCalc
+ConversionReaction
+KineticReaction
+EquilibriumReaction

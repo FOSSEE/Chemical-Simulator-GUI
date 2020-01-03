@@ -19,7 +19,7 @@ class dockWidget(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.inputdict = {}
-        self.compmolfraclist = []
+        self.x_pclist = []
         self.modes()
         self.pushButton_2.clicked.connect(self.modeSelection)
         #self.inputparamslist()
@@ -57,7 +57,7 @@ class dockWidget(QDockWidget,ui_dialog):
                     for j in self.lines:
                         combo.addItem(str(j))
                     self.formLayout.addRow(QLabel(i+":"),combo )                    
-                    self.inputdict[i] = combo
+                    self.inputdict[i] = combo   
                     print("thermo")
                 elif(i=="condType"):
                     combo = QComboBox()
@@ -66,15 +66,15 @@ class dockWidget(QDockWidget,ui_dialog):
                         combo.addItem(str(j))
                     self.formLayout.addRow(QLabel("Condensor Type :"+":"),combo)
                     self.inputdict[i] = combo
-                elif(i=="CompMolFrac"):
+                elif(i=="x_pc"):
                     noc = len(compound_selected)
                     print(noc)
-                    self.compmolfraclist.clear()
+                    self.x_pclist.clear()
                     for j in range(noc):
                         l = QLineEdit()    
-                        self.inputdict[i] = "compmolfrac"                                                  
+                        self.inputdict[i] = "x_pc"                                                  
                         self.formLayout.addRow(QLabel(str(compound_selected[j])+":"),l )
-                        self.compmolfraclist.append(l)
+                        self.x_pclist.append(l)
                 else:
                     print("elseloop")
                     l = QLineEdit()                                                      
@@ -103,11 +103,11 @@ class dockWidget(QDockWidget,ui_dialog):
                     else:
                         self.Show_Error()
                         break
-                elif(i =="CompMolFrac"):
+                elif(i =="x_pc"):
                     l=[]
                     mf = []
                     total_moles = 0
-                    for mol_frac in self.compmolfraclist:
+                    for mol_frac in self.x_pclist:
                         if (mol_frac.text()):
                             l.append(mol_frac.text())
                             total_moles += float(l[-1])
@@ -116,7 +116,7 @@ class dockWidget(QDockWidget,ui_dialog):
                             break
                     for c in range(len(compound_selected)):
                         mf.append(str(float(l[c])/total_moles))
-                        self.compmolfraclist[c].setText(mf[-1])
+                        self.x_pclist[c].setText(mf[-1])
                         # self.formLayout.addRow(QLabel(str(compound_selected[c])+" Mole Fraction: "+str(float(l[c])/total_moles)))
                     self.dict[i] = ",".join(mf)
                     # self.update()

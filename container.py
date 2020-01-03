@@ -1,7 +1,4 @@
 from OMChem.Flowsheet import Flowsheet
-from OMChem.MatStm import MatStm
-from OMChem.Mixer import Mixer
-from OMChem.Heater import Heater
 from component_selector import *
 from collections import defaultdict
 from PyQt5.QtCore import *
@@ -53,7 +50,7 @@ class Container():
             self.op.clear()
             self.ip.clear()
             self.opl.clear()
-            stm = ['MatStm','EngStm']
+            stm = ['MaterialStream','EngStm']
             for i in self.conn:
                 if i.type not in stm:
                     self.op[i]=self.conn[i]

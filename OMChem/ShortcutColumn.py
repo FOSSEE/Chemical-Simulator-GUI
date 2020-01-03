@@ -59,7 +59,7 @@ class ShortcutColumn():
         self.OM_data_init = self.OM_data_init + ("extends Simulator.Files.Thermodynamic_Packages."+self.thermoPackage+";\n")
         self.OM_data_init = self.OM_data_init + ("end sc"+str(self.count)+";\n")
         comp_count = len(addedcomp)
-        self.OM_data_init = self.OM_data_init + "sc"+str(self.count)+ " " + self.name + "(NOC = " + str(comp_count)
+        self.OM_data_init = self.OM_data_init + "sc"+str(self.count)+ " " + self.name + "(Nc = " + str(comp_count)
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

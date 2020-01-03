@@ -139,7 +139,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
         self.data.append("import data = Simulator.Files.Chemsep_Database;\n")
         self.data.append("parameter data."+self.comp1+" comp1;\n")
         self.data.append("parameter data."+self.comp2+" comp2;\n")
-        self.data.append("extends BinaryEnvelopes."+self.thermoPack+"(NOC = 2, data_points = "+str(data_points)+ ", comp = { comp1, comp2 }, "+self.type+" = fill( "+str(val)+", "+str(data_points)+"));\n")
+        self.data.append("extends BinaryEnvelopes."+self.thermoPack+"(Nc = 2, data_points = "+str(data_points)+ ", comp = { comp1, comp2 }, "+self.type+" = fill( "+str(val)+", "+str(data_points)+"));\n")
         self.data.append("end Graph;")
 
         with open(self.Graphmo_path, 'w') as txtfile:

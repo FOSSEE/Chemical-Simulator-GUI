@@ -1,8 +1,0 @@
-within Simulator.Files;
-
-package Icons
-model Material_Stream
-
-end Material_Stream;
-
-end Icons;

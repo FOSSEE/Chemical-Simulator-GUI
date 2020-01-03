@@ -3,8 +3,6 @@ from collections import defaultdict
 import sys
 import numpy as np
 from OMChem.Flowsheet import Flowsheet
-from OMChem.MatStm import MatStm
-
 import pandas as pd
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -208,7 +206,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
 
     def mouseReleaseEvent(self, event):
         item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
-        stm = ['MatStm','EngStm']
+        stm = ['MaterialStream','EngStm']
         item.otherLine=self.newLine
         if (self.type == 'op') and (item.type == 'in'):
             self.newLine.source = self
@@ -321,7 +319,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             Input = [NodeSocket(QtCore.QRect(-2.5+5.5,(self.rect.height()*x/(self.nin+1))-8,4,4), self, 'in') for x in range(1,self.nin+1) ]
             Output = [NodeSocket(QtCore.QRect(self.rect.width()-7.5,(self.rect.height()*x*0.90/(self.nop+1))-4,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
-        elif(self.type=="AdiaComp" or self.type=="AdiaExp"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
+        elif(self.type=="AdiabaticCompressor" or self.type=="AdiabaticExpander"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
             Input = [NodeSocket(QtCore.QRect(-3.5,(self.rect.height()*x/(self.nin+1))-6,4,4), self, 'in') for x in range(1,self.nin+1) ]
             Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-6,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
@@ -337,7 +335,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-12,5,5), self, 'in') for x in range(1,self.nin+1) ]
             Output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-67,5,5), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output
-        elif(self.type=="MatStm"):
+        elif(self.type=="MaterialStream"):
             Input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'in') for x in range(1,self.nin+1) ]
             Output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1))-1,4,4), self, 'op') for x in range(1,self.nop+1)]
             return Input,Output

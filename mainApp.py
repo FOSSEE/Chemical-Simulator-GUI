@@ -3,10 +3,6 @@ from collections import defaultdict
 import sys
 import numpy as np
 from OMChem.Flowsheet import Flowsheet
-from OMChem.MatStm import MatStm
-from OMChem.Mixer import Mixer
-from OMChem.Heater import Heater
-from OMChem.Splitter import Splitter
 import pandas as pd
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -23,6 +19,7 @@ from dockWidget import dockWidget
 from Bin_Phase_env import *
 from resDockWidget import resdockWidget
 from UnitOperations import *
+from Streams import *
 import datetime
 from container import Container
 from Graphics import Graphics
@@ -33,9 +30,6 @@ import ctypes
 import sys
 
 ui,_ = loadUiType('main.ui')
-
-# comp_dict is a dictionary in which keys are the type of component and value is a list [counter_of_that_particular_type ,Number of ip,Number of op]
-#comp_dict ={'MatStm':[1,1,1],'EngStm':[1,1,1],'Mixer':[1,4,1],'Splitter':[1,1,4],'Flash':[1,1,2],'Heater':[1,1,1],'Valve':[1,1,1],'Cooler':[1,1,1],'CompSep':[1,1,2],'Pump':[1,1,1],'AdiaComp':[1,1,1],'AdiaExp':[1,1,1],'DistCol':[1,2,2],'ShortCol':[1,1,2]}
 
 '''
     MainApp class is responsible for all the main App Ui operations
@@ -126,7 +120,7 @@ class MainApp(QMainWindow,ui):
         Handles all the buttons of different components.
     '''
     def buttonHandler(self):
-        self.pushButton.clicked.connect(partial(self.component,'MatStm'))
+        self.pushButton.clicked.connect(partial(self.component,'MaterialStream'))
         self.pushButton_7.clicked.connect(partial(self.component,'Mixer'))
         self.pushButton_14.clicked.connect(partial(self.component,'Pump'))
         self.pushButton_26.clicked.connect(partial(self.component,'DistCol'))
@@ -137,8 +131,8 @@ class MainApp(QMainWindow,ui):
         self.pushButton_25.clicked.connect(partial(self.component,'Valve'))
         self.pushButton_12.clicked.connect(partial(self.component,'Cooler'))
         self.pushButton_13.clicked.connect(partial(self.component,'CompSep'))
-        self.pushButton_15.clicked.connect(partial(self.component,'AdiaComp'))
-        self.pushButton_16.clicked.connect(partial(self.component,'AdiaExp'))
+        self.pushButton_15.clicked.connect(partial(self.component,'AdiabaticCompressor'))
+        self.pushButton_16.clicked.connect(partial(self.component,'AdiabaticExpander'))
     
     '''
         Displays help box
@@ -238,10 +232,10 @@ class MainApp(QMainWindow,ui):
     def component(self,unitOpType):
         if(self.comp.isCompSelected()):
             self.type = unitOpType
-            if(self.type=="MatStm"):
-                self.obj = MatStm(CompNames=compound_selected)  
+            if(self.type=="MaterialStream"):
+                self.obj = MaterialStream(CompNames=compound_selected)  
             else:
-                self.obj = eval(self.type+"Class")()
+                self.obj = eval(self.type)()
             self.Container.addUnitOp(self.obj,self.scene,self.graphics)
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")

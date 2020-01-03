@@ -363,7 +363,7 @@ class ChemsepDatabase():
                 #f.write('Package database')
                 self.comp_prop_list.append('model '+CompName)
                 #f.write('\n')
-                self.comp_prop_list.append(' extends Simulator.Files.Chemsep_Database.General_Properties(')
+                self.comp_prop_list.append(' extends Simulator.Files.ChemsepDatabase.GeneralProperties(')
                 #f.write('\n')
                 #self.comp_prop_list.append('  SN ' + '= ' + str(i) +', ')
                 # f.write('\n')

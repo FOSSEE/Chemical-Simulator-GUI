@@ -1,6 +1,4 @@
 from OMChem.Flowsheet import Flowsheet
-from OMChem.MatStm import MatStm
-from OMChem.EngStm import EngStm
 from Graphics import Graphics
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -22,21 +20,23 @@ class UnitOperation():
         self.OM_data_init = ''
         self.InputStms = []
         self.OutputStms = []
+        self.compounds = compound_selected
         self.name = ''
         self.mode = None
         self.modeVal = None
         self.type = ''
         self.no_of_inputs = 1
         self.no_of_outputs = 1
+        self.Prop = {}
         self.x = 2500-30
         self.y = 2500-30
         self.Prop = {}
         self.modeslist = []
         self.parameters = {}
         # self.input_parameters = {}
-        self.extra = None
-        self.ForNaming = None
-        self.multidict = None
+        self.extra = []
+        self.ForNaming = []
+        self.multidict = []
         self.ThermoPackReq = False
         self.thermoPackage = None
 
@@ -60,10 +60,6 @@ class UnitOperation():
             else:
                 self.modeVal = params[self.mode]
 
-    # def connect(self,InputStms,OutputStms):
-    #     self.InputStms = InputStms
-    #     self.OutputStms = OutputStms
-
     def add_connection(self,flag,UnitOpr):
         if flag==1:
             # Input stream if flag is 1
@@ -73,95 +69,198 @@ class UnitOperation():
             print("OUTPUT CONNECTION")
             self.OutputStms.append(UnitOpr)
 
-    # def send_to_flowsheet(self):
-    #     Inst = UnitOpr(name=self.name,counter=type(self).counter,Type='Heater',parameters=self.parameters,mode=self.mode,modeVal=self.modeVal,ThermoPackReq=self.ThermoPackReq,thermoPack=self.thermoPackage,extra=self.extra,multidict=self.multidict,inputs=self.no_of_inputs,outputs=self.no_of_outputs)
-    #     # Inst.connect(self.InputStms,self.OutputStms)
-    #     Inst.InputStms = self.InputStms
-    #     Inst.OutputStms = self.OutputStms
-    #     return Inst
+    def OM_Flowsheet_Initialize(self):
+        self.OM_data_init = ''
 
-class HeaterClass(UnitOperation):
+        if(self.ThermoPackReq):
+            if len(self.extra)>1:
+                for i in range(self.extra):
+                    latest = ''
+                    for j in range(self.extra[i]):
+                        if self.extra[i][j]!='.':
+                            latest += self.extra[i][j]
+                        self.ForNaming[i] = latest   
 
-    def __init__(self, name='Heater', pressDrop=None, eff='None'):
+
+
+        if(self.ThermoPackReq):
+            if len(self.extra)==1:
+                for i in self.extra:
+                    self.OM_data_init += ('model '+i+str(self.counter)+'\n')
+                    self.OM_data_init += ('extends Simulator.UnitOperations.'+i+';\n')
+                    self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermoPackage+';\n')
+                    self.OM_data_init += ('end '+i+str(self.counter)+';\n')
+
+                    self.OM_data_init += i+str(self.counter) + ' ' + self.name + '(Nc = ' + str(len(self.compounds)) 
+
+            else:
+                for i in range(len(self.extra)):
+                    if i!=(len(self.extra)-1):
+                        self.OM_data_init += ('model '+self.ForNaming[i]+str(self.counter)+'\n')
+                        self.OM_data_init += ('extends Simulator.UnitOperations.'+self.extra[i]+';\n')
+                        self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermoPackage+';\n')
+                        self.OM_data_init += ('end '+self.ForNaming[i]+str(self.counter)+';\n')
+                    else:
+                        self.OM_data_init += ('model '+self.ForNaming[i]+str(self.counter)+'\n')
+                        self.OM_data_init += ('extends Simulator.UnitOperations.'+self.extra[i]+';\n')
+                        for j in range(len(self.extra)-1):
+                            self.OM_data_init += (self.ForNaming[j] + str(self.counter) +' ' + self.ForNaming[j] + '#' + self.multidict[j] + ';\n')
+
+                            self.OM_data_init += ('end '+self.ForNaming[i]+str(self.counter)+';\n')
+
+                    self.OM_data_init += self.ForNaming[i] + str(self.counter) + ' ' + self.ForNaming + '(Nc = ' + str(len(self.compounds))
+                 
+            C = str(self.compounds).strip('[').strip(']')
+            C = C.replace("'", "")  
+            self.OM_data_init += ',C = {' + C + '}'
+
+                    
+                        
+            for k,v in self.parameters.items():
+                self.OM_data_init += ', '
+                self.OM_data_init += k + ' = ' + str(v)
+                self.OM_data_init += ');\n' 
+
+        else: 
+            self.OM_data_init += 'Simulator.UnitOperations.' + self.type + ' ' + self.name + '(Nc = ' + str(len(self.compounds))
+            C = str(self.compounds).strip('[').strip(']')
+            C = C.replace("'", "")  
+            self.OM_data_init += ',C = {' + C + '}'
+
+            for k,v in self.parameters.items():
+                self.OM_data_init += ', '
+                self.OM_data_init += k + ' = ' + str(v)
+
+            self.OM_data_init += ');\n'
+
+                #print("HERE WE GO")
+                #print(self.OM_data_init)
+
+        return self.OM_data_init  
+
+
+
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+
+        if len(self.InputStms)>1:
+            strcount = 1
+            for strm in self.InputStms:
+                self.OM_data_eqn += ('connect(' + strm.name + '.Out,' + self.name + '.In[' + str(strcount) + ']);\n')
+                strcount += 1
+        else:
+            self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.InputStms[0].name + '.Out);\n')
+
+        if len(self.OutputStms)>1:
+            strcount = 1
+            for strm in self.OutputStms:
+                self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
+                strcount += 1
+        else:
+            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.OutputStms[0].name + '.In);\n')    
+        
+        if self.mode:
+            self.OM_data_eqn += (self.name + '.' + self.mode + '=' + self.modeVal + ';\n')    
+
+        return self.OM_data_eqn
+
+class Heater(UnitOperation):
+
+    def __init__(self, name='Heater', Pdel=None, Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Heater'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
         self.Prop = {
-            'pressDrop':None,
-            'eff':None,
-            'outT':None,
-            'tempInc':None,
-            'heatAdd':None,
+            'Pdel':None,
+            'Eff':None,
+            'Tout':None,
+            'Tdel':None,
+            'Q':None,
         }
-        self.modesList = ["heatAdd","outT","outVapPhasMolFrac","tempInc","enFlo"] 
+        self.modesList = ["Q","Tout","xvapout","Tdel"] 
         self.extra = None
         self.ForNaming = None
-        self.pressDrop = pressDrop
-        self.eff = eff
-        self.parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
-        # self.input_parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
+        self.Pdel = Pdel
+        self.Eff = Eff
+        self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
+        # self.input_parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
         type(self).counter += 1
 
-class CoolerClass(UnitOperation):
+class Cooler(UnitOperation):
 
-    def __init__(self, name='Cooler', pressDrop=None, eff='None'):
+    def __init__(self, name='Cooler', Pdel=None, Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Cooler'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
         self.Prop = {
-            'pressDrop':None,
-            'eff':None,
-            'outT':None,
-            'tempDrop':None,
-            'heatRem':None,
+            'Pdel':None,
+            'Eff':None,
+            'Tout':None,
+            'Tdel':None,
+            'Q':None,
         }
-        self.modesList = ["heatRem","outT","outVapPhasMolFrac","tempDrop","enFlo"]
+        self.modesList = ["Q","Tout","xvapout","Tdel","enFlo"]
         self.extra = None
         self.ForNaming = None
-        self.pressDrop = pressDrop
-        self.eff = eff
-        self.parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
-        # self.input_parameters = {'pressDrop':self.pressDrop, 'eff':self.eff}
+        self.Pdel = Pdel
+        self.Eff = Eff
+        self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
+        # self.input_parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
         type(self).counter += 1
 
-class AdiaCompClass(UnitOperation):
+class AdiabaticCompressor(UnitOperation):
 
-    def __init__(self, name='AdiaComp', eff='None'):
+    def __init__(self, name='AdiabaticCompressor', Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
-        self.type = 'AdiaComp'
+        self.type = 'AdiabaticCompressor'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ["pressInc","outP","reqPow"]
-        self.extra = ['Adiabatic_Compressor']
-        self.ForNaming = ['Adiabatic_Compressor']
+        self.Prop = {
+            'Pdel':None,
+            'Tdel':None,
+            'Pout':None,
+            'Tout':None,
+            'Q':None
+        }
+        self.modesList = ["Pdel","Pout","Q"]
+        self.extra = ['AdiabaticCompressor']
+        self.ForNaming = ['AdiabaticCompressor']
         self.ThermoPackReq = True
-        self.thermoPackage ="Raoults_Law"
-        self.eff = eff
-        self.parameters = {'eff':self.eff}
-        # self.input_parameters = {"eff":self.eff,"thermoPackage":self.thermoPackage}
+        self.thermoPackage ="RaoultsLaw"
+        self.Eff = Eff
+        self.parameters = {'Eff':self.Eff}
+        # self.input_parameters = {"Eff":self.Eff,"thermoPackage":self.thermoPackage}
         type(self).counter += 1
 
-class AdiaExpClass(UnitOperation):
+class AdiabaticExpander(UnitOperation):
 
-    def __init__(self, name='AdiaExp', eff='None'):
+    def __init__(self, name='AdiabaticExpander', Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
-        self.type = 'AdiaExp'
+        self.type = 'AdiabaticExpander'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ["pressDrop","outP","genPow"]
-        self.extra = ['Adiabatic_Expander']
-        self.ForNaming = ['Adiabatic_Expander']
+        self.Prop = {
+            'Pdel':None,
+            'Tdel':None,
+            'Pout':None,
+            'Tout':None,
+            'Q':None
+        }
+        self.modesList = ["Pdel","Pout","Q"]
+        self.extra = ['AdiabaticExpander']
+        self.ForNaming = ['AdiabaticExpander']
         self.ThermoPackReq = True
-        self.thermoPackage ="Raoults_Law"
-        self.eff = eff
-        self.parameters = {'eff':self.eff}
-        # self.input_parameters = {"eff":self.eff,"thermoPackage":self.thermoPackage}
+        self.thermoPackage ="RaoultsLaw"
+        self.Eff = Eff
+        self.parameters = {'Eff':self.Eff}
+        # self.input_parameters = {"Eff":self.Eff,"thermoPackage":self.thermoPackage}
         type(self).counter += 1
         
 

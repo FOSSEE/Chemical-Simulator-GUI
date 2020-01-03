@@ -345,11 +345,11 @@
             <string notr="true">Text-align:left;</string>
            </property>
            <property name="text">
-            <string>MatStm</string>
+            <string>MaterialStream</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/MatStm.png</normaloff>icons/MatStm.png</iconset>
+             <normaloff>icons/MaterialStream.png</normaloff>icons/MaterialStream.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -906,7 +906,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/AdiaComp.png</normaloff>icons/AdiaComp.png</iconset>
+             <normaloff>icons/AdiabaticCompressor.png</normaloff>icons/AdiabaticCompressor.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -953,7 +953,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/AdiaExp.png</normaloff>icons/AdiaExp.png</iconset>
+             <normaloff>icons/AdiabaticExpander.png</normaloff>icons/AdiabaticExpander.png</iconset>
            </property>
            <property name="iconSize">
             <size>
