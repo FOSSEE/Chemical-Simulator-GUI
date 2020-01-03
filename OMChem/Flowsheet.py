@@ -23,103 +23,6 @@ class Flowsheet():
         self.stdout=None
         self.stderr=None
     
-    def OM_Flowsheet_Initialize(self,unitOpr):
-        unitOpr.OM_data_init = ''
-
-        if(unitOpr.ThermoPackReq):
-            if len(unitOpr.extra)>1:
-                for i in range(unitOpr.extra):
-                    latest = ''
-                    for j in range(unitOpr.extra[i]):
-                        if unitOpr.extra[i][j]!='.':
-                            latest += unitOpr.extra[i][j]
-                        unitOpr.ForNaming[i] = latest   
-
-
-
-        if(unitOpr.ThermoPackReq):
-            if len(unitOpr.extra)==1:
-                for i in unitOpr.extra:
-                    unitOpr.OM_data_init += ('model '+i+str(unitOpr.counter)+'\n')
-                    unitOpr.OM_data_init += ('extends Simulator.UnitOperations.'+i+';\n')
-                    unitOpr.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+unitOpr.thermoPackage+';\n')
-                    unitOpr.OM_data_init += ('end '+i+str(unitOpr.counter)+';\n')
-
-                    unitOpr.OM_data_init += i+str(unitOpr.counter) + ' ' + unitOpr.name + '(Nc = ' + str(len(self.compounds)) 
-
-            else:
-                for i in range(len(unitOpr.extra)):
-                    if i!=(len(unitOpr.extra)-1):
-                        unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
-                        unitOpr.OM_data_init += ('extends Simulator.UnitOperations.'+unitOpr.extra[i]+';\n')
-                        unitOpr.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+unitOpr.thermoPack+';\n')
-                        unitOpr.OM_data_init += ('end '+unitOpr.ForNaming[i]+str(unitOpr.counter)+';\n')
-                    else:
-                        unitOpr.OM_data_init += ('model '+unitOpr.ForNaming[i]+str(unitOpr.counter)+'\n')
-                        unitOpr.OM_data_init += ('extends Simulator.UnitOperations.'+unitOpr.extra[i]+';\n')
-                        for j in range(len(unitOpr.extra)-1):
-                            unitOpr.OM_data_init += (unitOpr.ForNaming[j] + str(unitOpr.counter) +' ' + unitOpr.ForNaming[j] + '#' + unitOpr.multidict[j] + ';\n')
-
-                            unitOpr.OM_data_init += ('end '+unitOpr.ForNaming[i]+str(unitOpr.counter)+';\n')
-
-                    unitOpr.OM_data_init += unitOpr.ForNaming[i] + str(unitOpr.counter) + ' ' + unitOpr.ForNaming + '(Nc = ' + str(len(self.compounds))
-                 
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
-            unitOpr.OM_data_init += ',C = {' + C + '}'
-
-                    
-                        
-            for k,v in unitOpr.parameters.items():
-                unitOpr.OM_data_init += ', '
-                unitOpr.OM_data_init += k + ' = ' + str(v)
-                unitOpr.OM_data_init += ');\n' 
-
-        else: 
-            unitOpr.OM_data_init += 'Simulator.UnitOperations.' + unitOpr.type + ' ' + unitOpr.name + '(Nc = ' + str(len(self.compounds))
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
-            unitOpr.OM_data_init += ',C = {' + C + '}'
-
-            for k,v in unitOpr.parameters.items():
-                unitOpr.OM_data_init += ', '
-                unitOpr.OM_data_init += k + ' = ' + str(v)
-
-            unitOpr.OM_data_init += ');\n'
-
-                #print("HERE WE GO")
-                #print(unitOpr.OM_data_init)
-
-        return unitOpr.OM_data_init  
-
-
-
-
-    def OM_Flowsheet_Equation(self,unitOpr):
-        unitOpr.OM_data_eqn = ''
-
-        if len(unitOpr.InputStms)>1:
-            strcount = 1
-            for strm in unitOpr.InputStms:
-                unitOpr.OM_data_eqn += ('connect(' + strm.name + '.Out,' + unitOpr.name + '.In[' + str(strcount) + ']);\n')
-                strcount += 1
-        else:
-            unitOpr.OM_data_eqn += ('connect(' + unitOpr.name + '.In,' + unitOpr.InputStms[0].name + '.Out);\n')
-
-        if len(unitOpr.OutputStms)>1:
-            strcount = 1
-            for strm in unitOpr.OutputStms:
-                unitOpr.OM_data_eqn += ('connect(' + strm.name + '.In,' + unitOpr.name + '.Out[' + str(strcount) + ']);\n')
-                strcount += 1
-        else:
-            unitOpr.OM_data_eqn += ('connect(' + unitOpr.name + '.Out,' + unitOpr.OutputStms[0].name + '.In);\n')    
-        
-        if unitOpr.mode:
-            unitOpr.OM_data_eqn += (unitOpr.name + '.' + unitOpr.mode + '=' + unitOpr.modeVal + ';\n')    
-
-        return unitOpr.OM_data_eqn
-
-    
     def get_omc_path(self):
         try:
             self.omhome = os.environ.get('OPENMODELICAHOME')
@@ -329,7 +232,7 @@ class Flowsheet():
 
         for unitop in self.UnitOpn:
             if unitop.type != 'MaterialStream':
-                self.data.append(self.OM_Flowsheet_Initialize(unitop))
+                self.data.append(unitop.OM_Flowsheet_Initialize())
             else:
                 self.data.append(unitop.OM_Flowsheet_Initialize(self.compounds))
                     
@@ -341,7 +244,7 @@ class Flowsheet():
         for unitop in self.UnitOpn:
             if unitop.type not in self.stm:
                 for j in unitop.OutputStms: 
-                    self.outlist.append(j)
+                    self.outlist.append(j)  
                     print(j.name)
                 
 
