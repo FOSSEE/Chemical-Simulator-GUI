@@ -43,7 +43,7 @@ class MainApp(QMainWindow,ui):
         
         # Loading and setting up style sheet
         self.setupUi(self)
-        style = open('light.css','r')
+        style = open('cyan.css','r')
         style = style.read()
         self.setStyleSheet(style)
         

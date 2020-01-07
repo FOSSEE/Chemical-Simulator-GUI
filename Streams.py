@@ -97,26 +97,29 @@ class MaterialStream():
    
     def paramgetter(self,mode):
         dict = {}
+        # print("Hello hello ", mode)
+        # if(mode == None):
+        #     mode = self.modesList[0]
         if(mode=="PT"):
             self.mode1 = 'P'
             self.mode2 = 'T'
-            dict = {self.mode2:None,self.mode1:None,"x_pc":None,"MolFlow":None,"thermoPackage":None}
+            dict = {self.mode2:self.T,self.mode1:self.P,"x_pc":self.x_pc,"MolFlow":self.MolFlow,"thermoPackage":self.thermoPackage}
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
-            dict = {self.mode1:None,self.mode2:None,"x_pc":None,"MolFlow":None,"thermoPackage":None}
+            dict = {self.mode1:self.P,self.mode2:self.Prop['H_p[1]'],"x_pc":self.x_pc,"MolFlow":self.MolFlow,"thermoPackage":self.thermoPackage}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
-            dict = {self.mode1:None,self.mode2:None,"x_pc":None,"MolFlow":None,"thermoPackage":None}
+            dict = {self.mode1:self.P,self.mode2:self.xvap,"x_pc":self.x_pc,"MolFlow":self.MolFlow,"thermoPackage":self.thermoPackage}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
-            dict = {self.mode1:None,self.mode2:None,"x_pc":None,"MolFlow":None,"thermoPackage":None}
+            dict = {self.mode1:self.T,self.mode2:self.xvap,"x_pc":self.x_pc,"MolFlow":self.MolFlow,"thermoPackage":self.thermoPackage}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
-            dict = {self.mode1:None,self.mode2:None,"x_pc":None,"MolFlow":None,"thermoPackage":None}
+            dict = {self.mode1:self.P,self.mode2:self.Prop['S_p[1]'],"x_pc":self.x_pc,"MolFlow":self.MolFlow,"thermoPackage":self.thermoPackage}
         
         return dict
 

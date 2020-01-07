@@ -380,7 +380,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
 lst = []
 
 class NodeItem(QtWidgets.QGraphicsItem):
-    
+
     @staticmethod
     def getInstances(namee):
         for i in lst:
@@ -395,19 +395,26 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         self.name = self.obj.name
         self.type = self.obj.type
-        self.setToolTip(self.name)
+
+        default_tooltip = f"{self.name}\n\n"
+        default_tooltip_dict = self.obj.paramgetter(self.obj.modesList[0])
+        for i, j in default_tooltip_dict.items():
+            if j is not None:
+                default_tooltip = default_tooltip + f"   {i} : {j}\n"
+        self.setToolTip(default_tooltip)
+
         self.nin = self.obj.no_of_inputs
         self.nop = self.obj.no_of_outputs
-        
+
         self.dockWidget = None
         lst.append(self)
-        
+
         if(self.obj.type not in l):
             self.dockWidget = dockWidget(self.obj.name,self.obj.type,self.obj)
             self.mainwindow= findMainWindow(self)
             self.mainwindow.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
             self.dockWidget.hide()
-    
+
         self.pic=QtGui.QPixmap("icons/"+self.type+".png")
         self.rect = QtCore.QRect(0,0,self.pic.width(),self.pic.height())
         self.text = QGraphicsTextItem(self)

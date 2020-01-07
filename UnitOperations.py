@@ -47,6 +47,7 @@ class UnitOperation():
             self.mode = self.modeslist[0]
         else:
             self.mode = mode
+        # print("Hello hello ", self.mode)
         params = self.parameters.copy()
         params[self.mode] = None
         return params
@@ -171,7 +172,7 @@ class UnitOperation():
 
 class Heater(UnitOperation):
 
-    def __init__(self, name='Heater', Pdel=None, Eff='None'):
+    def __init__(self, name='Heater',Pdel='None', Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Heater'
@@ -195,7 +196,7 @@ class Heater(UnitOperation):
 
 class Cooler(UnitOperation):
 
-    def __init__(self, name='Cooler', Pdel=None, Eff='None'):
+    def __init__(self, name='Cooler', Pdel='None', Eff='None'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Cooler'
