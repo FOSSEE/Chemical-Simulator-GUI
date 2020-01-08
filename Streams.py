@@ -1,4 +1,5 @@
 from OMPython import OMCSession
+from PyQt5.QtCore import *
 import json
 import sys
 from collections import defaultdict
@@ -31,7 +32,7 @@ class MaterialStream():
         self.no_of_outputs = 1
         self.x = 2500-30
         self.y = 2500-30
-        self.pos = None
+        self.pos = QPointF(self.x, self.y)
         MaterialStream.counter+=1
         self.startDict = {}
         self.eqnDict = {}

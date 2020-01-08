@@ -54,18 +54,9 @@ class MainApp(QMainWindow,ui):
         # Creating instances of classes for the main app
         self.Container = Container(self.textBrowser)        
         self.comp = componentSelector(self)
-        '''self.Container = self.graphics.getContainer(self.textBrowser)
-        self.comp = self.graphics.getComponentSelector()'''
-        
 
         # Setting up interactive canvas        
-        '''self.scene = QGraphicsScene()
-        self.scene.setItemIndexMethod(QGraphicsScene.BspTreeIndex)
-        self.graphicsView.setScene(self.scene)
-        self.graphicsView.setMouseTracking(True)
-        self.graphicsView.keyPressEvent=self.deleteCall'''
-        self.graphics = Graphics()
-        self.scene = self.graphics.getScene()
+        self.scene = self.Container.graphics.getScene()
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.deleteCall
@@ -112,7 +103,6 @@ class MainApp(QMainWindow,ui):
         self.actionTerminate.triggered.connect(self.terminate)
         self.actionTerminate.setShortcut('Ctrl+T')
         self.actionBinary_Phase_Envelope.triggered.connect(self.BinPhaseEnv)
-
 
     '''
         Handles all the buttons of different components.
@@ -176,7 +166,6 @@ class MainApp(QMainWindow,ui):
     def simulate(self,mode):
         self.thrd = threading.Thread(target=self.Container.simulate, args=(mode,))
         self.thrd.start()
-        # self.Container.simulate(mode)
         self.dockWidget_2.show()
         self.res = resdockWidget(self.Container)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.res)
@@ -196,7 +185,6 @@ class MainApp(QMainWindow,ui):
             if res > 1: 
                 ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0) 
                 print('Exception raise (Thread termination) failure')
-
 
     '''
         Resets the zoom level to default scaling
@@ -234,22 +222,27 @@ class MainApp(QMainWindow,ui):
                 self.obj = MaterialStream(CompNames=compound_selected)  
             else:
                 self.obj = eval(self.type)()
-            self.Container.addUnitOp(self.obj,self.scene,self.graphics)
+            self.Container.addUnitOp(self.obj)
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")
             self.comp.show()
-
 
     '''
         New is used to delete all the existing work.
     '''        
     def new(self):
-        l=self.scene.items()
+        for i in self.Container.unitOp:
+            type(i).counter = 1
+        del self.Container
+        lst.clear()
+        self.Container = Container(self.textBrowser)
         compound_selected.clear()
         self.comp.tableWidget.setRowCount(0)
-        self.delete(l)
+        self.scene = self.Container.graphics.getScene()
         self.textBrowser.append("<span>["+str(self.currentTime())+"] <b>New</b> flowsheet is created ... </span>")
-        self.comp.show()
+        self.graphicsView.setScene(self.scene)
+        self.graphicsView.setMouseTracking(True)
+        self.graphicsView.keyPressEvent=self.deleteCall
 
     '''
         Handels all the operations which will happen when delete button is pressed.
@@ -258,6 +251,8 @@ class MainApp(QMainWindow,ui):
         try:
             if event.key() == QtCore.Qt.Key_Delete:
                 l=self.scene.selectedItems()
+                for i in l:
+                    eval(i.type).counter -= 1
                 self.delete(l)
         except Exception as e:
             print(e)
@@ -266,9 +261,7 @@ class MainApp(QMainWindow,ui):
         Deletes the selected item from the canvas and also the objects 
         created for that type.
     '''
-    def delete(self,l):
-        # if isinstance(l,NodeItem):
-            # l = [l]
+    def delete(self,l):       
         for item in l:
             self.scene.removeItem(item)
             if hasattr(item,'Input'):
@@ -288,7 +281,7 @@ class MainApp(QMainWindow,ui):
                         self.scene.removeItem(x.otherLine)
                         del x.otherLine
             if hasattr(item,'obj'):
-                unitOp.remove(item.obj)
+                self.Container.unitOp.remove(item.obj)
                 for k in list(self.Container.conn):
                     if item.obj==k:
                         del self.Container.conn[k]
@@ -303,8 +296,9 @@ class MainApp(QMainWindow,ui):
     '''
     def save(self):
         data = []
-        for i in unitOp:
+        for i in self.Container.unitOp:
             data.append(i)
+            print(i.pos)
         data.append(compound_selected)
         print(data)
 
@@ -313,8 +307,9 @@ class MainApp(QMainWindow,ui):
         fileName, _ = QFileDialog.getSaveFileName(self, "Save As",
                                                   initialPath, "%s Files (*.%s);; All Files (*)" %
                                                   (fileFormat.upper(), fileFormat))
-        with open(fileName, 'wb') as f: #'saved_file.sim'
-            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+        if fileName != "":
+            with open(fileName, 'wb') as f: #'saved_file.sim'
+                pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
     '''
         Function for loading previous saved canvas and simulation 
@@ -322,13 +317,16 @@ class MainApp(QMainWindow,ui):
     def open(self):
         fileFormat = 'sim'
         initialPath = QDir.currentPath() + 'untitled.' + fileFormat
+        
         fileName, _ = QFileDialog.getOpenFileName(self, "Open As",
                                                   initialPath, "%s Files (*.%s);; All Files (*)" %
                                                   (fileFormat.upper(), fileFormat))
-        with open(fileName, 'rb') as f:
-            obj = pickle.load(f)
-
-        self.graphics.loadCanvas(obj)
+        if fileName != "":
+            self.new()
+            
+            with open(fileName, 'rb') as f:
+                obj = pickle.load(f)
+            self.Container.graphics.loadCanvas(obj)
 
 def main():
     app = QApplication(sys.argv)

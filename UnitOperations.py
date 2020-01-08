@@ -1,5 +1,4 @@
 from OMChem.Flowsheet import Flowsheet
-from Graphics import Graphics
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QTextDocument ,QTextCursor ,QTextCharFormat ,QFont ,QPixmap
@@ -30,11 +29,10 @@ class UnitOperation():
         self.Prop = {}
         self.x = 2500-30
         self.y = 2500-30
-        self.pos = None
+        self.pos = QPointF(self.x, self.y)
         self.Prop = {}
         self.modeslist = []
         self.parameters = {}
-        # self.input_parameters = {}
         self.extra = []
         self.ForNaming = []
         self.multidict = []
@@ -85,8 +83,6 @@ class UnitOperation():
                             latest += self.extra[i][j]
                         self.ForNaming[i] = latest   
 
-
-
         if(self.ThermoPackReq):
             if len(self.extra)==1:
                 for i in self.extra:
@@ -96,7 +92,6 @@ class UnitOperation():
                     self.OM_data_init += ('end '+i+str(self.counter)+';\n')
 
                     self.OM_data_init += i+str(self.counter) + ' ' + self.name + '(Nc = ' + str(len(self.compounds)) 
-
             else:
                 for i in range(len(self.extra)):
                     if i!=(len(self.extra)-1):
@@ -116,9 +111,7 @@ class UnitOperation():
                  
             C = str(self.compounds).strip('[').strip(']')
             C = C.replace("'", "")  
-            self.OM_data_init += ',C = {' + C + '}'
-
-                    
+            self.OM_data_init += ',C = {' + C + '}'  
                         
             for k,v in self.parameters.items():
                 self.OM_data_init += ', '
@@ -136,14 +129,7 @@ class UnitOperation():
                 self.OM_data_init += k + ' = ' + str(v)
 
             self.OM_data_init += ');\n'
-
-                #print("HERE WE GO")
-                #print(self.OM_data_init)
-
         return self.OM_data_init  
-
-
-
 
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
@@ -190,7 +176,6 @@ class Heater(UnitOperation):
         self.Pdel = Pdel
         self.Eff = Eff
         self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
-        # self.input_parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
         type(self).counter += 1
 
 class Cooler(UnitOperation):
@@ -214,7 +199,6 @@ class Cooler(UnitOperation):
         self.Pdel = Pdel
         self.Eff = Eff
         self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
-        # self.input_parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
         type(self).counter += 1
 
 class AdiabaticCompressor(UnitOperation):
@@ -236,10 +220,9 @@ class AdiabaticCompressor(UnitOperation):
         self.extra = ['AdiabaticCompressor']
         self.ForNaming = ['AdiabaticCompressor']
         self.ThermoPackReq = True
-        self.thermoPackage ="RaoultsLaw"
+        self.thermoPackage ="RaoultsLaw" 
         self.Eff = Eff
         self.parameters = {'Eff':self.Eff}
-        # self.input_parameters = {"Eff":self.Eff,"thermoPackage":self.thermoPackage}
         type(self).counter += 1
 
 class AdiabaticExpander(UnitOperation):
@@ -264,7 +247,5 @@ class AdiabaticExpander(UnitOperation):
         self.thermoPackage ="RaoultsLaw"
         self.Eff = Eff
         self.parameters = {'Eff':self.Eff}
-        # self.input_parameters = {"Eff":self.Eff,"thermoPackage":self.thermoPackage}
         type(self).counter += 1
         
-
