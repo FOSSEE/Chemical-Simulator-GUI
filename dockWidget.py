@@ -10,7 +10,7 @@ ui_dialog,_ = loadUiType('dockWidget.ui')
 
 
 class dockWidget(QDockWidget,ui_dialog):
-    
+
     def __init__(self,name,comptype,obj,parent=None):
         QDockWidget.__init__(self,parent)
         self.setupUi(self)
@@ -78,8 +78,8 @@ class dockWidget(QDockWidget,ui_dialog):
                 else:
                     print("elseloop")
                     l = QLineEdit()
-                    # if i.Pdel is not None:
-                    #     l.setText(i.Pdel)                                                      
+                    if self.inputdict[i] != None:
+                        l.setText(str(self.inputdict[i]))
                     self.formLayout.addRow(QLabel(i+":"),l )
                     self.inputdict[i] = l
             
