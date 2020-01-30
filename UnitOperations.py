@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from component_selector import *
+from container import *
 
 class UnitOperation():
     counter = 1
@@ -45,7 +46,6 @@ class UnitOperation():
             self.mode = self.modeslist[0]
         else:
             self.mode = mode
-        # print("Hello hello ", self.mode)
         params = self.parameters.copy()
         params[self.mode] = None
         return params
@@ -63,8 +63,8 @@ class UnitOperation():
     def add_connection(self,flag,UnitOpr):
         if flag==1:
             # Input stream if flag is 1
-            self.InputStms.append(UnitOpr)
             print("INPUT CONNECTION")
+            self.InputStms.append(UnitOpr)
         else :
             print("OUTPUT CONNECTION")
             self.OutputStms.append(UnitOpr)
@@ -77,7 +77,7 @@ class UnitOperation():
 
         if(self.ThermoPackReq):
             if len(self.extra)>1:
-                for i in range(self.extra):
+                for i in range(len(self.extra)):
                     latest = ''
                     for j in range(self.extra[i]):
                         if self.extra[i][j]!='.':

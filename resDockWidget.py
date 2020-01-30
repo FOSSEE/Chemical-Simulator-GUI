@@ -86,7 +86,7 @@ class resdockWidget(QDockWidget,ui_dialog):
         
     def results(self):              # Should be named as selecting object whose result is to be displayed
         self.nameType={}
-        for i in self.Container.unitOp:
+        for i in Container.unitOp:
             #nameslist.append(i.name)
             self.nameType[i.name] = i.type
             self.comboBox.addItem(str(i.name))
