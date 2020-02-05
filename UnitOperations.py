@@ -47,14 +47,8 @@ class UnitOperation():
             self.mode = self.modeslist[0]
         else:
             self.mode = mode
-<<<<<<< HEAD
-        # print("Hello hello ", self.mode)
-        #params = self.parameters.copy()
         for i in self.parameters:
             params[i] = self.variables[i]['value']
-=======
-        params = self.parameters.copy()
->>>>>>> 190966e010e321e4df56d40104ec80467a870e53
         params[self.mode] = None
         return params
         

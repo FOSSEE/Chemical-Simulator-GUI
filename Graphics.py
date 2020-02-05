@@ -340,12 +340,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if self.newLine.source.parent.obj.type not in stm:
                 self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
             if self.newLine.target.parent.obj.type not in stm:
-<<<<<<< HEAD
                 self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj) # Input stream if flag is 1
-=======
-                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
-
->>>>>>> 190966e010e321e4df56d40104ec80467a870e53
         elif (self.type =='in') and (item.type == 'op'):
             self.newLine.source = item
             self.newLine.target = self

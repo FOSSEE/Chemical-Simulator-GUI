@@ -72,13 +72,8 @@ class Container():
     def addUnitOp(self,obj):
         box = None
         self.obj = obj
-<<<<<<< HEAD
         self.scene = self.graphics.getScene()
         box  = self.graphics.createNodeItem(self.obj, self)
-=======
-        # self.scene = self.graphics.getScene()
-        box  = self.graphics.createNodeItem(self.obj)
->>>>>>> 190966e010e321e4df56d40104ec80467a870e53
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
 
