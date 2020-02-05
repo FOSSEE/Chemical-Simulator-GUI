@@ -15,9 +15,7 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from component_selector import *
-from dockWidget import dockWidget
 from Bin_Phase_env import *
-from resDockWidget import resdockWidget
 from UnitOperations import *
 from Streams import *
 import datetime
@@ -43,9 +41,9 @@ class MainApp(QMainWindow,ui):
         
         # Loading and setting up style sheet
         self.setupUi(self)
-        style = open('cyan.css','r')
-        style = style.read()
-        self.setStyleSheet(style)
+        # style = open('cyan.css','r')
+        # style = style.read()
+        # self.setStyleSheet(style)
         
         # Initializing attributes
         self.zoomcount = 0
@@ -136,7 +134,7 @@ class MainApp(QMainWindow,ui):
     def BinPhaseEnv(self):
         #compounds = self.comp.getComp()
         if len(self.comp.getComp())<2:
-            QMessageBox.about(self, 'Important', "Please select atleast 2 Compounds first")
+            QMessageBox.about(self, 'Important', "Please select at least 2 Compounds first")
             self.comp.show()
             #compunds = self.comp.getComp()
         else: 
@@ -166,10 +164,6 @@ class MainApp(QMainWindow,ui):
     def simulate(self,mode):
         self.thrd = threading.Thread(target=self.Container.simulate, args=(mode,))
         self.thrd.start()
-        self.dockWidget_2.show()
-        self.res = resdockWidget(self.Container)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.res)
-        self.res.show()
     
     def terminate(self):
         os.chdir(self.Container.flowsheet.root_dir)

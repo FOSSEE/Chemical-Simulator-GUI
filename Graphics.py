@@ -15,7 +15,10 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from component_selector import *
-from dockWidget import dockWidget
+from DockWidget import *
+from DockWidgetMatStm import *
+
+
 import datetime
 from container import *
 from Streams import *
@@ -37,8 +40,8 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
     def getComponentSelector(self):
         return componentSelector(self)
 
-    def createNodeItem(self,unitOpr):
-        return NodeItem(unitOpr)
+    def createNodeItem(self,unitOpr, container):
+        return NodeItem(unitOpr, container)
 
     def boundingRect(self):
         return QtCore.QRectF(self.rect)
@@ -55,7 +58,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
                pass
             else:
                 self.unitOp.append(i)
-            new_box = self.createNodeItem(i)
+            new_box = self.createNodeItem(i, self)
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
             self.scene.addItem(new_box)
 
@@ -335,7 +338,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if self.newLine.source.parent.obj.type not in stm:
                 self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
             if self.newLine.target.parent.obj.type not in stm:
-                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
+                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj) # Input stream if flag is 1
         elif (self.type =='in') and (item.type == 'op'):
             self.newLine.source = item
             self.newLine.target = self
@@ -363,6 +366,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
 # all created node items will be put inside this list 
 # it is used for recreating the node lines by returning the node item object based on unit operation object's name 
 lst = []
+dockWidgetLst = []
 
 class NodeItem(QtWidgets.QGraphicsItem):
 
@@ -372,11 +376,17 @@ class NodeItem(QtWidgets.QGraphicsItem):
             if i.name == namee:
                 return i
 
-    def __init__(self,unitOpr):
+    @staticmethod
+    def getDockWidget():
+        return dockWidgetLst
+
+    def __init__(self,unitOpr, container):
         l = ['Mixer','Splitter']
+        stm = ['MaterialStream', 'EnergyStream']
         super(NodeItem, self).__init__()
 
         self.obj = unitOpr
+        self.container = container
 
         self.name = self.obj.name
         self.type = self.obj.type
@@ -395,8 +405,15 @@ class NodeItem(QtWidgets.QGraphicsItem):
         lst.append(self)
 
         if(self.obj.type not in l):
-            self.dockWidget = dockWidget(self.obj.name,self.obj.type,self.obj)
+            if (self.obj.type in stm):
+                self.dockWidget = DockWidgetMatStm(self.obj.name,self.obj.type,self.obj,self.container)
+            else:
+                self.dockWidget = DockWidget(self.obj.name,self.obj.type,self.obj,self.container)
+            dockWidgetLst.append(self.dockWidget)
             self.mainwindow= findMainWindow(self)
+            self.dockWidget.setFixedWidth(360)
+            self.dockWidget.setFixedHeight(640)
+            self.dockWidget.DockWidgetFeature(QDockWidget.AllDockWidgetFeatures)
             self.mainwindow.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
             self.dockWidget.hide()
 
@@ -487,10 +504,14 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 line.pointB = line.target.getCenter()
         self.pos = event.scenePos()
         self.obj.setPos(self.pos)
+        #print(self.name, self.pos)
                 
     def mouseDoubleClickEvent(self, event):
         self.setPos(event.scenePos().x()-250,event.scenePos().y())
+        temp = self.obj.pos
         self.dockWidget.show()
+        self.setPos(temp)
+
         
 def findMainWindow(self):
     '''

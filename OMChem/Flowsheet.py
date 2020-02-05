@@ -75,8 +75,8 @@ class Flowsheet():
                 for row in csvreader:
                     print("124125")
                     self.resdata.append(row)
+                print(self.resdata)
             #self.ExtData()
-    
 
     def send_for_simulationSM(self,unitop):
 
@@ -99,36 +99,6 @@ class Flowsheet():
                 self.resdata.append(row)
         self.ExtData()
 
-        
-
-        
-
-        # if self.sim_method == 'SM':
-        # 	for unitop in self.UnitOpn:
-        # 		self.resdata = []
-        # 		if unitop.type != 'MaterialStream':
-        # 			print 'Simulating '+unitop.name+'...'
-        # 			csvpath = os.path.join(self.sim_dir_path,unitop.name+'_res.csv')
-        # 			with open(csvpath,'r') as resultFile:
-        # 				csvreader = csv.reader(resultFile,delimiter=',')
-        # 				for row in csvreader:
-        # 					self.resdata.append(row)
-        # 			self.ExtData()
-
-
-        
-            
-
-        # if self.interface == 'OMPython':
-        # 	omc = OMCSession()
-        # 	omc.sendExpression("loadModel(Modelica)")
-        # 	omc.sendExpression("loadFile(\"Simulator.mo\")")
-        # 	omc.sendExpression("loadFile(\"Flowsheet.mo\")")
-        # 	execsim = omc.sendExpression("simulate(Flowsheet, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1)")
-        
-        # else:
-        # 	os.system(self.omc_path + ' -s  ')
-
     def ExtData(self):
         for unit in self.UnitOpn:
             if unit[0].type == 'MaterialStream':
@@ -140,84 +110,7 @@ class Flowsheet():
                         #resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
                         print(resultval)
                         unit[0].Prop[key] = resultval
-                #print(unit[0].Prop)
-            #       else:
-            #           for v in value:
-            #               propertyname = unit.name + '.' + v
-            #               if propertyname in self.resdata[0]:
-            #                   ind = self.resdata[0].index(propertyname)
-            #                   resultval = str(self.resdata[-1][ind])
-            # #                     resultval = str(omc.sendExpression("val("+unit.name+ "." + v + ", 0.5)"))
-            #                   unit.Prop[key][i] = resultval
-            #                   i = i + 1
-
-            #   for key, value in unit.OMVapProp.iteritems():
-            #       i = 0
-
-            #       if type(value) is str:
-            #           propertyname = unit.name + '.' + value
-            #           if propertyname in self.resdata[0]:
-            #               ind = self.resdata[0].index(propertyname)
-            #               resultval = str(self.resdata[-1][ind])
-            # #                 resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
-            #               unit.VapProp[key] = resultval
-            #       else:
-            #           for v in value:
-            #               propertyname = unit.name + '.' + v
-            #               if propertyname in self.resdata[0]:
-            #                   ind = self.resdata[0].index(propertyname)
-            #                   resultval = str(self.resdata[-1][ind])
-            # #                     resultval = str(omc.sendExpression("val("+unit.name+ "." + v + ", 0.5)"))
-            #                   unit.VapProp[key][i] = resultval
-            #                   i = i + 1
-
-
-            #   for key, value in unit.OMLiqProp.iteritems():
-            #       i = 0
-
-            #       if type(value) is str:
-            #           propertyname = unit.name + '.' + value
-            #           if propertyname in self.resdata[0]:
-            #               ind = self.resdata[0].index(propertyname)
-            #               resultval = str(self.resdata[-1][ind])
-            # #                 resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
-            #               unit.LiqProp[key] = resultval
-            #       else:
-            #           for v in value:
-            #               propertyname = unit.name + '.' + v
-            #               if propertyname in self.resdata[0]:
-            #                   ind = self.resdata[0].index(propertyname)
-            #                   resultval = str(self.resdata[-1][ind])
-            # #                     resultval = str(omc.sendExpression("val("+unit.name+ "." + v + ", 0.5)"))
-            #                   unit.LiqProp[key][i] = resultval
-            #                   i = i + 1
-        #       for key, value in unit.OMVapProp.iteritems():
-        #           i = 0
-
-        #           if type(value) is str:
-        #               resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
-        #               unit.VapProp[key] = resultval
-        #           else:
-        #               for v in value:
-        #                   resultval = str(omc.sendExpression("val("+unit.name+ "." + v + ", 0.5)"))
-        #                   unit.VapProp[key][i] = resultval
-        #                   i = i + 1
-
-
-        #       for key, value in unit.OMLiqProp.iteritems():
-        #           i = 0
-
-        #           if type(value) is str:
-        #               resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
-        #               unit.LiqProp[key] = resultval
-        #           else:
-        #               for v in value:
-        #                   resultval = str(omc.sendExpression("val("+unit.name+ "." + v + ", 0.5)"))
-        #                   unit.LiqProp[key][i] = resultval
-        #                   i = i + 1           
-
-
-
+             
     def simulateEQN(self):
         self.data = []
         print("##################################################")
@@ -247,8 +140,6 @@ class Flowsheet():
                     self.outlist.append(j)  
                     print(j.name)
                 
-
-
         for unitop in self.UnitOpn:
             if unitop not in self.outlist:
                     
@@ -274,10 +165,9 @@ class Flowsheet():
 
         self.send_for_simulationEqn()
 
-    
-
 
     def simulateSM(self,ip,op):
+        print("ip op = ", ip, op)
         self.sim_method = 'SM'
         self.data = []
         self.resdata = []
@@ -351,15 +241,7 @@ class Flowsheet():
                 self.data.append('equation\n')
                 print("##################equation")
                 self.data.append(unitop.OM_Flowsheet_Equation())
-                '''
-                if type(outstms) is list:
-                    for stm in outstms:
-                        #stm.GetEquationValues()
-                        self.data.append(stm.OM_Flowsheet_Equation(self.compounds,'SM'))
-                else:
-                    #outstms.GetEquationValues()
-                    self.data.append(outstms.OM_Flowsheet_Equation(self.compounds,'SM'))
-'''
+                
                 if type(inpstms) is list:
                     for stm in inpstms:
                         #stm.GetEquationValues()
@@ -419,9 +301,7 @@ class Flowsheet():
                                 ind = self.resdata[0].index(propertyname)
                                 resultval = str(self.resdata[-1][ind])
                                 stm.Prop[key] = resultval
-
-                                #print("input",stm.Prop[key])
-                        
+                                #print("input",stm.Prop[key])      
 
                 else:
                     for key, value in inpstms.Prop.items():
@@ -449,7 +329,6 @@ class Flowsheet():
                                 resultval = str(self.resdata[-1][ind])
                                 outstms.Prop[key] = resultval
                                 print("output key:",key,"value:",outstms.Prop[key])
-
         
         self.dataframes = [pd.read_csv(i) for i in self.csvlist]
         os.chdir(self.sim_dir_path)
@@ -460,20 +339,3 @@ class Flowsheet():
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
                         self.resdata.append(row)
-        
-        
-
-
-                
-
-                    
-                
-
-
-
-
-
-
-
-
-

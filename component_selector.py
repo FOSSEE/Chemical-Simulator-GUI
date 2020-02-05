@@ -1,35 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec 25 17:41:56 2019
-
-@author: Eshika Mahajan
-"""
-
-'''
-
-after one simulation all the instances get recreated and the program runs afresh. 
-Thus new database.mo wil not have the gen prop of the previous iteration's compounds'
-same goes with lists and all ot
-
-'''
-'''
-FUNCTION(COMPOUNDSELECTION)
-any compound selected , compound selection function will first check whether the text
-written in lineEdit is a part of database or not by checking the text entered with 
-LINES that contain the list of all the compiundsin the database.
-if it is a part of database then it will proceed further else it will show error
-
-'''
-'''
-FINCTION(CREATIN_MO_FILE)
-the below codes fetch the general properties of the compiund selected from
-Database.py in the form of lists.
-first creates the combined list 'comp_prop_list' of gen prop of all the compounds
-then appended with one starting line 'package database' and end with 'end database'
-and the extension will be changed to .mo file.
-    
-'''
-
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *

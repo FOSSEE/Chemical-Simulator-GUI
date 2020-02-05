@@ -73,7 +73,7 @@ class Container():
         box = None
         self.obj = obj
         self.scene = self.graphics.getScene()
-        box  = self.graphics.createNodeItem(self.obj)
+        box  = self.graphics.createNodeItem(self.obj, self)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
 
@@ -130,6 +130,8 @@ class Container():
             self.msgBrowser()
             self.result=self.flowsheet.resdata
             print("under Eqn mode simulation")
+
+        DockWidget.showResult(NodeItem.getDockWidget())
 
 def flatlist(lst):
     flat_list=[]

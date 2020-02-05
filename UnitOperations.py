@@ -30,9 +30,10 @@ class UnitOperation():
         self.x = 2500-30
         self.y = 2500-30
         self.pos = QPointF(self.x, self.y)
-        self.Prop = {}
+        #self.Prop = {}
+        self.variables = {}
         self.modeslist = []
-        self.parameters = {}
+        self.parameters = []
         self.extra = []
         self.ForNaming = []
         self.multidict = []
@@ -46,17 +47,19 @@ class UnitOperation():
         else:
             self.mode = mode
         # print("Hello hello ", self.mode)
-        params = self.parameters.copy()
+        #params = self.parameters.copy()
+        for i in self.parameters:
+            params[i] = self.variables[i]['value']
         params[self.mode] = None
         return params
         
     def paramsetter(self,params):
-        print(params)
+        print("paramsetter ", params)
         for k,v in params.items():
             print(k,v)
             if k != self.mode:
                 self.k = v
-                self.parameters[k] = v
+                self.variables[k]['value'] = v
             else:
                 self.modeVal = params[self.mode]
 
@@ -125,9 +128,9 @@ class UnitOperation():
             C = C.replace("'", "")  
             self.OM_data_init += ',C = {' + C + '}'
 
-            for k,v in self.parameters.items():
+            for k in self.parameters:
                 self.OM_data_init += ', '
-                self.OM_data_init += k + ' = ' + str(v)
+                self.OM_data_init += k + ' = ' + str(self.variables[k]['value'])
 
             self.OM_data_init += ');\n'
         return self.OM_data_init  
@@ -158,95 +161,92 @@ class UnitOperation():
 
 class Heater(UnitOperation):
 
-    def __init__(self, name='Heater',Pdel='None', Eff='None'):
+    def __init__(self, name='Heater'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Heater'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.Prop = {
-            'Pdel':None,
-            'Eff':None,
-            'Tout':None,
-            'Tdel':None,
-            'Q':None,
-        }
-        self.modesList = ["Q","Tout","xvapout","Tdel"] 
+        self.modesList = ['Q','Tout','xvapout','Tdel']
+        self.parameters = ['Pdel', 'Eff'] 
         self.extra = None
         self.ForNaming = None
-        self.Pdel = Pdel
-        self.Eff = Eff
-        self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
         type(self).counter += 1
+
+        self.variables = {
+            'Pdel'  : {'name':'Pressure Drop',          'value':0,       'unit':'Pa'},
+            'Eff'   : {'name':'Efficiency',             'value':1,       'unit':''},
+            'Tout'  : {'name':'Outlet Temperature',     'value':298.15,  'unit':'K'},
+            'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
+            'Q'     : {'name':'Heat Added',             'value':0,       'unit':'W'},
+        }
 
 class Cooler(UnitOperation):
 
-    def __init__(self, name='Cooler', Pdel='None', Eff='None'):
+    def __init__(self, name='Cooler'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'Cooler'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.Prop = {
-            'Pdel':None,
-            'Eff':None,
-            'Tout':None,
-            'Tdel':None,
-            'Q':None,
-        }
-        self.modesList = ["Q","Tout","xvapout","Tdel","enFlo"]
+        self.modesList = ["Q","Tout","xvapout","Tdel"]
         self.extra = None
         self.ForNaming = None
-        self.Pdel = Pdel
-        self.Eff = Eff
-        self.parameters = {'Pdel':self.Pdel, 'Eff':self.Eff}
+        self.parameters = ['Pdel', 'Eff']
         type(self).counter += 1
+
+        self.variables = {
+            'Pdel'  : {'name':'Pressure Drop',          'value':0,       'unit':'Pa'},
+            'Eff'   : {'name':'Efficiency',             'value':1,       'unit':''},
+            'Tout'  : {'name':'Outlet Temperature',     'value':298.15,       'unit':'K'},
+            'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
+            'Q'     : {'name':'Heat Added',             'value':0,       'unit':'W'},
+        }
 
 class AdiabaticCompressor(UnitOperation):
 
-    def __init__(self, name='AdiabaticCompressor', Eff='None'):
+    def __init__(self, name='AdiabaticCompressor'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'AdiabaticCompressor'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.Prop = {
-            'Pdel':None,
-            'Tdel':None,
-            'Pout':None,
-            'Tout':None,
-            'Q':None
-        }
         self.modesList = ["Pdel","Pout","Q"]
         self.extra = ['AdiabaticCompressor']
         self.ForNaming = ['AdiabaticCompressor']
         self.ThermoPackReq = True
         self.thermoPackage ="RaoultsLaw" 
-        self.Eff = Eff
-        self.parameters = {'Eff':self.Eff}
+        self.parameters = ['Eff']
         type(self).counter += 1
+        self.variables = {
+            'Pdel'  : {'name':'Pressure Drop',          'value':0,       'unit':'Pa'},
+            'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
+            'Pout'  : {'name':'Outlet Pressure',        'value':101325,       'unit':'Pa'},
+            'Tout'  : {'name':'Outlet Temperature',     'value':298.15,       'unit':'K'},
+            'Q'     : {'name':'Heat Added',             'value':0,       'unit':'W'},
+        }
 
 class AdiabaticExpander(UnitOperation):
 
-    def __init__(self, name='AdiabaticExpander', Eff='None'):
+    def __init__(self, name='AdiabaticExpander'):
         UnitOperation.__init__(self)
         self.name = name + str(type(self).counter)
         self.type = 'AdiabaticExpander'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.Prop = {
-            'Pdel':None,
-            'Tdel':None,
-            'Pout':None,
-            'Tout':None,
-            'Q':None
-        }
         self.modesList = ["Pdel","Pout","Q"]
         self.extra = ['AdiabaticExpander']
         self.ForNaming = ['AdiabaticExpander']
         self.ThermoPackReq = True
         self.thermoPackage ="RaoultsLaw"
-        self.Eff = Eff
-        self.parameters = {'Eff':self.Eff}
+        self.parameters = ['Eff']
         type(self).counter += 1
+        self.variables = {
+            'Pdel'  : {'name':'Pressure Drop',          'value':0,       'unit':'Pa'},
+            'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
+            'Pout'  : {'name':'Outlet Pressure',        'value':101325,  'unit':'Pa'},
+            'Tout'  : {'name':'Outlet Temperature',     'value':298.15,  'unit':'K'},
+            'Q'     : {'name':'Heat Added',             'value':0,       'unit':'W'},
+        }
+
         
