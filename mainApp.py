@@ -92,6 +92,10 @@ class MainApp(QMainWindow,ui):
         self.actionSequential_mode.setShortcut('Ctrl+M')
         self.actionEquation_oriented.triggered.connect(partial(self.simulate,'EQN'))
         self.actionEquation_oriented.setShortcut('Ctrl+E')
+        self.actionUndo.triggered.connect(self.undo)
+        self.actionUndo.setShortcut('Ctrl+Z')
+        self.actionRedo.triggered.connect(self.redo)
+        self.actionRedo.setShortcut('Ctrl+Y')
         # self.actionUndo_2.triggered.connect(self.undoStack.undo)
         # self.actionRedo.triggered.connect(self.undoStack.redo)
         self.actionSave_2.triggered.connect(self.save)
@@ -217,6 +221,7 @@ class MainApp(QMainWindow,ui):
             else:
                 self.obj = eval(self.type)()
             self.Container.addUnitOp(self.obj)
+
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")
             self.comp.show()
@@ -225,15 +230,21 @@ class MainApp(QMainWindow,ui):
         New is used to delete all the existing work.
     '''        
     def new(self):
+        self.undo_redo_helper()
+        self.comp.tableWidget.setRowCount(0)
+        self.textBrowser.append("<span>[" + str(self.currentTime()) + "] <b>New</b> flowsheet is created ... </span>")
+
+    '''
+        It helps by clearing screen and loading the objects by undo redo methods
+    '''
+    def undo_redo_helper(self):
         for i in self.Container.unitOp:
             type(i).counter = 1
         del self.Container
         lst.clear()
         self.Container = Container(self.textBrowser)
         compound_selected.clear()
-        self.comp.tableWidget.setRowCount(0)
         self.scene = self.Container.graphics.getScene()
-        self.textBrowser.append("<span>["+str(self.currentTime())+"] <b>New</b> flowsheet is created ... </span>")
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.deleteCall
@@ -247,43 +258,46 @@ class MainApp(QMainWindow,ui):
                 l=self.scene.selectedItems()
                 for i in l:
                     eval(i.type).counter -= 1
-                self.delete(l)
+                self.Container.delete(l)
         except Exception as e:
             print(e)
 
     '''
-        Deletes the selected item from the canvas and also the objects 
-        created for that type.
+        Function for undo 
     '''
-    def delete(self,l):       
-        for item in l:
-            self.scene.removeItem(item)
-            if hasattr(item,'Input'):
-                for x in item.Input:
-                    if x.newLine: 
-                        self.scene.removeItem(x.newLine)
-                        del x.newLine
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
-            if hasattr(item,'Output'):
-                for x in item.Output:
-                    if x.newLine:                
-                        self.scene.removeItem(x.newLine)
-                        del x.newLine 
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
-            if hasattr(item,'obj'):
-                self.Container.unitOp.remove(item.obj)
-                for k in list(self.Container.conn):
-                    if item.obj==k:
-                        del self.Container.conn[k]
-                    elif item.obj in self.Container.conn[k]:
-                        self.Container.conn[k].remove(item.obj)
-                self.textBrowser.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
-                del item.obj
-            del item
+    def undo(self):
+        redo_data = POP('Undo')
+        if redo_data is not None:
+            PUSH('Redo', redo_data)
+            undo_data = get_last_list('Undo')
+            messages = self.textBrowser.toPlainText()
+            try:
+                self.undo_redo_helper()
+                self.Container.graphics.loadCanvas(undo_data)
+                self.textBrowser.setText(messages)
+            except Exception as e:
+                print(e)
+                self.textBrowser.append(messages)
+        else:
+            messages = self.textBrowser.toPlainText()
+            self.textBrowser.setText(messages)
+            self.textBrowser.append("<span>[" + str(self.currentTime()) + "] <b>No more undo can be done!</b>... </span>")
+
+    '''
+        Function for redo 
+    '''
+    def redo(self):
+        redo_data = POP('Redo')
+        if redo_data is not None:
+            PUSH('Undo', redo_data)
+            messages = self.textBrowser.toPlainText()
+            self.undo_redo_helper()
+            self.Container.graphics.loadCanvas(redo_data)
+            self.textBrowser.setText(messages)
+        else:
+            messages = self.textBrowser.toPlainText()
+            self.textBrowser.setText(messages)
+            self.textBrowser.append("<span>[" + str(self.currentTime()) + "] <b>No more redo can be done!</b>... </span>")
 
     '''
         Function for saving the current canvas items and compound_selected
@@ -309,20 +323,31 @@ class MainApp(QMainWindow,ui):
         Function for loading previous saved canvas and simulation 
     '''
     def open(self):
-        fileFormat = 'sim'
-        initialPath = QDir.currentPath() + 'untitled.' + fileFormat
-        
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open As",
-                                                  initialPath, "%s Files (*.%s);; All Files (*)" %
-                                                  (fileFormat.upper(), fileFormat))
-        if fileName != "":
-            self.new()
-            
+        try:
+            fileFormat = 'sim'
+            initialPath = QDir.currentPath() + 'untitled.' + fileFormat
+
+            fileName, _ = QFileDialog.getOpenFileName(self, "Open As",
+                                                      initialPath, "%s Files (*.%s);; All Files (*)" %
+                                                      (fileFormat.upper(), fileFormat))
+            # if fileName != "":
+            # self.new()
+
+            self.undo_redo_helper()
+
             with open(fileName, 'rb') as f:
                 obj = pickle.load(f)
+
             self.Container.graphics.loadCanvas(obj)
 
+        except Exception as e:
+            pass
+
 def main():
+
+    CLEAN_FILE('Undo')
+    CLEAN_FILE('Redo')
+
     app = QApplication(sys.argv)
     window = MainApp()
     window.showMaximized()

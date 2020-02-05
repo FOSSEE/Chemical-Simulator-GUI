@@ -20,7 +20,9 @@ from DockWidgetMatStm import *
 
 
 import datetime
+
 from container import *
+import container
 from Streams import *
 from UnitOperations import *
 
@@ -338,7 +340,12 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if self.newLine.source.parent.obj.type not in stm:
                 self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
             if self.newLine.target.parent.obj.type not in stm:
+<<<<<<< HEAD
                 self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj) # Input stream if flag is 1
+=======
+                self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
+
+>>>>>>> 190966e010e321e4df56d40104ec80467a870e53
         elif (self.type =='in') and (item.type == 'op'):
             self.newLine.source = item
             self.newLine.target = self
@@ -348,6 +355,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 self.newLine.source.parent.obj.add_connection(0,self.newLine.target.parent.obj)
             if self.newLine.target.parent.obj.type not in stm:
                 self.newLine.target.parent.obj.add_connection(1,self.newLine.source.parent.obj)
+
         else:
             self.scene().removeItem(self.newLine)
             if(self.newLine in self.inLines):
@@ -355,7 +363,21 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             if(self.newLine in self.outLines):
                 self.outLines.remove(self.newLine)
             del self.newLine
-            super(NodeSocket, self).mouseReleaseEvent(event) 
+            super(NodeSocket, self).mouseReleaseEvent(event)
+
+        try:
+            data = container.get_last_list('Undo')
+            comp_selected = data[-1]
+            data.remove(comp_selected)
+            for i in range(len(data)):
+                if data[i].name == self.newLine.source.parent.obj.name:
+                    data[i] = self.newLine.source.parent.obj
+                elif data[i].name == self.newLine.target.parent.obj.name:
+                    data[i] = self.newLine.target.parent.obj
+            data.append(comp_selected)
+            container.PUSH('Undo', data)
+        except Exception as e:
+            print(e)
 
     def getCenter(self):
         rect = self.boundingRect()
