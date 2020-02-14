@@ -1,13 +1,25 @@
 class Flash():
-    def __init__(self,name=("flash",1)):
-        self.name = name[0]
+    counter = 1
+    def __init__(self,name='Flash'):
+        #self.name = name[0]
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
         self.type = 'flash'
-        self.count = name[1]
+        #self.count = name[1]
+        self.count = Flash.counter
         self.thermoPackage =None
+
+        # new 
+        self.name = name + str(Flash.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 2  
+        Flash.counter += 1  
+
+    def getname(self):
+        return self.name
+
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms
         self.OutputStms = OutputStms
@@ -29,7 +41,7 @@ class Flash():
         self.OM_data_init = self.OM_data_init + ("end fls"+str(self.count)+";\n")
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "fls"+str(self.count)+" "+ self.name + "(NOC = " + str(comp_count))
+        "fls"+str(self.count)+" "+ self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

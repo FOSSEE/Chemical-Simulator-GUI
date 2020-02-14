@@ -1,11 +1,12 @@
 from OMChem.EngStm import EngStm
 import json
 class CompSep():
-    def __init__(self,CompNames = [],name='compoundseparator',SepFact=['Molar_Flow','Mass_Flow'],SepStrm=1,SepFactValue=[]):
+    counter = 1
+    def __init__(self,CompNames = [],name='CompSep',SepFact=['Molar_Flow','Mass_Flow'],SepStrm=1,SepFactValue=[]):
         self.SepFact = json.dumps(SepFact).replace('[','{').replace(']','}')
         self.SepStrm = str(SepStrm)
         self.SepFactValue = json.dumps(SepFactValue).replace('[','{').replace(']','}')
-        self.name = name
+        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = []
@@ -13,8 +14,18 @@ class CompSep():
         self.type = 'CompSep'
         self.EngStms = EngStm(name='EngStm')
 
+         # new 
+        self.name = name + str(CompSep.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 2  
+        CompSep.counter += 1  
+
+    def getname(self):
+        return self.name
+
     def modesList(self):
-        return []   
+        return []
+
     def paramgetter(self,mode=None):
         dict = {"SepStrm":None,"SepFactValue":None,"SepFact":None}
         return dict
@@ -29,7 +40,7 @@ class CompSep():
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStms.name+';\n'
         self.OM_data_init = self.OM_data_init + (
-        "Simulator.Unit_Operations.Compound_Separator " + self.name + "(NOC = " + str(comp_count))
+        "Simulator.Unit_Operations.Compound_Separator " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")
@@ -41,7 +52,6 @@ class CompSep():
     def connect(self,InputStms = None,OutputStms = []):
         self.InputStms = InputStms
         self.OutputStms = OutputStms
-
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
@@ -57,7 +67,6 @@ class CompSep():
         sepFac = str(self.SepFactValue).strip('[').strip(']')
 
         self.OM_data_eqn = self.OM_data_eqn + (self.name+'.sepFactVal= {'+ sepFac + '};\n')
-        
 
         return self.OM_data_eqn
 

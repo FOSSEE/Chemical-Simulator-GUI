@@ -1,17 +1,20 @@
 from OMChem.EngStm import EngStm
 class DistCol():
-    def __init__(self,name=('DistCol',1), numStage = None,numFeeds = None,feedStages = None):
+    counter = 1
+    def __init__(self,name='DistCol', numStage = None,numFeeds = None,feedStages = None):
         self.numStage = numStage
         self.numFeeds=numFeeds
         self.feedStages=feedStages
-        self.name = name[0]
+        #self.name = name[0]
+        self.name = name + str(DistCol.counter) 
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
-        self.count = name[1]
+        #self.count = name[1]
+        self.count = DistCol.counter
         self.thermoPackage='Raoults_Law'
         self.type = 'DistCol'
         self.mode = None
@@ -19,6 +22,14 @@ class DistCol():
         self.modeVal = None
         self.condP=None
         self.rebP=None
+
+        # new 
+        self.no_of_input = 2 
+        self.no_of_output = 2  
+        DistCol.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms
@@ -57,13 +68,13 @@ class DistCol():
         self.OM_data_init = self.OM_data_init + 'end Reboiler;\n'
         self.OM_data_init = self.OM_data_init + ("model distCol"+str(self.count)+"\n")
         self.OM_data_init = self.OM_data_init + ("extends Simulator.Unit_Operations.Distillation_Column.DistCol;\n" )
-        self.OM_data_init = self.OM_data_init + ("Condensor condensor(NOC = NOC, comp = comp, condType =condType, boolFeed = boolFeed[1], T(start = 300));\n" )
-        self.OM_data_init = self.OM_data_init + ("Reboiler reboiler(NOC = NOC, comp = comp, boolFeed = boolFeed[noOfStages]);\n" )
-        self.OM_data_init = self.OM_data_init + ("Tray tray[noOfStages - 2](each NOC = NOC, each comp = comp, boolFeed = boolFeed[2:noOfStages -1]);\n" )
+        self.OM_data_init = self.OM_data_init + ("Condensor condensor(Nc = Nc, comp = comp, condType =condType, boolFeed = boolFeed[1], T(start = 300));\n" )
+        self.OM_data_init = self.OM_data_init + ("Reboiler reboiler(Nc = Nc, comp = comp, boolFeed = boolFeed[noOfStages]);\n" )
+        self.OM_data_init = self.OM_data_init + ("Tray tray[noOfStages - 2](each Nc = Nc, each comp = comp, boolFeed = boolFeed[2:noOfStages -1]);\n" )
         self.OM_data_init = self.OM_data_init + ("end distCol"+str(self.count)+";\n")
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "distCol"+str(self.count)+" "+ self.name + "(NOC = " + str(comp_count))
+        "distCol"+str(self.count)+" "+ self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

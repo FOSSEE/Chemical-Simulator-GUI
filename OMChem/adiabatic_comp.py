@@ -1,18 +1,29 @@
 from OMChem.EngStm import EngStm
-class AdiaComp():
-    def __init__(self,name=('AdiaComp',1), eff = None):
+class AdiabaticCompressor():
+    counter = 1
+    def __init__(self,name='AdiabaticCompressor', eff = None):
         self.eff = eff
-        self.name = name[0]
+        #self.name = name[0]
+        self.name = name + str(AdiabaticCompressor.counter) 
+
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
         self.EngStms = EngStm(name='EngStm'+self.name)
-        self.count = name[1]
-        self.type = 'AdiaComp'
-        self.thermoPackage ="Raoults_Law"
+        #self.count = name[1]
+        self.count = AdiabaticCompressor.counter
+        self.type = 'AdiabaticCompressor'
+        self.thermoPackage ="RaoultsLaw"
         self.mode = None
         self.modeVal = None
+        # new 
+        self.no_of_input = 1 
+        self.no_of_output = 1  
+        AdiabaticCompressor.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def connect(self,InputStms = None,OutputStms = None):
         self.InputStms = InputStms
@@ -39,7 +50,7 @@ class AdiaComp():
         self.OM_data_init = self.OM_data_init + ("end adiaComp"+str(self.count)+";\n")
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "adiaComp"+str(self.count)+" "+ self.name + "(NOC = " + str(comp_count))
+        "adiaComp"+str(self.count)+" "+ self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

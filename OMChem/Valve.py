@@ -1,9 +1,10 @@
 class Valve():
-    def __init__(self,name='valve'):
+    counter = 1
+    def __init__(self,name='Valve'):
         #self.PressDrop = PressureDrop
         self.mode = None
         self.modeVal = None
-        self.name = name
+        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
@@ -14,6 +15,14 @@ class Valve():
                 'pressDrop':None,
                 'outP':None
             }
+        # new 
+        self.name = name + str(Valve.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 1  
+        Valve.counter += 1  
+
+    def getname(self):
+        return self.name
 
     def modesList(self):
         return ["pressDrop","outP"]
@@ -35,7 +44,7 @@ class Valve():
         self.OM_data_init = ''
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "Simulator.Unit_Operations.Valve " + self.name + "(NOC = " + str(comp_count))
+        "Simulator.Unit_Operations.Valve " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

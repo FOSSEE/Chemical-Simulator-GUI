@@ -1,7 +1,8 @@
 
 import json
 class Splitter():
-    def __init__(self,name='splitter',NOO=5,calcType = 'Molar_Flow',specval = [50,50]):
+    counter = 1
+    def __init__(self,name='Splitter',NOO=5,calcType = 'Molar_Flow',specval = [50,50]):
         self.NOO = NOO
         self.calcType = calcType
         self.name = name
@@ -11,7 +12,15 @@ class Splitter():
         self.OutputStms = []
         self.type = 'Splitter'
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
-        
+        # new 
+        self.name = name + str(Splitter.counter) 
+        self.no_of_input = 1 
+        self.no_of_output = 4  
+        Splitter.counter += 1  
+
+    def getname(self):
+        return self.name
+
     def modesList(self):
         return []   
     def paramgetter(self,mode=None):
@@ -24,7 +33,7 @@ class Splitter():
         self.OM_data_init = ''
         comp_count = len(addedcomp)
         self.OM_data_init = self.OM_data_init + (
-        "Simulator.Unit_Operations.Splitter " + self.name + "(NOC = " + str(comp_count))
+        "Simulator.Unit_Operations.Splitter " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (",comp = {")
         comp = str(addedcomp).strip('[').strip(']')
         comp = comp.replace("'", "")

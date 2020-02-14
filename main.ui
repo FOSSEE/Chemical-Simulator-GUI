@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1068</width>
-    <height>810</height>
+    <height>803</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -148,7 +148,7 @@
      <x>0</x>
      <y>0</y>
      <width>1068</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -156,12 +156,14 @@
      <string>File</string>
     </property>
     <addaction name="actionNew_Flowsheet"/>
+    <addaction name="actionSave_2"/>
+    <addaction name="actionOpen"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionUndo_2"/>
+    <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -178,12 +180,14 @@
     </property>
     <addaction name="actionEquation_oriented"/>
     <addaction name="actionSequential_mode"/>
+    <addaction name="separator"/>
+    <addaction name="actionTerminate"/>
    </widget>
    <widget class="QMenu" name="menuComponds">
     <property name="title">
      <string>Compounds</string>
     </property>
-    <addaction name="actionSelect_compouns"/>
+    <addaction name="actionSelect_compounds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -191,12 +195,19 @@
     </property>
     <addaction name="actionHelp"/>
    </widget>
+   <widget class="QMenu" name="menuUtility">
+    <property name="title">
+     <string>Utility</string>
+    </property>
+    <addaction name="actionBinary_Phase_Envelope"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuSimulation"/>
    <addaction name="menuComponds"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuUtility"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -256,8 +267,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>222</width>
-          <height>978</height>
+          <width>221</width>
+          <height>956</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -336,11 +347,11 @@
             <string notr="true">Text-align:left;</string>
            </property>
            <property name="text">
-            <string>MatStm</string>
+            <string>MaterialStream</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/MatStm.png</normaloff>icons/MatStm.png</iconset>
+             <normaloff>icons/MaterialStream.png</normaloff>icons/MaterialStream.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -897,7 +908,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/AdiaComp.png</normaloff>icons/AdiaComp.png</iconset>
+             <normaloff>icons/AdiabaticCompressor.png</normaloff>icons/AdiabaticCompressor.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -944,7 +955,7 @@
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/AdiaExp.png</normaloff>icons/AdiaExp.png</iconset>
+             <normaloff>icons/AdiabaticExpander.png</normaloff>icons/AdiabaticExpander.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -1109,7 +1120,7 @@
    <addaction name="actionEquation_oriented"/>
    <addaction name="actionSequential_mode"/>
    <addaction name="separator"/>
-   <addaction name="actionSelect_compouns"/>
+   <addaction name="actionSelect_compounds"/>
   </widget>
   <action name="actionZoomIn">
    <property name="icon">
@@ -1156,7 +1167,7 @@
     <string>Sequential mode</string>
    </property>
   </action>
-  <action name="actionSelect_compouns">
+  <action name="actionSelect_compounds">
    <property name="icon">
     <iconset>
      <normaloff>icons/compoundSelector.png</normaloff>icons/compoundSelector.png</iconset>
@@ -1184,12 +1195,27 @@
     <string>save</string>
    </property>
   </action>
-  <action name="actionUndo">
+  <action name="actionSave_2">
    <property name="text">
-    <string>Undo</string>
+    <string>Save</string>
    </property>
   </action>
-  <action name="actionUndo_2">
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionBinary_Phase_Envelope">
+   <property name="text">
+    <string>Binary Phase Envelope</string>
+   </property>
+  </action>
+  <action name="actionTerminate">
+   <property name="text">
+    <string>Terminate</string>
+   </property>
+  </action>
+  <action name="actionUndo">
    <property name="text">
     <string>Undo</string>
    </property>

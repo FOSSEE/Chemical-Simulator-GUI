@@ -6,6 +6,8 @@ import pandas as pd
 from functools import partial
 from component_selector import *
 from collections import defaultdict
+from container import *
+
 ui_dialog,_ = loadUiType('resDock.ui')
 
 class resdockWidget(QDockWidget,ui_dialog):
@@ -22,17 +24,17 @@ class resdockWidget(QDockWidget,ui_dialog):
 
     def abriveation(self,key):
         d ={"P":"Pressure","T":"Temperature",
-        "liqPhasMolFrac":"Liquid Phase Mol Fraction","liqPhasMasFrac":"Liquid Pase Mass Fraction",
-        "vapPhasMolFrac":"Vapour Phase Mol Fracrion","vapPhasMasFrac":"Vapour Phase Mass Fracrion",
-        "totMolFlo[1]":"Molar Flow","totMasFlo[1]":"Mass Flow","MW[1]":"Mixer Phase Molecular Weight",
-        "MW[2]":"Liquid Phase Molecular Weight","MW[3]":"Vapour Phase Molecular Weight",
-        "phasMolSpHeat[1]":"Mixer Phase molar Heat Capacity","phasMolSpHeat[2]":"Liquid Phase molar Heat Capacity",
-        "phasMolSpHeat[3]":"Vapour Phase molar Heat Capacity","phasMolEnth[1]":"Mixer Phase Molar Enthalpy",
-        "phasMolEnth[2]":"Liquid Phase Molar Enthalpy","phasMolEnth[3]":"Vapour Phase Molar Enthalpy",
-        "phasMolEntr[1]":"Mixer Phase Molar Entropy","phasMolEntr[2]":"Liquid Phase Molar Entropy",
-        "phasMolEntr[3]":"Vapour Phase Molar Entropy","totMolFlo[2]":"Liquid Phase Molar Flow Rate",
-        "totMolFlo[3]":"Vapour Phase Molar Flow Rate","totMasFlo[2]":"Liquid Phase Mass Flow Rate",
-        "totMolFlo[3]":"Liquid Phase Mass Flow Rate"
+        "xliq":"Liquid Phase Mol Fraction","xmliq":"Liquid Pase Mass Fraction",
+        "xvap":"Vapour Phase Mol Fracrion","xmvap":"Vapour Phase Mass Fracrion",
+        "F_p[1]":"Molar Flow","Fm_p[1]":"Mass Flow","MW_p[1]":"Mixer Phase Molecular Weight",
+        "MW_p[2]":"Liquid Phase Molecular Weight","MW_p[3]":"Vapour Phase Molecular Weight",
+        "Cp_p[1]":"Mixer Phase molar Heat Capacity","Cp_p[2]":"Liquid Phase molar Heat Capacity",
+        "Cp_p[3]":"Vapour Phase molar Heat Capacity","H_p[1]":"Mixer Phase Molar Enthalpy",
+        "H_p[2]":"Liquid Phase Molar Enthalpy","H_p[3]":"Vapour Phase Molar Enthalpy",
+        "S_p[1]":"Mixer Phase Molar Entropy","S_p[2]":"Liquid Phase Molar Entropy",
+        "S_p[3]":"Vapour Phase Molar Entropy","F_p[2]":"Liquid Phase Molar Flow Rate",
+        "F_p[3]":"Vapour Phase Molar Flow Rate","Fm_p[2]":"Liquid Phase Mass Flow Rate",
+        "F_p[3]":"Liquid Phase Mass Flow Rate",
         } 
 
         for i in range(len(compound_selected)):
@@ -61,7 +63,7 @@ class resdockWidget(QDockWidget,ui_dialog):
             print("Under result category")
             result=self.Container.result
             obj = self.Container.fetchObject(name)
-            self.tableWidget.setRowCount(0);
+            self.tableWidget.setRowCount(0)
             for key, value in obj.Prop.items():
                 propertyname = name + '.' + key
                 print(key,value)
@@ -84,7 +86,7 @@ class resdockWidget(QDockWidget,ui_dialog):
         
     def results(self):              # Should be named as selecting object whose result is to be displayed
         self.nameType={}
-        for i in self.Container.unitOp:
+        for i in Container.unitOp:
             #nameslist.append(i.name)
             self.nameType[i.name] = i.type
             self.comboBox.addItem(str(i.name))
