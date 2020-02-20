@@ -14,12 +14,12 @@ from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
-from component_selector import *
+from ComponentSelector import *
 from Bin_Phase_env import *
 from UnitOperations import *
 from Streams import *
 import datetime
-from container import *
+from Container import *
 from Graphics import *
 import pickle
 import threading
@@ -27,7 +27,7 @@ import os
 import ctypes
 import sys
 
-ui,_ = loadUiType('main.ui')
+ui,_ = loadUiType('main3.ui')
 
 '''
     MainApp class is responsible for all the main App Ui operations
@@ -50,11 +50,11 @@ class MainApp(QMainWindow,ui):
         self.thrd = None
 
         # Creating instances of classes for the main app
-        self.Container = Container(self.textBrowser)        
-        self.comp = componentSelector(self)
+        self.container = Container.Container(self.textBrowser)        
+        self.comp = ComponentSelector(self)
 
         # Setting up interactive canvas        
-        self.scene = self.Container.graphics.getScene()
+        self.scene = self.container.graphics.getScene() ###
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.deleteCall
@@ -64,8 +64,6 @@ class MainApp(QMainWindow,ui):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.addDockWidget(Qt.BottomDockWidgetArea,self.dockWidget_2)
         
-        # Setting up undo stack
-        # self.undoStack = QUndoStack(self)
         # Calling initialisation functions
         self.buttonHandler()
         self.menuBar()
@@ -78,18 +76,18 @@ class MainApp(QMainWindow,ui):
     def menuBar(self):
         self.actionSelect_compounds.triggered.connect(self.selectCompounds)
         self.actionSelect_compounds.setShortcut('Ctrl+C')
-        self.actionZoomIn.triggered.connect(self.zoomin)
+        self.actionZoomIn.triggered.connect(self.zoomIn)
         self.actionZoomIn.setShortcut('Ctrl++')
-        self.actionNew_Flowsheet.triggered.connect(self.new)
-        self.actionNew_Flowsheet.setShortcut('Ctrl+N')
-        self.actionZoomOut.triggered.connect(self.zoomout)
+        self.actionNew.triggered.connect(self.new)
+        self.actionNew.setShortcut('Ctrl+N')
+        self.actionZoomOut.triggered.connect(self.zoomOut)
         self.actionZoomOut.setShortcut('Ctrl+-')
         self.actionResetZoom.triggered.connect(self.zoomReset)
         self.actionResetZoom.setShortcut('Ctrl+R')
         self.actionHelp.triggered.connect(self.help)
         self.actionHelp.setShortcut('Ctrl+H')
         self.actionSequential_mode.triggered.connect(partial(self.simulate,'SM'))
-        self.actionSequential_mode.setShortcut('Ctrl+M')
+        self.actionSequential_mode.setShortcut('Ctrl+M') 
         self.actionEquation_oriented.triggered.connect(partial(self.simulate,'EQN'))
         self.actionEquation_oriented.setShortcut('Ctrl+E')
         self.actionUndo.triggered.connect(self.undo)
@@ -113,14 +111,14 @@ class MainApp(QMainWindow,ui):
         self.pushButton.clicked.connect(partial(self.component,'MaterialStream'))
         self.pushButton_7.clicked.connect(partial(self.component,'Mixer'))
         self.pushButton_14.clicked.connect(partial(self.component,'Pump'))
-        self.pushButton_26.clicked.connect(partial(self.component,'DistCol'))
-        self.pushButton_18.clicked.connect(partial(self.component,'ShortCol'))
+        self.pushButton_26.clicked.connect(partial(self.component,'DistillationColumn'))
+        self.pushButton_18.clicked.connect(partial(self.component,'ShortcutColumn'))
         self.pushButton_11.clicked.connect(partial(self.component,'Heater'))
         self.pushButton_10.clicked.connect(partial(self.component,'Splitter'))
         self.pushButton_9.clicked.connect(partial(self.component,'Flash'))
         self.pushButton_25.clicked.connect(partial(self.component,'Valve'))
         self.pushButton_12.clicked.connect(partial(self.component,'Cooler'))
-        self.pushButton_13.clicked.connect(partial(self.component,'CompSep'))
+        self.pushButton_13.clicked.connect(partial(self.component,'CompoundSeparator'))
         self.pushButton_15.clicked.connect(partial(self.component,'AdiabaticCompressor'))
         self.pushButton_16.clicked.connect(partial(self.component,'AdiabaticExpander'))
     
@@ -166,16 +164,16 @@ class MainApp(QMainWindow,ui):
         selected by the user.
     '''
     def simulate(self,mode):
-        self.thrd = threading.Thread(target=self.Container.simulate, args=(mode,))
+        self.thrd = threading.Thread(target=self.container.simulate, args=(mode,))
         self.thrd.start()
     
     def terminate(self):
-        os.chdir(self.Container.flowsheet.root_dir)
+        os.chdir(self.container.flowsheet.root_dir)
         if self.thrd:
             thread_id = self.thrd.ident
             print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
             print('____________________Going to terminate the new process created for omc____________________')
-            self.Container.flowsheet.process.terminate()
+            self.container.flowsheet.process.terminate()
             print('____________________New process created for omc is terminated.____________________')
             res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
             self.textBrowser.append("<span style=\"color:red\">["+str(self.currentTime())+"]<b> Terminating the simulation </b></span>")
@@ -198,14 +196,14 @@ class MainApp(QMainWindow,ui):
     '''
         ZoomOut the canvas
     '''
-    def zoomout(self):
+    def zoomOut(self):
         self.graphicsView.scale(1.0/1.15,1.0/1.15)
         self.zoomcount -=1
     
     '''
         ZoomIn the canvas
     '''
-    def zoomin(self):
+    def zoomIn(self):
         self.graphicsView.scale(1.15,1.15)
         self.zoomcount +=1
   
@@ -217,10 +215,10 @@ class MainApp(QMainWindow,ui):
         if(self.comp.isCompSelected()):
             self.type = unitOpType
             if(self.type=="MaterialStream"):
-                self.obj = MaterialStream(CompNames=compound_selected)  
+                self.obj = MaterialStream(CompNames=compound_selected)
             else:
                 self.obj = eval(self.type)()
-            self.Container.addUnitOp(self.obj)
+            self.container.addUnitOp(self.obj, self.graphicsView)
 
         else:
             QMessageBox.about(self, 'Important', "Please Select Compounds first")
@@ -233,21 +231,7 @@ class MainApp(QMainWindow,ui):
         self.undo_redo_helper()
         self.comp.tableWidget.setRowCount(0)
         self.textBrowser.append("<span>[" + str(self.currentTime()) + "] <b>New</b> flowsheet is created ... </span>")
-
-    '''
-        It helps by clearing screen and loading the objects by undo redo methods
-    '''
-    def undo_redo_helper(self):
-        for i in self.Container.unitOp:
-            type(i).counter = 1
-        del self.Container
-        lst.clear()
-        self.Container = Container(self.textBrowser)
-        compound_selected.clear()
-        self.scene = self.Container.graphics.getScene()
-        self.graphicsView.setScene(self.scene)
-        self.graphicsView.setMouseTracking(True)
-        self.graphicsView.keyPressEvent=self.deleteCall
+        dockWidgetLst.clear()
 
     '''
         Handels all the operations which will happen when delete button is pressed.
@@ -258,9 +242,29 @@ class MainApp(QMainWindow,ui):
                 l=self.scene.selectedItems()
                 for i in l:
                     eval(i.type).counter -= 1
-                self.Container.delete(l)
+                self.container.delete(l)
         except Exception as e:
             print(e)
+
+    '''
+        It helps by clearing screen and loading the objects by undo redo methods
+    '''
+    def undo_redo_helper(self):
+        for i in self.container.unitOp:
+            type(i).counter = 1
+        del self.container
+        for i in dockWidgetLst:
+            i.hide()
+            del i
+        lst.clear()
+        self.container = Container.Container(self.textBrowser)
+        compound_selected.clear()
+        self.scene = self.container.graphics.getScene()
+        self.graphicsView.setScene(self.scene)
+        self.graphicsView.setMouseTracking(True)
+        self.graphicsView.keyPressEvent=self.deleteCall
+
+
 
     '''
         Function for undo 
@@ -273,7 +277,7 @@ class MainApp(QMainWindow,ui):
             messages = self.textBrowser.toPlainText()
             try:
                 self.undo_redo_helper()
-                self.Container.graphics.loadCanvas(undo_data)
+                self.container.graphics.loadCanvas(undo_data)
                 self.textBrowser.setText(messages)
             except Exception as e:
                 print(e)
@@ -292,7 +296,7 @@ class MainApp(QMainWindow,ui):
             PUSH('Undo', redo_data)
             messages = self.textBrowser.toPlainText()
             self.undo_redo_helper()
-            self.Container.graphics.loadCanvas(redo_data)
+            self.container.graphics.loadCanvas(redo_data)
             self.textBrowser.setText(messages)
         else:
             messages = self.textBrowser.toPlainText()
@@ -304,7 +308,7 @@ class MainApp(QMainWindow,ui):
     '''
     def save(self):
         data = []
-        for i in self.Container.unitOp:
+        for i in self.container.unitOp:
             data.append(i)
             print(i.pos)
         data.append(compound_selected)
@@ -338,7 +342,7 @@ class MainApp(QMainWindow,ui):
             with open(fileName, 'rb') as f:
                 obj = pickle.load(f)
 
-            self.Container.graphics.loadCanvas(obj)
+            self.container.graphics.loadCanvas(obj)
 
         except Exception as e:
             pass

@@ -27,8 +27,9 @@
      <widget class="QLabel" name="label">
       <property name="font">
        <font>
-        <family>Comic Sans MS</family>
-        <pointsize>12</pointsize>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="text">
@@ -43,11 +44,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="compoundSelectButton">
-        <property name="font">
-         <font>
-          <family>Comic Sans MS</family>
-         </font>
-        </property>
         <property name="text">
          <string>Select</string>
         </property>
@@ -58,11 +54,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_3">
-        <property name="font">
-         <font>
-          <family>Comic Sans MS</family>
-         </font>
-        </property>
         <property name="text">
          <string>Remove</string>
         </property>

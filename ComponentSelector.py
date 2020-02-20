@@ -4,17 +4,15 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 import pandas as pd
 from Simulator.Databases.Databases import ChemsepDatabase
-ui_dialog,_ = loadUiType('comp_selector.ui')
+ui_dialog,_ = loadUiType('ComponentSelector.ui')
 
 
 #df = pd.read_csv("compoundsDatabase.csv")
 
 compound_selected = [] #list storing components that are selected inintialised as empty
 
-class componentSelector(QDialog,ui_dialog):
-    def __init__(self,parent=None):
-        #super(componentSelector,self).__init__(parent)
-       
+class ComponentSelector(QDialog,ui_dialog):
+    def __init__(self,parent=None):       
         QDialog.__init__(self,parent)
 
         self.setupUi(self)
@@ -43,6 +41,7 @@ class componentSelector(QDialog,ui_dialog):
         self.completer = QCompleter()
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setModel(self.model)
+
         #QCompleter completes the text written in lineedit    
         self.lineEdit.setCompleter(self.completer)  
 		
@@ -51,7 +50,6 @@ class componentSelector(QDialog,ui_dialog):
         self.pushButton.clicked.connect(self.accept)
         self.pushButton_2.clicked.connect(self.cancel)
         self.pushButton_3.clicked.connect(self.removeItems)
-        
         
     def final_list(self,*list_name):
         self.list_final=[]
@@ -172,10 +170,3 @@ class componentSelector(QDialog,ui_dialog):
         self.f_mo.write('\nend database;')
         self.f_mo.close()
         
- 
-
-
-    
-    
-
-

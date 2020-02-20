@@ -4,13 +4,13 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 import pandas as pd
 from functools import partial
-from component_selector import *
+from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetMatStm.ui')
+ui_dialog,_ = loadUiType('DockWidgetMaterialStream.ui')
 
-class DockWidgetMatStm(QDockWidget,ui_dialog):
+class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
         QDockWidget.__init__(self,parent)
@@ -41,11 +41,11 @@ class DockWidgetMatStm(QDockWidget,ui_dialog):
         self.vTreeWidget.itemClicked.connect(lambda : self.printer(self.vTreeWidget.currentItem()))
 
 
-    def printer(self, treeItem ):
-	    foldername = treeItem.text(0)
-	    comment = treeItem.text(1)
-	    data = treeItem.text(2)
-	    print(foldername , ': ' , comment , ' (' + data + ')')
+    # def printer(self, treeItem ):
+	#     foldername = treeItem.text(0)
+	#     comment = treeItem.text(1)
+	#     data = treeItem.text(2)
+	#     print(foldername , ': ' , comment , ' (' + data + ')')
 
     # input data tab
     def modes(self):

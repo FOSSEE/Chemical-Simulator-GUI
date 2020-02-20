@@ -17,15 +17,11 @@ class ChemsepDatabase():
         self.name = 'chemsep'
         for comp in compound:
             self.compName=comp.getElementsByTagName('CompoundID')[0].getAttribute('value')
-            self.comp_name_list.append(self.compName+'(' + self.name + ')')
-            
-        self.comp_prop_list=list()
-           
+            self.comp_name_list.append(self.compName+'(' + self.name + ')')       
+        self.comp_prop_list=list()         
             
     def get_comp_name_list(self):
         return self.comp_name_list
-    
-    
     
     #attrib:
     #CAS fro CAS Number
@@ -35,9 +31,7 @@ class ChemsepDatabase():
 
 
 #GETTING 'ATTRIBUTE''S VALUE OF THE COMPOUND 'COMPS'
-#COMP IS AN ITERATING VALUE IN THE XML TAG COMPOUND    
-    
-    
+#COMP IS AN ITERATING VALUE IN THE XML TAG COMPOUND      
     def get_value(self,comps,attrib):
         self.comps=comps
         self.x=''
@@ -47,8 +41,7 @@ class ChemsepDatabase():
                 try:
                     self.x=comp.getElementsByTagName(attrib)[0].getAttribute("value")
                 except IndexError:
-                    self.x = "-"
-                
+                    self.x = "-"           
         return (self.x)
         
 #CREATING comp_prop_list LIST OF THE COMPOUND SELECTED         
@@ -58,9 +51,7 @@ class ChemsepDatabase():
         self.comps = comps
         for comp in compound:
             compName = comp.getElementsByTagName("CompoundID")[0].getAttribute("value")
-            if compName==self.comps:
-                
-                
+            if compName==self.comps:         
                 CompName = compName.replace(" ","")
                 CompName = CompName.replace("-","")
                 CompName = CompName.replace(",","")
@@ -140,8 +131,7 @@ class ChemsepDatabase():
                     RacketParam = comp.getElementsByTagName("RacketParameter")[0].getAttribute("value")
                 except IndexError:
                     RacketParam = "0"
-            
-            
+                      
                 try:
                     LiqDen = comp.getElementsByTagName("LiquidDensity")[0]
                     LiqDenEqn = LiqDen.getElementsByTagName("eqno")[0].getAttribute("value")
@@ -358,8 +348,6 @@ class ChemsepDatabase():
                 except IndexError:
                     ChaoSeadLV = 0
         
-        
-        
                 #f.write('Package database')
                 self.comp_prop_list.append('model '+CompName)
                 #f.write('\n')
@@ -441,6 +429,3 @@ class ChemsepDatabase():
                 #return self.comp_prop_list
         return self.comp_prop_list
                 
-                
-
-           

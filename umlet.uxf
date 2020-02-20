@@ -1,0 +1,1448 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>11</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>341</x>
+      <y>759</y>
+      <w>286</w>
+      <h>462</h>
+    </coordinates>
+    <panel_attributes>MainApp
+--
++ zoomcount: int = 0
++ thrd: Thread = None
++ container: Container()
++ comp: ComponentSelector()
++ scene: Graphics.QGraphicsScene()
+--
++ menuBar()
++ buttonHandler()
++ help()
++ BinPhaseEnv()
++ selectCompounds()
++ currentTime()
++ simulate(mode)
++ terminate()
++ zoomReset()
++ zoomOut()
++ zoomIn()
++ component()
++ new()
++ deleteCall()
++ undo_redo_helper()
++ undo()
++ redo()
++ save()
++ open()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>363</x>
+      <y>484</y>
+      <w>242</w>
+      <h>187</h>
+    </coordinates>
+    <panel_attributes>QMainWindow
+--
+graphicsView.keyPressEvent
+textBrowser: UC1
+--
+setUpUi()
+graphicsView.setScene()
+graphicsView.setMouseTracking()
+setDockNestingEnabled()
+setCorner()
+addDockWidget()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>473</x>
+      <y>660</y>
+      <w>33</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>385</x>
+      <y>330</y>
+      <w>187</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>UC1 (textBrowserClass)
+--
+setText()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>462</x>
+      <y>385</y>
+      <w>33</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>715</x>
+      <y>352</y>
+      <w>352</w>
+      <h>363</h>
+    </coordinates>
+    <panel_attributes>ComponentSelector
+--
++ Dict1: dictionary = dict()
++ instance: list = [ChemsepDatabase()]
++ lines: list = []
++ model: QStringListModel()
++ completer: QCompleter()
+--
++ final_list(*list_name)
++ isCompSelected()
++ get_object(component)
++ get_original_name(component, removing_attrib)
++ compoundSelection()
+_+ setCompounds(compounds)_
++ addToTable(a)
++ addCompToList(comp)
++ removeItems()
++ Show_Error()
++ cancel()
++ getComp()
++ final_mo()
+
+
+
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>737</x>
+      <y>748</y>
+      <w>253</w>
+      <h>462</h>
+    </coordinates>
+    <panel_attributes>Container
+--
++ unitOp: list = []
++ termoPackage = None
++ compounds = None
++ conn: dictionary = defaultdict(list)
++ op: dictionary = defaultdict(list)
++ ip: dictionary = defaultdict(list)
++ msg
++ opl: list = []
++ result: list = []
++ graphics: Graphics(unitOp)
++ scene : graphics.getScene()
+--
++ currentTime()
++ addUnitOp(obj, graphicsView)
++ delete(l)
++ fetchObject(name)
++ addCompounds(comp)
++ add_thermoPackage(thermo)
++ msgBrowser()
++ simulate(mode)
++ flatlist(lst)
++ PUSH(fileName, data)
++ CLEAN_FILE(fileName)
++ POP(fileName)
++ get_last_list(fileName)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1078</x>
+      <y>836</y>
+      <w>374</w>
+      <h>187</h>
+    </coordinates>
+    <panel_attributes>Graphics
+--
++ scene: QGraphicsScene()
++ pos: QPointF = None
++ unitOp: list = unitOp
+--
++ getScene()
++ getComponentSelector()
++ createNodeItem(unitOpr, container, graphicsView)
++ boundingRect()
++ loadCanvas(obj)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1144</x>
+      <y>528</y>
+      <w>231</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>QDialog
+--
+lineEdit: UC2
+compoundSelectButton: UC3
+pushButton: UC4
+pushButton_2: UC4
+pshButton_3: UC4
+--
+setupUi()
+show()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1144</x>
+      <y>220</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>QStringListModel
+--
+setStringList()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1430</x>
+      <y>517</y>
+      <w>231</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>UC3 (selectButtonClass)
+--
+clicked.connect()
+setAutoDefault()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1144</x>
+      <y>297</y>
+      <w>231</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>QCompleter
+--
+setCaseSensitivity()
+setModel()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1144</x>
+      <y>407</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>UC2 (lineEditClass)
+--
+setCompleter()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1430</x>
+      <y>616</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>UC4 (pushButtonClass)
+--
+clicked.connect()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1045</x>
+      <y>1089</y>
+      <w>440</w>
+      <h>583</h>
+    </coordinates>
+    <panel_attributes>NodeItem
+--
++ obj: UnitOperation = unitOpr
++ container: Container = container
++ graphicsView: QGraphicsView = graphicsView
++ name: string = obj.name
++ type: string = obj.type
++ default_tooltip: string
++ default_tooltip_dict: dictionary
++ nin: int = obj.no_of_inputs
++ nop: int = obj.no_of_outputs
++ text: string = user_input
++ ok: boolean = user_input
++ dockWidget: DockWidget() or DockWidgetMaterialStream() 
+					or DockWidgetMixer() or DockWidgetSplitter()
+					or DockWidgetFlash() or DockWidgetCompoundSeparator()
+					or DockWidgetDistillationColumn()
+					or DockWidgetShortcutColumn()
++ mainwindow = findMainWindow()
++ pic: QPixmap() 
++ rect: QRect()
++ text: QGraphicsTextItem()
++ f: QFont()
++ brush: QBrush()
++ pen: QPen()
++ selPen: QPen()
++ Input:list = [NodeSocket(type)]
++ Output:list = [NodeSocket(type)]
+--
+shape()
+boundingRect()
+paint()
+mouseMoveEvent(event)
+mouseDoubleClickEvent(event)
++ initializeSockets(type)
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1012</x>
+      <y>1705</y>
+      <w>187</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>QtWidgets.QGraphicsItem
+--
+setTooltip(default_tooltip)
+setFlag
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1331</x>
+      <y>1782</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>QtWidgets.QInputDialog
+--
+getText()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1254</x>
+      <y>1870</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>QtGui.QFont
+--
+setPointSize()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1012</x>
+      <y>1826</y>
+      <w>231</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>QtWidgets.QGraphicTextItem
+--
+setFont()
+setDefaultTextColor()
+setParentItem()
+setPos()
+setPlainText()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>759</x>
+      <y>1265</y>
+      <w>176</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>QtGui.QBrush
+--
+setStyle()
+setColor()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>462</x>
+      <y>1265</y>
+      <w>231</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>QtGui.QPen
+--
+setStyle()
+setColor()
+setWidth()
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>737</x>
+      <y>1419</y>
+      <w>231</w>
+      <h>363</h>
+    </coordinates>
+    <panel_attributes>NodeSocket
+--
++ rect: QRect = rect
++ type: string = socketType
++ parent: NodeItem = parent
++ newLine: NodeLine = None
++ otherLine: NodeLine = None
++ brush: QBrush()
++ pen: QPen()
++ outLines: list = []
++ inLines: list = []
+--
+shape()
+boundingRect()
+paint()
+mousePressEvent(event)
+mouseMoveEvent(event)
+mouseReleaseEvent(event)
+hoverEnterEvent(event)
+hoverLeaveEvent(event)
++ getCenter()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>385</x>
+      <y>1419</y>
+      <w>231</w>
+      <h>418</h>
+    </coordinates>
+    <panel_attributes>NodeLine
+--
++ _pointA: QPointF = pointA
++ _pointB: QPointF = pointB
++ _source: QPointF = None
++ _targer: QPointF = None
++ socket: string = socket
++ pen: QPen()
+--
+updatePath()
+paint()
+__delete__(instance)
++ pointA()
++ pointA(point)
++ pointB()
++ pointB(poing)
++ source()
++ target()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>220</x>
+      <y>1265</y>
+      <w>231</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>QtWigets.QGraphicsPathItem
+--
+setZValue()
+setBrush()
+setPen()
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2101</x>
+      <y>396</y>
+      <w>264</w>
+      <h>330</h>
+    </coordinates>
+    <panel_attributes>DockWidgetMaterialStream
+--
++ name: string = name
++ obj: UnitOperations = obj
++ type: string = comptype
++ inputdict: dictionary = {}
++ dict: dictionary = {}
++ x_pclist: list = []
++ nameType: string = None
++ container: Container = container
++ header: QTreeWidgetItem()
+--
++ modes()
++ modeSelection()
++ inputparamslist()
++ param()
++ resultsCategory(name)
++ _showResult(lst)_
++ Show_Error()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1430</x>
+      <y>704</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>UC5 (comboBoxClass)
+--
+currentIndexChanged.connect()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1716</x>
+      <y>616</y>
+      <w>264</w>
+      <h>308</h>
+    </coordinates>
+    <panel_attributes>DockWidget
+--
++ name: string = name
++ obj: UnitOperations = obj
++ type: string = comptype
++ inputdict: dictionary = {}
++ dict: dictionary = {}
++ x_pclist: list = []
++ nameType: string = None
++ container: Container = container
+--
++ modes()
++ modeSelection()
++ inputparamslist()
++ param()
++ resultsCategory(name)
+_+ showResult(lst)_
++ Show_Error()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1760</x>
+      <y>385</y>
+      <w>231</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>QDockWidget
+--
+pushButton_2: UC4
+comboBox: UC5
+
+btn:UC4
+--
+setupUi()
+setWindowTitle()
+hide()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2101</x>
+      <y>1232</y>
+      <w>264</w>
+      <h>275</h>
+    </coordinates>
+    <panel_attributes>DockWidgetShortcutColumn
+--
++ name: string = name
++ obj: UnitOperations = obj
++ type: string = comptype
++ inputdict: list = []
++ dict: list = []
++ nameType: string = None
++ container: Container = container
+--
++ inputparamslist()
++ fun()
++ param()
++ Show_Error()
+_+ showResult(lst)_
++ resultCategory(name)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2101</x>
+      <y>1012</y>
+      <w>264</w>
+      <h>198</h>
+    </coordinates>
+    <panel_attributes>DockWidgetMixer
+DockWidgetCompoundSeparator
+--
++ name: string = name
++ obj: UnitOperations = obj
++ type: string = comptype
++ inputdict: list = []
++ dict: list = []
+--
++ inputparamslist()
++ param()
++ Show_Error()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2101</x>
+      <y>770</y>
+      <w>264</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>DockWidgetSplitter
+DockWidgetFlash
+--
++ name: string = name
++ obj: UnitOperations = obj
++ type: string = comptype
++ inputdict: list = []
++ dict: list = []
+--
++ inputparamslist()
++ fun()
++ param()
++ Show_Error()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1606</x>
+      <y>957</y>
+      <w>451</w>
+      <h>473</h>
+    </coordinates>
+    <panel_attributes>Flowsheet
+--
++ sim_name: string = 'Simulator'
++ sim_method: string = ''
++ UnitOpn: list = []
++ data: list = []
++ compounds: list = []
++ interface: string = ''
++ omc_path: string = None
++ omc_path: string = cwd()
++ sim_dir_path: string = join(curr_path, sim_name)
++ Flomo_path: string = join(ssim_dir_path, 'Flowsheet.mo')
++ eqn_mos_path: string = join(sim_dir_path, 'simlateEQN.mos')
++ sm_mos_path: string = join(sim_dir_path, 'simulateSM.mos')
++ resdata: list = []
++ stdout = None
++ stderr = None
+--
++ get_omc_path()
++ add_UnitOpn()
++ remove_UnitOpn()
++ add_comp_list()
++ send_for_simulationEqn()
++ send_for_simulationSM()
++ ExtData()
++ simulateEQN()
++ simulateSM()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1650</x>
+      <y>1694</y>
+      <w>297</w>
+      <h>517</h>
+    </coordinates>
+    <panel_attributes>MaterialStream
+--
+_+ counter: int = 1_
++ name: string = 'MaterialStream' + counter
++ type: string = 'MaterialStream'
++ CompNames: string = CompNames
++ count: int = counter
++ thermoPackage: string = 'RaoultsLaw'
++ mode1: string = 'P'
++ mode2: string = 'T'
++ mode1val: string = ''
++ mode2Val: string = ''
++ OM_data_init: string = ''
++ OM_data_eqn: string = ''
++ no_of_inputs: int = 1
++ no_of_outputs: int = 2
++ x: int = 2500-30
++ y: int = 2500-30
++ startDict: dictionary = {}
++ eqnDict: dictionary = {}
++ modesList: list = ['PT',...]
++ variables: dictionary = {'P':{..},...} 
+--
++ paramgetter(mode)
++ paramsetter(params)
++ setPos(pos)
++ GetMinEqnValues()
++ GetStartValues()
++ OM_Flowsheet_Initialize()
++ OM_Flowsheet_Equation()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2068</x>
+      <y>1694</y>
+      <w>297</w>
+      <h>572</h>
+    </coordinates>
+    <panel_attributes>UnitOperations
+--
+_+ counter: int = 1_
++ OM_data_eqn: string = ''
++ OM_data_init: string = ''
++ InputStms: list = []
++ OutputStms: list = []
++ compounds: list = compound_selected
++ name: string = ''
++ mode: string = None
++ modeVal: string = None
++ type: string = None
++ no_of_inputs: int = 1
++ no_of_outputs: int = 1
++ x: int = 2500-30
++ y: int = 2500-30
++ pos: QPointF(x, y)
++ count: int = counter
++ variables: dictionary = {}
++ modesList: list = []
++ parameters: list = []
++ extra: list = []
++ ForNaming: list = []
++ multidict: list = []
++ ThermoPackReq: boolean = False
++ thermoPackage: list = None
+--
++ paramgetter(mode)
++ paramsetter(params)
++ setPos(pos)
++ add_connection(flag, UnitOpr)
++ OM_Flowsheet_Initialize()
++ OM_Flowsheet_Equation()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>935</y>
+      <w>275</w>
+      <h>264</h>
+    </coordinates>
+    <panel_attributes>Bin_Phase_env
+--
++ comp: CompoundSelector = comp
++ compounds: list = comp.getComp()
++ lines: list = [line.rstrip('\n')...]
++ counter: int = 1
+--
+setupUi()
++ button_handler()
++ T_xy()
++ P_xy()
++ get_omc_path()
++ plot()
++ pressEvent(evt)
++ entered(items)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>770</x>
+      <y>154</y>
+      <w>231</w>
+      <h>154</h>
+    </coordinates>
+    <panel_attributes>ChemsepDatabase
+--
++ comp_name_list: list = list()
++ name: string = 'chemsep'
++ comp_prop_list: list = list()
+--
++ get_comp_name_list()
++ get_value(comps, attrib)
++ get_comp_prop(comps)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>616</x>
+      <y>704</y>
+      <w>132</w>
+      <h>132</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;100.0;100.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>616</x>
+      <y>902</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>110.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>869</x>
+      <y>297</y>
+      <w>33</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1056</x>
+      <y>594</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>80.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1243</x>
+      <y>451</y>
+      <w>33</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1243</x>
+      <y>363</y>
+      <w>33</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1243</x>
+      <y>264</y>
+      <w>33</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1364</x>
+      <y>550</y>
+      <w>88</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1364</x>
+      <y>627</y>
+      <w>88</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>979</x>
+      <y>935</y>
+      <w>121</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1243</x>
+      <y>1012</y>
+      <w>33</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>957</x>
+      <y>1529</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>605</x>
+      <y>1529</y>
+      <w>154</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>341</x>
+      <y>1342</y>
+      <w>165</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>495</x>
+      <y>1342</y>
+      <w>99</w>
+      <h>99</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>847</x>
+      <y>1320</y>
+      <w>33</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>924</x>
+      <y>1298</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1100</x>
+      <y>1661</y>
+      <w>33</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1441</x>
+      <y>1661</y>
+      <w>33</w>
+      <h>143</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1287</x>
+      <y>1661</y>
+      <w>33</w>
+      <h>231</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;190.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1210</x>
+      <y>1661</y>
+      <w>33</w>
+      <h>187</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;150.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>979</x>
+      <y>1034</y>
+      <w>649</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>570.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1529</x>
+      <y>1034</y>
+      <w>704</w>
+      <h>682</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>620.0;600.0;620.0;520.0;10.0;520.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1782</x>
+      <y>1595</y>
+      <w>33</w>
+      <h>121</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1474</x>
+      <y>539</y>
+      <w>1023</w>
+      <h>1023</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>810.0;10.0;910.0;10.0;910.0;910.0;10.0;910.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>858</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>1100</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>1353</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1969</x>
+      <y>737</y>
+      <w>528</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;460.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1826</x>
+      <y>550</y>
+      <w>33</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1980</x>
+      <y>429</y>
+      <w>143</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1980</x>
+      <y>462</y>
+      <w>154</w>
+      <h>330</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;280.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1980</x>
+      <y>506</y>
+      <w>143</w>
+      <h>528</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;460.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1980</x>
+      <y>550</y>
+      <w>143</w>
+      <h>715</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;630.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>264</x>
+      <y>1012</y>
+      <w>99</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1650</x>
+      <y>638</y>
+      <w>88</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1650</x>
+      <y>726</y>
+      <w>88</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1804</x>
+      <y>165</y>
+      <w>176</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>UC is the abbreviation 
+for unknown class.
+bg=white
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1793</x>
+      <y>242</y>
+      <w>231</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>Graphics.py
+--
+findMainWindow()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1100</x>
+      <y>0</y>
+      <w>341</w>
+      <h>187</h>
+    </coordinates>
+    <panel_attributes>OMCS Class Diagram
+--
+Initial version :
+      Author - Saurabh Agarwala
+      Date    - 7th December 2019
+      Contact - saur.agarwala@gmail.com
+--
+Current final version :
+      Author - Thiha Min Maung
+      Date    - 19th February 2020
+      Contact - lucaszhao999@gmail.com
+bg=white
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>2145</y>
+      <w>231</w>
+      <h>187</h>
+    </coordinates>
+    <panel_attributes>Heater
+Cooler
+AdiabaticCompressor
+AdiabaticExpander
+Valve
+Pump
+Flash
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>1925</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>Mixer
+--
++ Pout_modes: list = [...]
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>1991</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>Splitter
+--
++ CalcType_modes: list = [...]
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>2068</y>
+      <w>231</w>
+      <h>55</h>
+    </coordinates>
+    <panel_attributes>CompoundSeparator
+--
++ SepFact_modes: list = [...]
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>1716</y>
+      <w>275</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>DistillationColumn
+--
++ EngStm1:string = 'EngStm1'+name
++ EngStm2: string = 'EngStm2'+name
++ Cspec_list: list = [...]
++ Rsepc_list: list = [...]
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2442</x>
+      <y>1837</y>
+      <w>275</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>ShortcutColumn
+--
++ EngStm1:string = 'EngStm1'+name
++ EngStm2: string = 'EngStm2'+name
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>1760</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>1859</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>1947</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>2024</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>2090</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2354</x>
+      <y>2211</y>
+      <w>110</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+</diagram>

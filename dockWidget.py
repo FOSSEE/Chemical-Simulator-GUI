@@ -4,7 +4,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 import pandas as pd
 from functools import partial
-from component_selector import *
+from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
@@ -12,7 +12,7 @@ ui_dialog,_ = loadUiType('DockWidget.ui')
 
 class DockWidget(QDockWidget,ui_dialog):
 
-    def __init__(self,name,comptype,obj,container,parent=None):
+    def __init__(self,name,comptype,obj,container, parent=None):
         QDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
@@ -23,21 +23,23 @@ class DockWidget(QDockWidget,ui_dialog):
         self.x_pclist = []
         self.modes()
         self.comboBox.currentIndexChanged.connect(self.modeSelection)
+       
         print("constructor ", self.inputdict)
         self.pushButton_2.clicked.connect(self.param)
         self.dict = {}
 
         self.nameType = None
         self.container = container
-
+        
     # input data tab
     def modes(self):
         modesList = self.obj.modesList
         if(modesList):
             for j in modesList:
-                self.comboBox.addItem(str(j))
+                self.comboBox.addItem(str(self.obj.variables[j]['name']))
             self.modeSelection()
         else:
+            self.comboBox.setDisabled(True)
             self.inputdict= {}
             self.inputdict = self.obj.paramgetter()
             self.inputparamslist()
@@ -46,13 +48,21 @@ class DockWidget(QDockWidget,ui_dialog):
         self.inputdict= {}
         for i in reversed(range(self.formLayout.count())):
             self.formLayout.removeRow(i) 
-        self.inputdict = self.obj.paramgetter(self.comboBox.currentText())
+        print(self.comboBox.currentText())
+        for i in self.obj.variables:
+            if self.obj.variables[i]['name'] == self.comboBox.currentText():
+                currentText = i
+                break
+        self.inputdict = self.obj.paramgetter(currentText)
+        print('mode selection ', self.inputdict)
         self.inputparamslist()
-
+            
     def inputparamslist(self):
         try:
             print("inputparamslist ", self.inputdict)
             for c,i in enumerate(self.inputdict):
+                if i == None:
+                    continue
                 if(i=="thermoPackage"):
                     print("thermo1")
                     combo = QComboBox()
@@ -60,20 +70,24 @@ class DockWidget(QDockWidget,ui_dialog):
                     print("thermo2")
                     for j in self.lines:
                         combo.addItem(str(j))
+                    combo.setMinimumContentsLength(15)
                     lay = QGridLayout()
                     lay.addWidget(QLabel(i+":"), 0,0, alignment=Qt.AlignLeft)
-                    lay.addWidget(combo, 0, 1, alignment=Qt.AlignRight)
+                    lay.addWidget(combo, 0, 1, alignment=Qt.AlignCenter)
+                    lay.addWidget(QLabel(''), 0, 2, alignment = Qt.AlignCenter)
                     self.formLayout.addRow(lay)
                     self.inputdict[i] = combo   
                     print("thermo")
-                elif(i=="condType"):
+                elif(i=="Ctype"):
                     combo = QComboBox()
                     self.lines = ["Total","Partial"]
                     for j in self.lines:
                         combo.addItem(str(j))
+                    combo.setMinimumContentsLength(15)
                     lay = QGridLayout()
-                    lay.addWidget(QLabel("Condensor Type :"+":"), 0, 0, alignment=Qt.AlignLeft)
+                    lay.addWidget(QLabel("Condensor Type :"), 0, 0, alignment=Qt.AlignLeft)
                     lay.addWidget(combo, 0, 1, alignment=Qt.AlignCenter)
+                    lay.addWidget(QLabel(''), 0, 2, alignment = Qt.AlignCenter)
                     self.formLayout.addRow(lay)
                     self.inputdict[i] = combo
                 elif(i=="x_pc"):
@@ -90,25 +104,31 @@ class DockWidget(QDockWidget,ui_dialog):
                         lay.addWidget(QLabel(self.obj.variables[i]['unit']),j,2, alignment=Qt.AlignCenter)                                      
                         self.x_pclist.append(l)
                     gp.setLayout(lay)
-                    self.formLayout.addRow(gp)  
+                    self.formLayout.addRow(gp)       
                 else:
                     print("elseloop")
+                    print(i)
+                    if i == None:
+                        continue
                     l = QLineEdit()
                     if self.inputdict[i] != None:
                         l.setText(str(self.inputdict[i]))
+                    print('before lay')
                     lay = QGridLayout()
-                    lay.addWidget(QLabel(i+":"),0,0, alignment=Qt.AlignLeft)
+                    lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft) #self.obj.variables[i]['name']
                     lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
+                    print('after lay')
                     if(i != 'MolFlow'):
                         lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
                     else:
-                        lay.addWidget(QLabel("mol/s"),0,2, alignment=Qt.AlignCenter)
+                        lay.addWidget(QLabel('mol/s'),0,2, alignment=Qt.AlignCenter)
+                    print('after all')
                     self.formLayout.addRow(lay)
                     self.inputdict[i] = l
+                    
             
         except Exception as e:
             print(e)
-
 
     def Show_Error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
@@ -116,16 +136,17 @@ class DockWidget(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict={}
-
             print("param.inputdict ", self.inputdict)
             for i in self.inputdict:
+                if (self.inputdict[i] == None):
+                    continue                  
                 if(i=="thermoPackage"):
                     if (self.inputdict[i].currentText()):
                         self.dict[i] = self.inputdict[i].currentText()
                     else:
                         self.Show_Error()
                         break
-                elif(i=="condType"):
+                elif(i=="Ctype"):
                     if (self.inputdict[i].currentText()):
                         self.dict[i] = self.inputdict[i].currentText()
                     else:
@@ -145,10 +166,11 @@ class DockWidget(QDockWidget,ui_dialog):
                     for c in range(len(compound_selected)):
                         mf.append(str(float(l[c])/total_moles))
                         self.x_pclist[c].setText(mf[-1])
-                        # self.formLayout.addRow(QLabel(str(compound_selected[c])+" Mole Fraction: "+str(float(l[c])/total_moles)))
                     self.dict[i] = ",".join(mf)
-                    # self.update()
+                elif(i == 'Pout' and self.obj.type == 'Mixer' or i == '' or i == 'HKey' or i == 'LKey'):
+                    self.dict[i] = self.inputdict[i].currentText()
                 else:
+                    print(self.inputdict[i], i, self.obj.type)
                     if (self.inputdict[i].text()):
                         self.dict[i] = self.inputdict[i].text()
                     else:
@@ -162,7 +184,6 @@ class DockWidget(QDockWidget,ui_dialog):
             
         except Exception as e:
             print(e)
-
 
     @staticmethod
     def showResult(lst):
@@ -197,6 +218,3 @@ class DockWidget(QDockWidget,ui_dialog):
 
         except Exception as e:
             print(e)
-        
-
-      

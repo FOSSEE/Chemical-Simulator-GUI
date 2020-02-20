@@ -1,5 +1,5 @@
 from OMChem.Flowsheet import Flowsheet
-from component_selector import *
+from ComponentSelector import *
 from collections import defaultdict
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -69,11 +69,12 @@ class Container():
     # def addUnitOpObj(obj):
     #     self.unitOp.append(obj)
 
-    def addUnitOp(self,obj):
+    def addUnitOp(self,obj, graphicsView):
         box = None
         self.obj = obj
         self.scene = self.graphics.getScene()
-        box  = self.graphics.createNodeItem(self.obj, self)
+        self.graphicsView = graphicsView
+        box  = self.graphics.createNodeItem(self.obj, self, self.graphicsView)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
 
@@ -92,6 +93,14 @@ class Container():
     def delete(self,l):
         for item in l:
             self.scene.removeItem(item)
+            for i in dockWidgetLst:
+                if i.name == item.name:
+                    i.hide()
+                    del i
+                    break
+            for i in dockWidgetLst:
+                print(i.name)
+            print("delete ", dockWidgetLst)
             if hasattr(item,'Input'):
                 for x in item.Input:
                     if x.newLine:
