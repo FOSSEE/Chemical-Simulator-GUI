@@ -19,13 +19,13 @@ import pyqtgraph.exporters
 
 ui_dialog,_ = loadUiType('Binary_Phase_Env.ui')
 
-class Bin_Phase_env(QWidget,ui_dialog):
+class BinPhaseEnv(QWidget,ui_dialog):
     def __init__(self,comp):
         QWidget.__init__(self)
         self.setupUi(self)
 
         self.comp = comp
-        self.compunds = self.comp.getComp()
+        self.compunds = self.comp.get_compounds()
             
         for i in self.compunds:
             self.comboBox.addItem(str(i))
@@ -218,7 +218,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
         view_box = plt.plotItem.vb
         self.tool_tip = ""
 
-        def pressEvent(evt):
+        def press_event(evt):
             #print("HELLO")
             a = 10
             pos = evt
@@ -253,8 +253,8 @@ class Bin_Phase_env(QWidget,ui_dialog):
                 else:
                     i.setToolTip(self.tool_tip)    
            # print(items)      
-        #proxy = pg.SignalProxy(plt.scene().sigMouseMoved, rateLimit = 60, slot = pressEvent)        
-        plt.scene().sigMouseMoved.connect(pressEvent)
+        #proxy = pg.SignalProxy(plt.scene().sigMouseMoved, rateLimit = 60, slot = press_event)        
+        plt.scene().sigMouseMoved.connect(press_event)
         plt.scene().sigMouseHover.connect(entered)
         #c1.setAcceptHoverEvents(True)
         #c2.setAcceptHoverEvents(True)

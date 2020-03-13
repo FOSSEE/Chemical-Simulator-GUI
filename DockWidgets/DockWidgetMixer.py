@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetMixer.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetMixer.ui')
 
 class DockWidgetMixer(QDockWidget,ui_dialog):
 
@@ -19,17 +19,17 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
+        self.input_dict = []
         self.x_pclist = []
-        print("constructor ", self.inputdict)
-        self.inputparamslist()
+        print("constructor ", self.input_dict)
+        self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = {}
 
     # input data tab
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
         
             self.l1.setText(self.obj.variables['NOI']['name']+":")
             self.le1.setText(str(self.obj.variables['NOI']['value']))
@@ -40,21 +40,21 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
             self.l2.setText(self.obj.variables['Pout']['name']+":")
            
 
-            self.inputdict = [self.le1, self.cb2]
+            self.input_dict = [self.le1, self.cb2]
  
         except Exception as e:
             print(e)
     
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
             self.dict={}
-            print("param.inputdict ", self.inputdict)
-            self.dict = [int(self.inputdict[0].text()),self.inputdict[1].currentText()]
+            print("param.input_dict ", self.input_dict)
+            self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText()]
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:

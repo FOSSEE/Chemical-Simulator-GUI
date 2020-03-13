@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetDistillationColumn.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetDistillationColumn.ui')
 
 class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
 
@@ -19,19 +19,19 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
-        print("constructor ", self.inputdict)
+        self.input_dict = []
+        print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
         self.dict = []
-        self.inputparamslist()
-        self.nameType = None
+        self.input_params_list()
+        self.name_type = None
         self.container = container
 
     # input data tab
             
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
         
             # tab 1
             self.l1.setText(self.obj.variables['Nt']['name']+":")
@@ -72,7 +72,7 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             self.cb4.setDisabled(True)
             self.cb3.currentIndexChanged.connect(self.fun3)
 
-            self.inputdict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
+            self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
              
         except Exception as e:
             print(e)
@@ -95,13 +95,13 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict= []
-            print("param.inputdict ", self.inputdict)
-            self.dict = [self.inputdict[0].text(),self.inputdict[1].text(),         self.inputdict[2].text(),           self.inputdict[3].currentText(),
-                        self.inputdict[4].text(), self.inputdict[5].currentText(),  self.inputdict[6].currentText(),    self.inputdict[7].text(),
-                        self.inputdict[8].text(), self.inputdict[9].currentText(),  self.inputdict[10].currentText(),   self.inputdict[11].text()]
+            print("param.input_dict ", self.input_dict)
+            self.dict = [self.input_dict[0].text(),self.input_dict[1].text(),         self.input_dict[2].text(),           self.input_dict[3].currentText(),
+                        self.input_dict[4].text(), self.input_dict[5].currentText(),  self.input_dict[6].currentText(),    self.input_dict[7].text(),
+                        self.input_dict[8].text(), self.input_dict[9].currentText(),  self.input_dict[10].currentText(),   self.input_dict[11].text()]
             
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:

@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetFlash.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetFlash.ui')
 
 class DockWidgetFlash(QDockWidget,ui_dialog):
 
@@ -19,15 +19,15 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
-        print("constructor ", self.inputdict)
-        self.inputparamslist()
+        self.input_dict = []
+        print("constructor ", self.input_dict)
+        self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = []
 
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
         
             self.l1.setText(self.obj.variables['thermoPackage']['name']+":")
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
@@ -43,7 +43,7 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.u3.setText(self.obj.variables['Pdef']['unit'])
             self.check2.toggled.connect(self.fun)
 
-            self.inputdict = [self.cb1, self.check1, self.le2, self.check2, self.le3]
+            self.input_dict = [self.cb1, self.check1, self.le2, self.check2, self.le3]
  
         except Exception as e:
             print(e)
@@ -58,16 +58,16 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
         else:
             self.le3.setDisabled(True)
     
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
             self.dict={}
-            print("param.inputdict ", self.inputdict)
-            self.dict = [self.inputdict[0].currentText(),self.inputdict[1].isChecked(), float(self.inputdict[2].text()), self.inputdict[3].isChecked(), float(self.inputdict[4].text())]
+            print("param.input_dict ", self.input_dict)
+            self.dict = [self.input_dict[0].currentText(),self.input_dict[1].isChecked(), float(self.input_dict[2].text()), self.input_dict[3].isChecked(), float(self.input_dict[4].text())]
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:

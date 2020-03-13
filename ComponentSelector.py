@@ -17,14 +17,14 @@ class ComponentSelector(QDialog,ui_dialog):
 
         self.setupUi(self)
     
-        self.Dict1=dict()#empty dictionary which will store the obj and its compound
+        self.dict1=dict()#empty dictionary which will store the obj and its compound
         #self.DB1=#instance of Database class in Database.py module 
         self.instance=[ChemsepDatabase()]  #list of all the instances
         self.lines=[]
         
         for i in self.instance:
             x=i.get_comp_name_list()
-            self.Dict1[i]=x
+            self.dict1[i]=x
             self.lines+=x
         print(self.lines)
             
@@ -32,7 +32,7 @@ class ComponentSelector(QDialog,ui_dialog):
         #self.DB1_list=self.DB1.get_comp_name_list()
 		#storingchemsep
         #database compound list in DB1_list
-        #self.Dict1[self.DB1]=self.DB1_list #storing the list as a value and the db as key in dictionary
+        #self.dict1[self.DB1]=self.DB1_list #storing the list as a value and the db as key in dictionary
         #self.lines=self.DB1_list #combined list of all the edited compounds        
        
         self.model = QStringListModel()
@@ -45,11 +45,11 @@ class ComponentSelector(QDialog,ui_dialog):
         #QCompleter completes the text written in lineedit    
         self.lineEdit.setCompleter(self.completer)  
 		
-        self.compoundSelectButton.clicked.connect(self.compoundSelection)
+        self.compoundSelectButton.clicked.connect(self.compound_selection)
         self.compoundSelectButton.setAutoDefault(False)
         self.pushButton.clicked.connect(self.accept)
         self.pushButton_2.clicked.connect(self.cancel)
-        self.pushButton_3.clicked.connect(self.removeItems)
+        self.pushButton_3.clicked.connect(self.remove_items)
         
     def final_list(self,*list_name):
         self.list_final=[]
@@ -58,7 +58,7 @@ class ComponentSelector(QDialog,ui_dialog):
             self.list_final+=i
         return (self.list_final)
 
-    def isCompSelected(self):
+    def is_compound_selected(self):
         if not compound_selected:
             return False
         else:
@@ -74,8 +74,8 @@ class ComponentSelector(QDialog,ui_dialog):
         #of the corresponding database
         
     def get_object(self,component):
-        for ele in self.Dict1:
-            values=self.Dict1[ele]
+        for ele in self.dict1:
+            values=self.dict1[ele]
             for ind in values:
                 if ind ==component:
                     return(ele)
@@ -86,10 +86,7 @@ class ComponentSelector(QDialog,ui_dialog):
         self.temp_comp= component.replace(removing_attrib,'')
         return(self.temp_comp)
     
-    
-    
-    def compoundSelection(self):
-        
+    def compound_selection(self):
         self.comp = self.lineEdit.text()      #gets entered text
         if self.comp in self.lines: #matches with the db
             self.obj=self.get_object(self.comp)   #obj will store the key of the dictionary
@@ -108,49 +105,52 @@ class ComponentSelector(QDialog,ui_dialog):
             print(compound_selected)
             
             self.CAS=self.obj.get_value(self.comp,'CAS')
-            self.Name=self.comp
-            self.MolecularFormula=self.obj.get_value(self.comp,'Smiles')
-            self.MolecularWeight=self.obj.get_value(self.comp,'MolecularWeight')
+            self.name=self.comp
+            self.molecular_formula=self.obj.get_value(self.comp,'Smiles')
+            self.molecular_weight=self.obj.get_value(self.comp,'MolecularWeight')
             
-            Dict={'CAS':self.CAS,'Name':self.Name,'Molecular Formula':self.MolecularFormula,'Molecular Weight':self.MolecularWeight}
+            dict={'CAS':self.CAS,'Name':self.name,'Molecular Formula':self.molecular_formula,'Molecular Weight':self.molecular_weight}
             #converted everything to a dictionary which will be passes to addtable 
             #function as a parameter.
-            print(Dict)
-            self.addToTable(Dict)
+            print(dict)
+            self.add_to_table(dict)
         else:
-            self.Show_Error()
+            self.show_error()
 
     @staticmethod
-    def setCompounds(compounds):
+    def set_compounds(compounds):
         #compound_selected = compounds
         for i in compounds:
             compound_selected.append(i)
 
-    def addToTable(self,a):
+    def add_to_table(self,a):
         try:
-            rowPosition = self.tableWidget.rowCount()
-            self.tableWidget.insertRow(rowPosition)
-            self.tableWidget.setItem(rowPosition , 0, QTableWidgetItem(str(a['CAS'])))
-            self.tableWidget.setItem(rowPosition , 1, QTableWidgetItem(str(a['Name'])))
-            self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(str(a['Molecular Formula'])))
-            self.tableWidget.setItem(rowPosition , 3, QTableWidgetItem(str(a['Molecular Weight'])))
+            row_position = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(row_position)
+            self.tableWidget.setItem(row_position , 0, QTableWidgetItem(str(a['CAS'])))
+            self.tableWidget.setItem(row_position , 1, QTableWidgetItem(str(a['Name'])))
+            self.tableWidget.setItem(row_position , 2, QTableWidgetItem(str(a['Molecular Formula'])))
+            self.tableWidget.setItem(row_position , 3, QTableWidgetItem(str(a['Molecular Weight'])))
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-    def addCompToList(self,comp):       # which list?
+    def add_compounds_to_list(self,comp):       # which list?
         self.item = QListWidgetItem()
         self.item.setText(comp)
         self.listWidget.addItem(self.item)
 
-    def removeItems(self):
-        item = self.tableWidget.item(self.tableWidget.currentRow(),1).text()
-        self.tableWidget.removeRow(self.tableWidget.currentRow())
-        
-        compound_selected.remove(item)    
+    def remove_items(self):
+        try:
+            item = self.tableWidget.item(self.tableWidget.currentRow(),1).text()
+            self.tableWidget.removeRow(self.tableWidget.currentRow())
+            
+            compound_selected.remove(item)    
+        except Exception as e:
+            print(e)
 
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Selected Compound is not Available")
     
     def cancel(self):
@@ -158,7 +158,7 @@ class ComponentSelector(QDialog,ui_dialog):
         self.tableWidget.setRowCount(0)
         self.reject()
     
-    def getComp(self):
+    def get_compounds(self):
         return compound_selected
      
     def final_mo(self):

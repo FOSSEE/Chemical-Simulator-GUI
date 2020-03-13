@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetSplitter.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetSplitter.ui')
 
 class DockWidgetSplitter(QDockWidget,ui_dialog):
 
@@ -19,16 +19,16 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
-        print("constructor ", self.inputdict)
-        self.inputparamslist()
+        self.input_dict = []
+        print("constructor ", self.input_dict)
+        self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = {}
 
     # input data tab
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
         
             self.l1.setText(self.obj.variables['NOO']['name']+":")
             self.le1.setText(str(self.obj.variables['NOO']['value']))
@@ -46,7 +46,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.cb2.currentIndexChanged.connect(self.fun)
            
 
-            self.inputdict = [self.le1, self.cb2, self.le3, self.le4]
+            self.input_dict = [self.le1, self.cb2, self.le3, self.le4]
  
         except Exception as e:
             print(e)
@@ -62,16 +62,16 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.u3.setText('')
             self.u4.setText('')
     
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
             self.dict={}
-            print("param.inputdict ", self.inputdict)
-            self.dict = [int(self.inputdict[0].text()),self.inputdict[1].currentText(), float(self.inputdict[2].text()), float(self.inputdict[3].text())]
+            print("param.input_dict ", self.input_dict)
+            self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:

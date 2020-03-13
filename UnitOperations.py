@@ -18,12 +18,12 @@ class UnitOperation():
     def __init__(self):
         self.OM_data_eqn = ''
         self.OM_data_init = ''
-        self.InputStms = []
-        self.OutputStms = []
+        self.input_stms = []
+        self.output_stms = []
         self.compounds = compound_selected
         self.name = ''
         self.mode = None
-        self.modeVal = None
+        self.mode_val = None
         self.type = ''
         self.no_of_inputs = 1
         self.no_of_outputs = 1
@@ -32,18 +32,18 @@ class UnitOperation():
         self.pos = QPointF(self.x, self.y)
         self.count = UnitOperation.counter
         self.variables = {}
-        self.modesList = []
+        self.modes_list = []
         self.parameters = []
         self.extra = []
-        self.ForNaming = []
+        self.for_naming = []
         self.multidict = []
-        self.ThermoPackReq = False
-        self.thermoPackage = None
+        self.thermo_pack_req = False
+        self.thermo_package = None
 
-    def paramgetter(self,mode=None):
+    def param_getter(self,mode=None):
         params = {}
-        if mode == None and self.modesList:
-            self.mode = self.modesList[0]
+        if mode == None and self.modes_list:
+            self.mode = self.modes_list[0]
         else:
             self.mode = mode
             params[self.mode] = None
@@ -52,8 +52,8 @@ class UnitOperation():
         
         return params
         
-    def paramsetter(self,params):
-        print("paramsetter ", params)
+    def param_setter(self,params):
+        print("param_setter ", params)
         for k,v in params.items():
             print(k,v)
             if k != self.mode:
@@ -61,57 +61,57 @@ class UnitOperation():
                 self.variables[k]['value'] = v
             else:
                 self.variables[k]['value'] = v
-                self.modeVal = params[self.mode]
+                self.mode_val = params[self.mode]
         print(self.variables)
 
     def add_connection(self,flag,UnitOpr):
         if flag==1:                 # Input stream if flag is 1
             print("INPUT CONNECTION")
-            self.InputStms.append(UnitOpr)
+            self.input_stms.append(UnitOpr)
         else :
             print("OUTPUT CONNECTION")
-            self.OutputStms.append(UnitOpr)
+            self.output_stms.append(UnitOpr)
 
-    def setPos(self,pos):
+    def set_pos(self,pos):
         self.pos = pos
 
     def OM_Flowsheet_Initialize(self):
         self.OM_data_init = ''
 
-        if(self.ThermoPackReq):
+        if(self.thermo_pack_req):
             if len(self.extra)>1:
                 for i in range(len(self.extra)):
                     latest = ''
                     for j in range(self.extra[i]):
                         if self.extra[i][j]!='.':
                             latest += self.extra[i][j]
-                        self.ForNaming[i] = latest   
+                        self.for_naming[i] = latest   
 
-        if(self.ThermoPackReq):
+        if(self.thermo_pack_req):
             if len(self.extra)==1:
                 for i in self.extra:
                     self.OM_data_init += ('model '+i+str(self.counter)+'\n')
                     self.OM_data_init += ('extends Simulator.UnitOperations.'+i+';\n')
-                    self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermoPackage+';\n')
+                    self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermo_package+';\n')
                     self.OM_data_init += ('end '+i+str(self.counter)+';\n')
 
                     self.OM_data_init += i+str(self.counter) + ' ' + self.name + '(Nc = ' + str(len(self.compounds)) 
             else:
                 for i in range(len(self.extra)):
                     if i!=(len(self.extra)-1):
-                        self.OM_data_init += ('model '+self.ForNaming[i]+str(self.counter)+'\n')
+                        self.OM_data_init += ('model '+self.for_naming[i]+str(self.counter)+'\n')
                         self.OM_data_init += ('extends Simulator.UnitOperations.'+self.extra[i]+';\n')
-                        self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermoPackage+';\n')
-                        self.OM_data_init += ('end '+self.ForNaming[i]+str(self.counter)+';\n')
+                        self.OM_data_init += ('extends Simulator.Files.ThermodynamicPackages.'+self.thermo_package+';\n')
+                        self.OM_data_init += ('end '+self.for_naming[i]+str(self.counter)+';\n')
                     else:
-                        self.OM_data_init += ('model '+self.ForNaming[i]+str(self.counter)+'\n')
+                        self.OM_data_init += ('model '+self.for_naming[i]+str(self.counter)+'\n')
                         self.OM_data_init += ('extends Simulator.UnitOperations.'+self.extra[i]+';\n')
                         for j in range(len(self.extra)-1):
-                            self.OM_data_init += (self.ForNaming[j] + str(self.counter) +' ' + self.ForNaming[j] + '#' + self.multidict[j] + ';\n')
+                            self.OM_data_init += (self.for_naming[j] + str(self.counter) +' ' + self.for_naming[j] + '#' + self.multidict[j] + ';\n')
 
-                            self.OM_data_init += ('end '+self.ForNaming[i]+str(self.counter)+';\n')
+                            self.OM_data_init += ('end '+self.for_naming[i]+str(self.counter)+';\n')
 
-                    self.OM_data_init += self.ForNaming[i] + str(self.counter) + ' ' + self.ForNaming + '(Nc = ' + str(len(self.compounds))
+                    self.OM_data_init += self.for_naming[i] + str(self.counter) + ' ' + self.for_naming + '(Nc = ' + str(len(self.compounds))
                  
             C = str(self.compounds).strip('[').strip(']')
             C = C.replace("'", "")  
@@ -138,24 +138,24 @@ class UnitOperation():
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
 
-        if len(self.InputStms)>1:
+        if len(self.input_stms)>1:
             strcount = 1
-            for strm in self.InputStms:
+            for strm in self.input_stms:
                 self.OM_data_eqn += ('connect(' + strm.name + '.Out,' + self.name + '.In[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.InputStms[0].name + '.Out);\n')
+            self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
 
-        if len(self.OutputStms)>1:
+        if len(self.output_stms)>1:
             strcount = 1
-            for strm in self.OutputStms:
+            for strm in self.output_stms:
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.OutputStms[0].name + '.In);\n')    
+            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
         
         if self.mode:
-            self.OM_data_eqn += (self.name + '.' + self.mode + '=' + self.modeVal + ';\n')    
+            self.OM_data_eqn += (self.name + '.' + self.mode + '=' + self.mode_val + ';\n')    
 
         return self.OM_data_eqn
 
@@ -166,8 +166,8 @@ class ShortcutColumn(UnitOperation):
         self.type = 'ShortcutColumn'
         self.no_of_inputs = 1 
         self.no_of_outputs = 2  
-        self.InputStms = None
-        self.OutputStms = None
+        self.input_stms = None
+        self.output_stms = None
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = ShortcutColumn.counter
@@ -181,14 +181,14 @@ class ShortcutColumn(UnitOperation):
             'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
             'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
             'Ctype' :           {'name':'Condensor Type',               'value':None,           'unit':''},
-            'thermoPackage' :   {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
+            'thermo_package' :   {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
             'Pcond' :           {'name':'Condensor Pressure',           'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',            'value':101325,         'unit':'Pa'},
             'RR'    :           {'name':'Reflux Ratio',                 'value':1.5,            'unit':''},
         } 
       
-    def paramsetter(self,params):
-        print("paramsetter ", params)
+    def param_setter(self,params):
+        print("param_setter ", params)
         self.variables['HKey']['value'] = params[0]
         self.variables['LKey']['value'] = params[1]
         self.variables['HKey_x_pc']['value'] = params[2]
@@ -214,12 +214,12 @@ class DistillationColumn(UnitOperation):
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
 
-        self.InputStms = None
-        self.OutputStms = None 
-        # self.modesList = ['RR', 'Nout', 'T']
-        self.modesList = []
+        self.input_stms = None
+        self.output_stms = None 
+        # self.modes_list = ['RR', 'Nout', 'T']
+        self.modes_list = []
         self.parameters = ['']
-        #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermoPackage', 'Ctype', 'Pcond', 'Preb']
+        #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
 
@@ -231,15 +231,15 @@ class DistillationColumn(UnitOperation):
             'Nt'    :           {'name':'No of Stages',             'value':12,             'unit':''},
             'InT_s' :           {'name':'No of Feed Stages',        'value':None,           'unit':''},
             'In_s'  :           {'name':'No of Feeds',              'value':None,           'unit':''},
-            'thermoPackage' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
+            'thermo_package' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
             'Ctype' :           {'name':'Condensor Type',           'value':'',             'unit':''},
             'Pcond' :           {'name':'Condensor Pressure',       'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',        'value':101325,         'unit':'Pa'},
             'C_Spec':           {'name':'Condensor Specification',  'type':'Reflux Ratio',  'value':'',         'comp':'',      'unit':''},
             'R_Spec':           {'name':'Reboiler Specification',   'type':'',              'value':'',         'comp':'',      'unit':''},
         }
-    def paramsetter(self,params):
-        print("paramsetter ", params)
+    def param_setter(self,params):
+        print("param_setter ", params)
         self.variables['Nt']['value'] = params[0]
         self.variables['In_s']['value'] = params[1]
         self.variables['InT_s']['value'] = params[2]
@@ -293,8 +293,8 @@ class CompoundSeparator(UnitOperation):
         # self.SepFact = json.dumps(self.variables['SepFact']['value']).replace('[','{').replace(']','}')
         # self.SepStrm = str(self.variables['SepStrm']['value'])
         # self.SepVal = json.dumps(self.variables['SepVal']['value']).replace('[','{').replace(']','}')
-    def paramsetter(self,params):
-        print("paramsetter ", params)
+    def param_setter(self,params):
+        print("param_setter ", params)
         if params[0]:
             self.variables['SepStrm']['value'] = 1
         elif params[1]:
@@ -314,21 +314,21 @@ class Flash(UnitOperation):
         self.type = 'Flash'
         self.no_of_inputs = 1 
         self.no_of_outputs = 2  
-        self.InputStms = None
-        self.OutputStms = None
+        self.input_stms = []
+        self.output_stms = []
         self.count = Flash.counter
 
         type(self).counter += 1 
         self.variables = {
-            'thermoPackage' :   {'name':'Thermo Package',                   'value':None,       'unit':''},
+            'thermo_package' :   {'name':'Thermo Package',                   'value':None,       'unit':''},
             'BTdef' :           {'name':'Separation Temperature Boolean',   'value':False,      'unit':''},
             'BPdef' :           {'name':'Separation Pressure Boolean',      'value':False,      'unit':''},
             'Tdef'  :           {'name':'Separation Temperature',           'value':298.15,     'unit':'K'},
             'Pdef'  :           {'name':'Separation Pressure',              'value':101325,     'unit':'Pa'}
         }
-    def paramsetter(self,params):
-        print("paramsetter ", params)
-        self.variables['thermoPackage']['value'] = params[0]
+    def param_setter(self,params):
+        print("param_setter ", params)
+        self.variables['thermo_package']['value'] = params[0]
         self.variables['BTdef']['value'] = params[1]
         self.variables['Tdef']['value'] = params[2]
         self.variables['BPdef']['value'] = params[3]
@@ -340,9 +340,9 @@ class Pump(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Pump.counter) 
         self.type = 'Pump'
-        self.InputStms = None
-        self.OutputStms = None
-        self.modesList = ['Pdel', 'Pout', 'Q']     #"enFlo"
+        self.input_stms = None
+        self.output_stms = None
+        self.modes_list = ['Pdel', 'Pout', 'Q']     #"enFlo"
         self.parameters = ['Eff']
 
         type(self).counter += 1 
@@ -358,9 +358,9 @@ class Valve(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Valve.counter)
         self.type = 'Valve'
-        self.InputStms = None
-        self.OutputStms = None
-        self.modesList = ['Pdel', 'Pout']
+        self.input_stms = None
+        self.output_stms = None
+        self.modes_list = ['Pdel', 'Pout']
 
         type(self).counter += 1 
         self.variables = {
@@ -375,7 +375,7 @@ class Splitter(UnitOperation):
         self.type = 'Splitter'
         self.no_of_outputs = 3 
         
-        # self.InputStms = None
+        # self.input_stms = None
         self.CalcType_modes = ['Split Ratios', 'Mole Flow Specs', 'Mass Flow Specs']
 
         self.parameters = ['NOO', 'CalcType']#, 'SpecVal_s'
@@ -390,8 +390,8 @@ class Splitter(UnitOperation):
         specval = self.variables['SpecVal_s']['value'] # [50,50]
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
 
-    def paramsetter(self,params):
-        print("paramsetter ", params)
+    def param_setter(self,params):
+        print("param_setter ", params)
         self.variables['NOO']['value'] = int(params[0])
         self.variables['CalcType']['value'] = params[1]
         self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]
@@ -411,18 +411,18 @@ class Mixer(UnitOperation):
 
         self.Pout_modes = ['Inlet Minimum', 'Inlet Average', 'Inlet Maximum']
         self.parameters = ['NOI', 'Pout']
-        # self.OutputStms = None
+        # self.output_stms = None
         type(self).counter += 1 
 
         self.variables = {
             'NOI'   : {'name':'Number of Input', 'value':6,                 'unit':''},
             'Pout'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
-    def paramsetter(self, params):
-        print(self.InputStms, self.OutputStms)
-        self.OutputStms = []
-        print(self.InputStms, self.OutputStms)
-        print("paramsetter ", params)
+    def param_setter(self, params):
+        print(self.input_stms, self.output_stms)
+        self.output_stms = []
+        print(self.input_stms, self.output_stms)
+        print("param_setter ", params)
         self.variables['NOI']['value'] = int(params[0])
         self.variables['Pout']['value'] = params[1]
         print(self.variables)
@@ -436,10 +436,10 @@ class Heater(UnitOperation):
         self.type = 'Heater'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ['Q','Tout','xvapout','Tdel']
+        self.modes_list = ['Q','Tout','xvapout','Tdel']
         self.parameters = ['Pdel', 'Eff'] 
         self.extra = None
-        self.ForNaming = None
+        self.for_naming = None
         type(self).counter += 1
 
         self.variables = {
@@ -459,9 +459,9 @@ class Cooler(UnitOperation):
         self.type = 'Cooler'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ['Q','Tout','Tdel','xvap']
+        self.modes_list = ['Q','Tout','Tdel','xvap']
         self.extra = None
-        self.ForNaming = None
+        self.for_naming = None
         self.parameters = ['Pdel', 'Eff']
         type(self).counter += 1
 
@@ -482,11 +482,11 @@ class AdiabaticCompressor(UnitOperation):
         self.type = 'AdiabaticCompressor'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ["Pdel","Pout","Q"]
+        self.modes_list = ["Pdel","Pout","Q"]
         self.extra = ['AdiabaticCompressor']
-        self.ForNaming = ['AdiabaticCompressor']
-        self.ThermoPackReq = True
-        self.thermoPackage ="RaoultsLaw" 
+        self.for_naming = ['AdiabaticCompressor']
+        self.thermo_pack_req = True
+        self.thermo_package ="RaoultsLaw" 
         self.parameters = ['Eff']
         type(self).counter += 1
         self.variables = {
@@ -506,11 +506,11 @@ class AdiabaticExpander(UnitOperation):
         self.type = 'AdiabaticExpander'
         self.no_of_inputs = 1
         self.no_of_outputs = 1
-        self.modesList = ["Pdel","Pout","Q"]
+        self.modes_list = ["Pdel","Pout","Q"]
         self.extra = ['AdiabaticExpander']
-        self.ForNaming = ['AdiabaticExpander']
-        self.ThermoPackReq = True
-        self.thermoPackage ="RaoultsLaw"
+        self.for_naming = ['AdiabaticExpander']
+        self.thermo_pack_req = True
+        self.thermo_package ="RaoultsLaw"
         self.parameters = ['Eff']
         type(self).counter += 1
         self.variables = {

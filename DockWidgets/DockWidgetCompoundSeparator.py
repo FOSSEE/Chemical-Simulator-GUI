@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetCompoundSeparator.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetCompoundSeparator.ui')
 
 class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
 
@@ -19,15 +19,15 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
+        self.input_dict = []
         
-        print("constructor ", self.inputdict)
-        self.inputparamslist()
+        print("constructor ", self.input_dict)
+        self.input_params_list()
         self.dict = []
             
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
             if self.type == 'CompoundSeparator':
 
                 # self.gridLayout = QGridLayout()
@@ -70,29 +70,29 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 self.gridLayout.addWidget(calculationGroupBox,0,0)
                 self.gridLayout.addWidget(btn,1,0)
 
-                self.inputdict = lst            
+                self.input_dict = lst            
                         
         except Exception as e:
             print(e)
 
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
             self.dict=[]
-            print("param.inputdict ", self.inputdict)
+            print("param.input_dict ", self.input_dict)
            
-            self.dict = [self.inputdict[0].isChecked(), self.inputdict[1].isChecked()]
+            self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
             j = 2
             for i in range(len(self.obj.compounds)):
                 print(j+i)
-                self.dict.append(self.inputdict[j+i].currentText())
-                self.dict.append(self.inputdict[j+i+1].text())
+                self.dict.append(self.input_dict[j+i].currentText())
+                self.dict.append(self.input_dict[j+i+1].text())
                 j += 1
             
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:

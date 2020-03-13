@@ -9,7 +9,7 @@ class Flowsheet():
     def __init__(self):
         self.sim_name = 'Simulator'
         self.sim_method = ''
-        self.UnitOpn = []
+        self.unit_operations = []
         self.data = []
         self.compounds = []
         self.interface = ''
@@ -19,7 +19,7 @@ class Flowsheet():
         self.Flomo_path = os.path.join(self.sim_dir_path,'Flowsheet.mo') 
         self.eqn_mos_path = os.path.join(self.sim_dir_path,'simulateEQN.mos')
         self.sm_mos_path = os.path.join(self.sim_dir_path,'simulateSM.mos')
-        self.resdata = []
+        self.result_data = []
         self.stdout=None
         self.stderr=None
     
@@ -37,17 +37,17 @@ class Flowsheet():
             print("The OpenModelica compiler is missing in the System path please install it" )
             raise
 
-    def add_UnitOpn(self,unitop):
-        self.UnitOpn.append(unitop)
+    def add_unit_operations(self,unitop):
+        self.unit_operations.append(unitop)
 
-    def remove_UnitOpn(self,unitop):
-        self.UnitOpn.remove(unitop)
+    def remove_unit_operations(self,unitop):
+        self.unit_operations.remove(unitop)
 
-    def add_comp_list(self,C):
+    def add_compound_list(self,C):
         self.compounds = C
     
-    def send_for_simulationEqn(self):
-        self.resdata = []
+    def send_for_simulation_Eqn(self):
+        self.result_data = []
         self.omc_path = self.get_omc_path()
         print(self.omc_path)
 
@@ -69,18 +69,18 @@ class Flowsheet():
             csvpath = os.path.join(self.sim_dir_path,'Flowsheet_res.csv')
             print("csvPath",csvpath)
             with open (csvpath,'r') as resultFile:
-                self.resdata = []
+                self.result_data = []
                 print("opened")
                 csvreader = csv.reader(resultFile,delimiter=',')
                 for row in csvreader:
                     print("124125")
-                    self.resdata.append(row)
-                print(self.resdata)
-            #self.ExtData()
+                    self.result_data.append(row)
+                print(self.result_data)
+            #self.ext_data()
 
-    def send_for_simulationSM(self,unitop):
+    def send_for_simulation_SM(self,unitop):
 
-        self.resdata = []
+        self.result_data = []
         self.omc_path = self.get_omc_path()
         os.chdir(self.sim_dir_path)
         #os.system(self.omc_path + ' -s ' + unitop.name+'.mos')
@@ -90,28 +90,28 @@ class Flowsheet():
         #print(s)
         print("############### StdOut ################")
         print(stdout)
-        self.resdata = []
+        self.result_data = []
         print('Simulating '+unitop.name+'...')
         csvpath = os.path.join(self.sim_dir_path,unitop.name+'_res.csv')
         with open(csvpath,'r') as resultFile:
             csvreader = csv.reader(resultFile,delimiter=',')
             for row in csvreader:
-                self.resdata.append(row)
-        self.ExtData()
+                self.result_data.append(row)
+        self.ext_data()
 
-    def ExtData(self):
-        for unit in self.UnitOpn:
+    def ext_data(self):
+        for unit in self.unit_operations:
             if unit[0].type == 'MaterialStream':
                 for key, value in unit[0].Prop.items():
-                    propertyname = unit[0].name + '.' + key
-                    if propertyname in self.resdata[0]:
-                        ind = self.resdata[0].index(propertyname)
-                        resultval = str(self.resdata[-1][ind])
+                    property_name = unit[0].name + '.' + key
+                    if property_name in self.result_data[0]:
+                        ind = self.result_data[0].index(property_name)
+                        resultval = str(self.result_data[-1][ind])
                         #resultval = str(omc.sendExpression("val("+unit.name+ "." + value + ", 0.5)"))
                         print(resultval)
                         unit[0].Prop[key] = resultval
              
-    def simulateEQN(self):
+    def simulate_EQN(self):
         self.data = []
         print("##################################################")
         print("##################################################")
@@ -123,7 +123,7 @@ class Flowsheet():
             lcase = c.lower()
             self.data.append("parameter database." + ucase +' '+ ucase + "; \n")
 
-        for unitop in self.UnitOpn:
+        for unitop in self.unit_operations:
             if unitop.type != 'MaterialStream':
                 self.data.append(unitop.OM_Flowsheet_Initialize())
             else:
@@ -134,13 +134,13 @@ class Flowsheet():
         
         self.outlist = []
         self.stm = ['MaterialStream','EngStm']
-        for unitop in self.UnitOpn:
+        for unitop in self.unit_operations:
             if unitop.type not in self.stm:
-                for j in unitop.OutputStms: 
+                for j in unitop.output_stms: 
                     self.outlist.append(j)  
                     print(j.name)
                 
-        for unitop in self.UnitOpn:
+        for unitop in self.unit_operations:
             if unitop not in self.outlist:
                     
                 if unitop.type == 'MaterialStream':
@@ -163,14 +163,14 @@ class Flowsheet():
 
         print('Initiating Simulation in Equation Oriented Mode')
 
-        self.send_for_simulationEqn()
+        self.send_for_simulation_Eqn()
 
 
-    def simulateSM(self,ip,op):
+    def simulate_SM(self,ip,op):
         print("ip op = ", ip, op)
         self.sim_method = 'SM'
         self.data = []
-        self.resdata = []
+        self.result_data = []
         self.unit = []
         self.csvlist = []
         print("op list",op)
@@ -204,8 +204,8 @@ class Flowsheet():
             os.chdir(self.root_dir)
             self.data = []
             if unitop.type not in ['MaterialStream','EngStm']:
-                inpstms = unitop.InputStms
-                outstms = unitop.OutputStms
+                inpstms = unitop.input_stms
+                outstms = unitop.output_stms
                 
                 try:
                     engstms = unitop.EngStms
@@ -267,7 +267,7 @@ class Flowsheet():
                     mosFile.write("simulate("+unitop.name.lower()+", outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n")
 
                 print("Initiating simulation in Sequential Modular Mode")
-                #self.resdata = []
+                #self.result_data = []
                 self.omc_path = self.get_omc_path()
                 os.chdir(self.sim_dir_path)
                 #os.system(self.omc_path + ' -s ' + unitop[0].name.lower()+"SEQ"+'.mos')
@@ -290,43 +290,43 @@ class Flowsheet():
                 with open(csvpath,'r') as resultFile:
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
-                        self.resdata.append(row)
+                        self.result_data.append(row)
                 
                 os.chdir(self.root_dir)
                 if type(inpstms) is list:
                     for stm in inpstms:
                         for key,value in stm.Prop.items():
-                            propertyname = stm.name + '.' + key
-                            if propertyname in self.resdata[0]:
-                                ind = self.resdata[0].index(propertyname)
-                                resultval = str(self.resdata[-1][ind])
+                            property_name = stm.name + '.' + key
+                            if property_name in self.result_data[0]:
+                                ind = self.result_data[0].index(property_name)
+                                resultval = str(self.result_data[-1][ind])
                                 stm.Prop[key] = resultval
                                 #print("input",stm.Prop[key])      
 
                 else:
                     for key, value in inpstms.Prop.items():
-                            propertyname = inpstms.name + '.' + key
-                            if propertyname in self.resdata[0]:
-                                ind = self.resdata[0].index(propertyname)
-                                resultval = str(self.resdata[-1][ind])
+                            property_name = inpstms.name + '.' + key
+                            if property_name in self.result_data[0]:
+                                ind = self.result_data[0].index(property_name)
+                                resultval = str(self.result_data[-1][ind])
                                 inpstms.Prop[key] = resultval
                                 #print("input",inpstms.Prop[key])
 
                 if type(outstms) is list:
                     for stm in outstms:
                         for key, value in stm.Prop.items():
-                            propertyname = stm.name + '.' + key
-                            if propertyname in self.resdata[0]:
-                                ind = self.resdata[0].index(propertyname)
-                                resultval = str(self.resdata[-1][ind])
+                            property_name = stm.name + '.' + key
+                            if property_name in self.result_data[0]:
+                                ind = self.result_data[0].index(property_name)
+                                resultval = str(self.result_data[-1][ind])
                                 stm.Prop[key] = resultval
                                 print("output key:",key,"value:",stm.Prop[key])
                 else:
                     for key, value in outstms.Prop.items():
-                            propertyname = outstms.name + '.' + key
-                            if propertyname in self.resdata[0]:
-                                ind = self.resdata[0].index(propertyname)
-                                resultval = str(self.resdata[-1][ind])
+                            property_name = outstms.name + '.' + key
+                            if property_name in self.result_data[0]:
+                                ind = self.result_data[0].index(property_name)
+                                resultval = str(self.result_data[-1][ind])
                                 outstms.Prop[key] = resultval
                                 print("output key:",key,"value:",outstms.Prop[key])
         
@@ -334,8 +334,8 @@ class Flowsheet():
         os.chdir(self.sim_dir_path)
         dffinal = pd.concat(self.dataframes,axis=1)
         dffinal.to_csv('FlowsheetSEQ.csv',index=False)
-        self.resdata.clear()
+        self.result_data.clear()
         with open(os.path.join(self.sim_dir_path+'/FlowsheetSEQ.csv'),'r') as resultFile:
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
-                        self.resdata.append(row)
+                        self.result_data.append(row)

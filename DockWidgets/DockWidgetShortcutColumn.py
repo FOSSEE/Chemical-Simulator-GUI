@@ -8,7 +8,7 @@ from ComponentSelector import *
 from collections import defaultdict
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgetShortcutColumn.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetShortcutColumn.ui')
 
 class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
@@ -19,19 +19,19 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
         self.name=name
         self.obj=obj
         self.type = comptype
-        self.inputdict = []
-        print("constructor ", self.inputdict)
-        self.inputparamslist()
+        self.input_dict = []
+        print("constructor ", self.input_dict)
+        self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = []
 
-        self.nameType = None
+        self.name_type = None
         self.container = container
 
     # input data tab
-    def inputparamslist(self):
+    def input_params_list(self):
         try:
-            print("inputparamslist ", self.inputdict)
+            print("input_params_list ", self.input_dict)
         
             self.l1.setText(self.obj.variables['HKey']['name']+":")
             print(self.obj.compounds)
@@ -62,23 +62,23 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.l8.setText(self.obj.variables['RR']['name']+":") 
             self.le8.setText(str(self.obj.variables['RR']['value']))
 
-            self.inputdict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8]
+            self.input_dict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8]
  
         except Exception as e:
             print(e)
     
-    def Show_Error(self):
+    def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
             self.dict=[]
-            print("param.inputdict ", self.inputdict)
-            self.dict = [self.inputdict[0].currentText(),self.inputdict[1].currentText(),float(self.inputdict[2].text()), float(self.inputdict[3].text()),
-                        self.inputdict[4].currentText(), float(self.inputdict[5].text()), float(self.inputdict[6].text()), float(self.inputdict[7].text())]
+            print("param.input_dict ", self.input_dict)
+            self.dict = [self.input_dict[0].currentText(),self.input_dict[1].currentText(),float(self.input_dict[2].text()), float(self.input_dict[3].text()),
+                        self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text())]
             
             print("param ", self.dict)
-            self.obj.paramsetter(self.dict)
+            self.obj.param_setter(self.dict)
             self.hide()
             
         except Exception as e:
@@ -86,12 +86,12 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
 
     @staticmethod
-    def showResult(lst):
+    def show_result(lst):
         #DockWidget1.flag = True
         for i in lst:
             i.resultsCategory(i.name)
             #i.show()
         
     # result data tab
-    def resultsCategory(self,name):
+    def results_category(self,name):
         pass
