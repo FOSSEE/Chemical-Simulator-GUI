@@ -141,7 +141,7 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         self.setBrush(QtGui.QColor(0,70,70,120))
         self.pen = QtGui.QPen()
         self.pen.setStyle(QtCore.Qt.SolidLine)
-        self.pen.setWidth(1)
+        self.pen.setWidth(2)
         self.pen.setColor(QtGui.QColor(0,70,70,220))
         self.setPen(self.pen)
 
@@ -158,8 +158,8 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
             path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
 
             if abs(self.pointB.x()-midptx) > 150:                
-                ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
-                ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
+                ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
+                ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
                 pt2 = QtCore.QPointF(midptx , self.pointA.y()+100)
                 path.cubicTo(ctrl1_2, ctrl2_2, pt2)
                 path.moveTo(pt2)
@@ -170,8 +170,8 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                 path.cubicTo(ctrl1_3, ctrl2_3, pt3)
                 path.moveTo(pt3)
 
-                ctrl1_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                ctrl2_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
+                ctrl1_4 = QtCore.QPointF(self.pointB.x()-13, self.pointA.y()+100)
+                ctrl2_4 = QtCore.QPointF(self.pointB.x()-13, self.pointA.y()+100)
                 pt4 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
                 path.cubicTo(ctrl1_4, ctrl2_4, pt4)
                 path.moveTo(pt4)
@@ -185,8 +185,8 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                 self.setPath(path)
                 return
             else:
-                ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
-                ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
+                ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
+                ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
                 pt2 = QtCore.QPointF(midptx , max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
                 path.cubicTo(ctrl1_2, ctrl2_2, pt2)
                 path.moveTo(pt2)
@@ -222,8 +222,8 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
         path.moveTo(pt1)
 
-        ctrl1_2 = QtCore.QPointF(midptx, self.pointB.y())
-        ctrl2_2 = QtCore.QPointF(midptx, self.pointB.y())
+        ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
+        ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
         pt2 = QtCore.QPointF(midptx , self.pointB.y())
         path.cubicTo(ctrl1_2, ctrl2_2, pt2)
         path.moveTo(pt2)
@@ -544,8 +544,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
             painter.drawRect(QtCore.QRectF(self.rect))
         else:
             painter.setPen(self.pen)
-        # painter.drawPixmap(self.rect,self.pic)
-        painter.drawPixmap(self.rect, self.pic.pixmap(QSize(1000,1000)))
+        painter.drawPixmap(self.rect,self.pic)
+        # painter.drawPixmap(self.rect, self.pic.pixmap(QSize(1000,1000)))
 
     def initialize_sockets(self,type):
         print("inside initialization")

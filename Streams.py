@@ -1,4 +1,4 @@
-from OMPython import OMCSession
+# from OMPython import OMCSession
 from PyQt5.QtCore import *
 import json
 import sys

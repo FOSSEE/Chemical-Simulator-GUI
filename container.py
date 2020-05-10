@@ -93,6 +93,7 @@ class Container():
     '''
     def delete(self,l):
         for item in l:
+            print('deleted objects ', item)
             self.scene.removeItem(item)
             for i in dock_widget_lst:
                 if i.name == item.name:
@@ -102,22 +103,26 @@ class Container():
             for i in dock_widget_lst:
                 print(i.name)
             print("delete ", dock_widget_lst)
-            if hasattr(item,'Input'):
+            if hasattr(item,'input'):
+                print("In input ")
+                print(item.input)
                 for x in item.input:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
                         del x.new_line
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
-            if hasattr(item,'Output'):
+                    if x.other_line:
+                        self.scene.removeItem(x.other_line)
+                        del x.other_line
+            if hasattr(item,'output'):
+                print("in output ")
+                print(item.output)
                 for x in item.output:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
                         del x.new_line
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
+                    if x.other_line:
+                        self.scene.removeItem(x.other_line)
+                        del x.other_line
             if hasattr(item,'obj'):
                 self.unit_operations.remove(item.obj)
                 for k in list(self.conn):

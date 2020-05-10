@@ -238,8 +238,8 @@ class MainApp(QMainWindow,ui):
         try:
             if event.key() == QtCore.Qt.Key_Delete:
                 l=self.scene.selectedItems()
-                for i in l:
-                    eval(i.type).counter -= 1
+                # for i in l:
+                #     eval(i.type).counter -= 1
                 self.container.delete(l)
         except Exception as e:
             print(e)
