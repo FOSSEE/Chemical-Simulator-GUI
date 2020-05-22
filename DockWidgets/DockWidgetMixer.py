@@ -31,13 +31,13 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
         try:
             print("input_params_list ", self.input_dict)
         
-            self.l1.setText(self.obj.variables['NOI']['name']+":")
-            self.le1.setText(str(self.obj.variables['NOI']['value']))
-            self.u1.setText(self.obj.variables['NOI']['unit'])
+            self.l1.setText(self.obj.variables['NI']['name']+":")
+            self.le1.setText(str(self.obj.variables['NI']['value']))
+            self.u1.setText(self.obj.variables['NI']['unit'])
             for i in self.obj.Pout_modes:
                 self.cb2.addItem(str(i))
 
-            self.l2.setText(self.obj.variables['Pout']['name']+":")
+            self.l2.setText(self.obj.variables['outPress']['name']+":")
            
 
             self.input_dict = [self.le1, self.cb2]

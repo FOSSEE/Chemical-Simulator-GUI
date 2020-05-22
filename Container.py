@@ -187,7 +187,11 @@ class Container():
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
 
-        DockWidget.show_result(NodeItem.get_dock_widget())
+        try:
+            DockWidget.show_result(NodeItem.get_dock_widget())
+        except AttributeError:
+            print(NodeItem.name + ' does not have dockwidget')
+            pass
 
 def flat_list(lst):
     flat_lst=[]

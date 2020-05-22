@@ -466,7 +466,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             if ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
-                self.obj.variables['NOI']['value'] = self.nin
+                self.obj.variables['NI']['value'] = self.nin
         elif self.obj.type == 'Splitter':
             text, ok = QInputDialog.getText(self.container.graphicsView, 'Splitter', 'Enter number of output:')
             if ok and text:

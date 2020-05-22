@@ -130,7 +130,8 @@ class UnitOperation():
 
             for k in self.parameters:
                 self.OM_data_init += ', '
-                self.OM_data_init += k + ' = ' + str(self.variables[k]['value'])
+                self.OM_data_init += k + ' = ' + ('"' + self.variables[k]['value'] + '"' if isinstance(self.variables[k]['value'], str)
+                     else str(self.variables[k]['value']))
 
             self.OM_data_init += ');\n'
         return self.OM_data_init  
@@ -410,21 +411,21 @@ class Mixer(UnitOperation):
         self.no_of_inputs = 6
 
         self.Pout_modes = ['Inlet Minimum', 'Inlet Average', 'Inlet Maximum']
-        self.parameters = ['NOI', 'Pout']
+        self.parameters = ['NI', 'outPress']
         # self.output_stms = None
         type(self).counter += 1 
 
         self.variables = {
-            'NOI'   : {'name':'Number of Input', 'value':6,                 'unit':''},
-            'Pout'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
+            'NI'   : {'name':'Number of Input', 'value':6,                 'unit':''},
+            'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
     def param_setter(self, params):
         print(self.input_stms, self.output_stms)
         self.output_stms = []
         print(self.input_stms, self.output_stms)
         print("param_setter ", params)
-        self.variables['NOI']['value'] = int(params[0])
-        self.variables['Pout']['value'] = params[1]
+        self.variables['NI']['value'] = int(params[0])
+        self.variables['outPress']['value'] = params[1]
         print(self.variables)
         
 
