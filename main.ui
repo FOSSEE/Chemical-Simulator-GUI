@@ -155,8 +155,8 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew_Flowsheet"/>
-    <addaction name="actionSave_2"/>
+    <addaction name="actionNew"/>
+    <addaction name="actionSave"/>
     <addaction name="actionOpen"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -178,8 +178,8 @@
     <property name="title">
      <string>Simulation</string>
     </property>
-    <addaction name="actionEquation_oriented"/>
-    <addaction name="actionSequential_mode"/>
+    <addaction name="actionEquationOriented"/>
+    <addaction name="actionSequentialMode"/>
     <addaction name="separator"/>
     <addaction name="actionTerminate"/>
    </widget>
@@ -187,7 +187,7 @@
     <property name="title">
      <string>Compounds</string>
     </property>
-    <addaction name="actionSelect_compounds"/>
+    <addaction name="actionSelectCompounds"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -199,7 +199,7 @@
     <property name="title">
      <string>Utility</string>
     </property>
-    <addaction name="actionBinary_Phase_Envelope"/>
+    <addaction name="actionBinaryPhaseEnvelope"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -227,6 +227,13 @@
      <width>270</width>
      <height>524287</height>
     </size>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei</family>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
    </property>
    <property name="windowTitle">
     <string>Component Selector</string>
@@ -294,7 +301,8 @@
            </property>
            <property name="font">
             <font>
-             <pointsize>18</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -335,9 +343,11 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
-             <italic>true</italic>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
             </font>
            </property>
            <property name="acceptDrops">
@@ -347,7 +357,7 @@
             <string notr="true">Text-align:left;</string>
            </property>
            <property name="text">
-            <string>MaterialStream</string>
+            <string>     MaterialStream</string>
            </property>
            <property name="icon">
             <iconset>
@@ -355,8 +365,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -381,9 +391,425 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="palette">
+            <palette>
+             <active>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>69</green>
+                 <blue>69</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>57</green>
+                 <blue>57</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>23</green>
+                 <blue>23</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>30</green>
+                 <blue>30</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>23</green>
+                 <blue>23</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </active>
+             <inactive>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>69</green>
+                 <blue>69</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>57</green>
+                 <blue>57</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>23</green>
+                 <blue>23</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>30</green>
+                 <blue>30</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>23</green>
+                 <blue>23</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </inactive>
+             <disabled>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>69</green>
+                 <blue>69</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>57</green>
+                 <blue>57</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>23</green>
+                 <blue>23</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>30</green>
+                 <blue>30</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </disabled>
+            </palette>
+           </property>
            <property name="font">
             <font>
-             <pointsize>18</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -424,15 +850,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Mixer</string>
+            <string>      Mixer</string>
            </property>
            <property name="icon">
             <iconset>
@@ -440,8 +868,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -468,15 +896,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Splitter</string>
+            <string>      Splitter</string>
            </property>
            <property name="icon">
             <iconset>
@@ -484,8 +914,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -510,9 +940,425 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="palette">
+            <palette>
+             <active>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>105</green>
+                 <blue>105</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>87</green>
+                 <blue>87</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>35</green>
+                 <blue>35</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>35</green>
+                 <blue>35</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </active>
+             <inactive>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>105</green>
+                 <blue>105</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>87</green>
+                 <blue>87</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>35</green>
+                 <blue>35</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>35</green>
+                 <blue>35</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </inactive>
+             <disabled>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Light">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>105</green>
+                 <blue>105</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Midlight">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>87</green>
+                 <blue>87</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Dark">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>35</green>
+                 <blue>35</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Mid">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>46</green>
+                 <blue>46</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="BrightText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>73</red>
+                 <green>36</green>
+                 <blue>73</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Base">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Window">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Shadow">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="AlternateBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>70</green>
+                 <blue>70</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipBase">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>220</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ToolTipText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>0</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </disabled>
+            </palette>
+           </property>
            <property name="font">
             <font>
-             <pointsize>18</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -553,15 +1399,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Heater</string>
+            <string>     Heater</string>
            </property>
            <property name="icon">
             <iconset>
@@ -569,9 +1417,18 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>40</width>
+             <height>40</height>
             </size>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -597,15 +1454,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Cooler</string>
+            <string>     Cooler</string>
            </property>
            <property name="icon">
             <iconset>
@@ -613,9 +1472,12 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>40</width>
+             <height>40</height>
             </size>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -641,7 +1503,8 @@
            </property>
            <property name="font">
             <font>
-             <pointsize>18</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -682,15 +1545,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Flash</string>
+            <string>       Flash</string>
            </property>
            <property name="icon">
             <iconset>
@@ -698,8 +1563,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>40</width>
+             <height>40</height>
             </size>
            </property>
           </widget>
@@ -726,24 +1591,26 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Component Seperator</string>
+            <string>       Compound Seperator</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/CompSep.png</normaloff>icons/CompSep.png</iconset>
+             <normaloff>icons/CompoundSeparator.png</normaloff>icons/CompoundSeparator.png</iconset>
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>40</width>
+             <height>40</height>
             </size>
            </property>
           </widget>
@@ -770,7 +1637,8 @@
            </property>
            <property name="font">
             <font>
-             <pointsize>15</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -808,15 +1676,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Valve</string>
+            <string>      Valve</string>
            </property>
            <property name="icon">
             <iconset>
@@ -824,8 +1694,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -852,15 +1722,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Centrifugal Pump</string>
+            <string>      Centrifugal Pump</string>
            </property>
            <property name="icon">
             <iconset>
@@ -868,8 +1740,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -896,15 +1768,17 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Adiabatic Compressor</string>
+            <string>      Adiabatic Compressor</string>
            </property>
            <property name="icon">
             <iconset>
@@ -912,8 +1786,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -940,8 +1814,10 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="autoFillBackground">
@@ -951,7 +1827,7 @@
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Adiabatic Expander</string>
+            <string>      Adiabatic Expander</string>
            </property>
            <property name="icon">
             <iconset>
@@ -959,8 +1835,8 @@
            </property>
            <property name="iconSize">
             <size>
-             <width>50</width>
-             <height>50</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>
@@ -987,7 +1863,8 @@
            </property>
            <property name="font">
             <font>
-             <pointsize>18</pointsize>
+             <family>Microsoft JhengHei UI</family>
+             <pointsize>14</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
@@ -1025,19 +1902,21 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Distillation Column</string>
+            <string>          Distillation Column</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/DistCol.png</normaloff>icons/DistCol.png</iconset>
+             <normaloff>Icons/Column.png</normaloff>Icons/Column.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -1069,19 +1948,21 @@
            </property>
            <property name="font">
             <font>
-             <family>Comic Sans MS</family>
-             <pointsize>11</pointsize>
+             <family>Microsoft JhengHei</family>
+             <pointsize>10</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">Text-align:left</string>
            </property>
            <property name="text">
-            <string>Shortcut Column</string>
+            <string>          Shortcut Column</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/ShortCol.png</normaloff>icons/ShortCol.png</iconset>
+             <normaloff>Icons/Column.png</normaloff>Icons/Column.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -1111,21 +1992,21 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionNew_Flowsheet"/>
+   <addaction name="actionNew"/>
    <addaction name="separator"/>
    <addaction name="actionZoomIn"/>
    <addaction name="actionZoomOut"/>
    <addaction name="actionResetZoom"/>
    <addaction name="separator"/>
-   <addaction name="actionEquation_oriented"/>
-   <addaction name="actionSequential_mode"/>
+   <addaction name="actionEquationOriented"/>
+   <addaction name="actionSequentialMode"/>
    <addaction name="separator"/>
-   <addaction name="actionSelect_compounds"/>
+   <addaction name="actionSelectCompounds"/>
   </widget>
   <action name="actionZoomIn">
    <property name="icon">
     <iconset>
-     <normaloff>icons/zoomIn.png</normaloff>icons/zoomIn.png</iconset>
+     <normaloff>Icons/zoom_in.png</normaloff>Icons/zoom_in.png</iconset>
    </property>
    <property name="text">
     <string>ZoomIn</string>
@@ -1134,7 +2015,7 @@
   <action name="actionZoomOut">
    <property name="icon">
     <iconset>
-     <normaloff>icons/zoomOut.png</normaloff>icons/zoomOut.png</iconset>
+     <normaloff>Icons/zoom_out.png</normaloff>Icons/zoom_out.png</iconset>
    </property>
    <property name="text">
     <string>ZoomOut</string>
@@ -1143,43 +2024,43 @@
   <action name="actionResetZoom">
    <property name="icon">
     <iconset>
-     <normaloff>icons/zoomReset.png</normaloff>icons/zoomReset.png</iconset>
+     <normaloff>Icons/zoom_reset.png</normaloff>Icons/zoom_reset.png</iconset>
    </property>
    <property name="text">
     <string>ResetZoom</string>
    </property>
   </action>
-  <action name="actionEquation_oriented">
+  <action name="actionEquationOriented">
    <property name="icon">
     <iconset>
-     <normaloff>icons/Equation.png</normaloff>icons/Equation.png</iconset>
+     <normaloff>Icons/eq.png</normaloff>Icons/eq.png</iconset>
    </property>
    <property name="text">
     <string>Equation oriented</string>
    </property>
   </action>
-  <action name="actionSequential_mode">
+  <action name="actionSequentialMode">
    <property name="icon">
     <iconset>
-     <normaloff>icons/Sequential.png</normaloff>icons/Sequential.png</iconset>
+     <normaloff>Icons/sq.png</normaloff>Icons/sq.png</iconset>
    </property>
    <property name="text">
     <string>Sequential mode</string>
    </property>
   </action>
-  <action name="actionSelect_compounds">
+  <action name="actionSelectCompounds">
    <property name="icon">
     <iconset>
-     <normaloff>icons/compoundSelector.png</normaloff>icons/compoundSelector.png</iconset>
+     <normaloff>Icons/compound.png</normaloff>Icons/compound.png</iconset>
    </property>
    <property name="text">
     <string>Select Compounds</string>
    </property>
   </action>
-  <action name="actionNew_Flowsheet">
+  <action name="actionNew">
    <property name="icon">
     <iconset>
-     <normaloff>icons/new.svg</normaloff>icons/new.svg</iconset>
+     <normaloff>Icons/new.png</normaloff>Icons/new.png</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -1192,11 +2073,6 @@
   </action>
   <action name="actionSave">
    <property name="text">
-    <string>save</string>
-   </property>
-  </action>
-  <action name="actionSave_2">
-   <property name="text">
     <string>Save</string>
    </property>
   </action>
@@ -1205,7 +2081,7 @@
     <string>Open</string>
    </property>
   </action>
-  <action name="actionBinary_Phase_Envelope">
+  <action name="actionBinaryPhaseEnvelope">
    <property name="text">
     <string>Binary Phase Envelope</string>
    </property>

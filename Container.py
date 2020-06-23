@@ -1,5 +1,5 @@
 from OMChem.Flowsheet import Flowsheet
-from component_selector import *
+from ComponentSelector import *
 from collections import defaultdict
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -19,29 +19,30 @@ import sys
 from Graphics import *
 
 class Container():
-    def __init__(self,msgbrowser):
-        self.unitOp = []
-        self.thermoPackage = None
+    def __init__(self,msgbrowser, graphicsView):
+        self.unit_operations = []
+        self.thermo_package = None
         self.compounds = None
         self.flowsheet = None
         self.conn = defaultdict(list)
         self.op=defaultdict(list)
         self.ip=defaultdict(list)
         self.msg = msgbrowser
+        self.graphicsView = graphicsView
         self.msg.setText("")
         self.opl=[]
         self.result=[]
-        self.graphics = Graphics(self.unitOp)
-        self.scene = self.graphics.getScene()
+        self.graphics = Graphics(self.unit_operations, self.graphicsView)
+        self.scene = self.graphics.get_scene()
 
-    def currentTime(self):
+    def current_time(self):
         now = datetime.datetime.now()
         time = str(now.hour) + ":" + str(now.minute) + ":" +str(now.second)
         return time
     
     # def updateConn(self,key,value):
     #     self.conn[key].append(value)
-    #     self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
+    #     self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
     #
     # def connection(self):
     #     try:
@@ -61,81 +62,95 @@ class Container():
     #             i.connect(InputStms=self.ip[i],OutputStms=self.op[i])
     #
     #         self.opl.append([self.op[i] for i in self.op])
-    #         self.opl=flatlist(flatlist(self.opl))
+    #         self.opl=flat_list(flat_list(self.opl))
     #     except Exception as e:
     #         print(e)
 
     # @staticmethod
     # def addUnitOpObj(obj):
-    #     self.unitOp.append(obj)
+    #     self.unit_operations.append(obj)
 
-    def addUnitOp(self,obj):
+    def add_unit_operation(self, obj):
         box = None
         self.obj = obj
-        self.scene = self.graphics.getScene()
-        box  = self.graphics.createNodeItem(self.obj, self)
+        self.scene = self.graphics.get_scene()
+        #self.graphicsView = graphicsView
+        box  = self.graphics.create_node_item(self.obj, self)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
 
-        if(obj in self.unitOp):
+        if(obj in self.unit_operations):
             pass
         else:
-            self.unitOp.append(obj)
-            data = self.unitOp[:]
+            self.unit_operations.append(obj)
+            data = self.unit_operations[:]
             data.append(compound_selected)
-            PUSH('Undo', data)
-            self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
+            push('Undo', data)
+            self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
 
     '''
         Deletes the selected item from the canvas and also the objects created for that type.
     '''
     def delete(self,l):
         for item in l:
+            print('deleted objects ', item)
             self.scene.removeItem(item)
-            if hasattr(item,'Input'):
-                for x in item.Input:
-                    if x.newLine:
-                        self.scene.removeItem(x.newLine)
-                        del x.newLine
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
-            if hasattr(item,'Output'):
-                for x in item.Output:
-                    if x.newLine:
-                        self.scene.removeItem(x.newLine)
-                        del x.newLine
-                    if x.otherLine:
-                        self.scene.removeItem(x.otherLine)
-                        del x.otherLine
+            for i in dock_widget_lst:
+                if i.name == item.name:
+                    i.hide()
+                    del i
+                    break
+            for i in dock_widget_lst:
+                print(i.name)
+            print("delete ", dock_widget_lst)
+            if hasattr(item,'input'):
+                print("In input ")
+                print(item.input)
+                for x in item.input:
+                    if x.new_line:
+                        self.scene.removeItem(x.new_line)
+                        del x.new_line
+                    if x.other_line:
+                        self.scene.removeItem(x.other_line)
+                        del x.other_line
+            if hasattr(item,'output'):
+                print("in output ")
+                print(item.output)
+                for x in item.output:
+                    if x.new_line:
+                        self.scene.removeItem(x.new_line)
+                        del x.new_line
+                    if x.other_line:
+                        self.scene.removeItem(x.other_line)
+                        del x.other_line
             if hasattr(item,'obj'):
-                self.unitOp.remove(item.obj)
+                self.unit_operations.remove(item.obj)
                 for k in list(self.conn):
                     if item.obj==k:
                         del self.conn[k]
                     elif item.obj in self.conn[k]:
                         self.conn[k].remove(item.obj)
-                self.msg.append("<span style=\"color:blue\">["+str(self.currentTime())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
+                self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+item.obj.name+" </b>is deleted .""</span>")
                 del item.obj
             del item
 
-            CLEAN_FILE('Redo')
-            data = self.unitOp[:]
+            clean_file('Redo')
+            data = self.unit_operations[:]
             data.append(compound_selected)
-            PUSH('Undo', data)
+            push('Undo', data)
 
-    def fetchObject(self,name):
-        for i in self.unitOp:
+    def fetch_object(self,name):
+        for i in self.unit_operations:
             if(i.name==name):
                 return i
                 
-    def addCompounds(self,comp):
+    def add_aompounds(self,comp):
         self.compounds = comp
 
-    def add_thermoPackage(self,thermo):
-        self.thermoPackage = thermo
+    def add_thermo_package(self,thermo):
+        self.thermo_package = thermo
 
-    def msgBrowser(self):
+    def msg_browser(self):
         std = self.flowsheet.stdout.decode("utf-8")
         if(std):
             stdout = str(std)
@@ -153,47 +168,51 @@ class Container():
         print(mode)
         self.compounds = compound_selected
         self.flowsheet = Flowsheet()
-        self.flowsheet.add_comp_list(self.compounds)
+        self.flowsheet.add_compound_list(self.compounds)
         print("######## connection master#########\n",self.conn)
-        for i in self.unitOp :
+        for i in self.unit_operations :
                 print("here",i)
-                self.flowsheet.add_UnitOpn(i)
+                self.flowsheet.add_unit_operations(i)
             
         if mode=='SM':
-            self.msg.append("<span>["+str(self.currentTime())+"] Simulating in <b>Sequential</b> mode ... </span>")
-            self.flowsheet.simulateSM(self.ip,self.op)
-            self.msgBrowser()
-            self.result=self.flowsheet.resdata
+            self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>Sequential</b> mode ... </span>")
+            self.flowsheet.simulate_SM(self.ip,self.op)
+            self.msg_browser()
+            self.result=self.flowsheet.result_data
             print("under SEQ mode simulation")
         elif mode=='EQN':
-            self.msg.append("<span>["+str(self.currentTime())+"] Simulating in <b>equation</b> mode ... </span>")
-            self.flowsheet.simulateEQN()
-            self.msgBrowser()
-            self.result=self.flowsheet.resdata
+            self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
+            self.flowsheet.simulate_EQN()
+            self.msg_browser()
+            self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
 
-        DockWidget.showResult(NodeItem.getDockWidget())
+        try:
+            DockWidget.show_result(NodeItem.get_dock_widget())
+        except AttributeError:
+            print(NodeItem.name + ' does not have dockwidget')
+            pass
 
-def flatlist(lst):
-    flat_list=[]
+def flat_list(lst):
+    flat_lst=[]
     for sublist in lst:
         for item in sublist:
-            flat_list.append(item)
-    return flat_list
+            flat_lst.append(item)
+    return flat_lst
 
-def PUSH(fileName, data):
-    with open(f"{fileName}.dat", "ab") as obj:
+def push(file_name, data):
+    with open(f"{file_name}.dat", "ab") as obj:
         pickle.dump(data, obj)
 
-def CLEAN_FILE(fileName):
-    with open(f"{fileName}.dat", "wb") as clean:
+def clean_file(file_name):
+    with open(f"{file_name}.dat", "wb") as clean:
         pass
 
-def POP(fileName):
+def pop(file_name):
     last_command = None
-    if os.stat(f"{fileName}.dat").st_size != 0:
+    if os.stat(f"{file_name}.dat").st_size != 0:
         commands = []
-        with open(f"{fileName}.dat", "rb") as objs:
+        with open(f"{file_name}.dat", "rb") as objs:
             while True:
                 try:
                     command = pickle.load(objs)
@@ -204,18 +223,18 @@ def POP(fileName):
         last_command = commands[-1]
         commands.remove(commands[-1])
         if len(commands) != 0:
-            with open(f"{fileName}.dat", "wb") as updated_data:
+            with open(f"{file_name}.dat", "wb") as updated_data:
                 for i in range(len(commands)):
                     pickle.dump(commands[i], updated_data)
         else:
-            CLEAN_FILE(fileName)
+            clean_file(file_name)
 
     return last_command
 
-def get_last_list(fileName):
+def get_last_list(file_name):
     commands = []
-    if os.stat(f"{fileName}.dat").st_size != 0:
-        with open(f"{fileName}.dat", "rb") as objs:
+    if os.stat(f"{file_name}.dat").st_size != 0:
+        with open(f"{file_name}.dat", "rb") as objs:
             while True:
                 try:
                     command = pickle.load(objs)

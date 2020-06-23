@@ -8,12 +8,12 @@ class ConvReactor():
         self.Z = str(Z)
         self.a = json.dumps(a).replace('[','{').replace(']','}')
         self.operation = str(operation)
-        self.Tdef = str(Tdef)
         self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = []
-        self.OutputStms = []
+        self.OutputStms = []   self.Tdef = str(Tdef)
+      
         self.type = 'ConvReactor'
         self.EngStms = EngStms(name="EngStm")
 

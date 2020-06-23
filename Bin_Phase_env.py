@@ -17,17 +17,15 @@ import PyQt5.QtWidgets as QtWidgets
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
-
-
 ui_dialog,_ = loadUiType('Binary_Phase_Env.ui')
 
-class Bin_Phase_env(QWidget,ui_dialog):
+class BinPhaseEnv(QWidget,ui_dialog):
     def __init__(self,comp):
         QWidget.__init__(self)
         self.setupUi(self)
 
         self.comp = comp
-        self.compunds = self.comp.getComp()
+        self.compunds = self.comp.get_compounds()
             
         for i in self.compunds:
             self.comboBox.addItem(str(i))
@@ -46,18 +44,12 @@ class Bin_Phase_env(QWidget,ui_dialog):
         self.radioButton_2.setChecked(False)
 
         self.button_handler()
-
         self.counter = 1
-
-
-
-        
 
     def button_handler(self):
         self.radioButton.clicked.connect(lambda:self.T_xy())
         self.radioButton_2.clicked.connect(lambda:self.P_xy())
         self.pushButton_2.clicked.connect(lambda:self.plot())
-        
 
     def T_xy(self):
         self.radioButton.setChecked(True)
@@ -90,6 +82,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
         self.formLayout.addRow(QLabel("T(K)"),self.first)
         self.formLayout.addRow(QLabel("Number of data points"),self.points)
         #print("") 
+
     def get_omc_path(self):
         try:
             self.omhome = os.environ.get('OPENMODELICAHOME')
@@ -103,8 +96,6 @@ class Bin_Phase_env(QWidget,ui_dialog):
         except BaseException:
             print("The OpenModelica compiler is missing in the System path please install it" )
             raise
-
-    
 
     def plot(self):
         #print(self.type)
@@ -153,9 +144,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
             mosFile.write("loadFile(\"Graph.mo\");\n")
             mosFile.write("simulate(Graph, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n")
 
-
         print(self.data)
-
 
         self.resdata = []
         self.omc_path = self.get_omc_path()
@@ -185,34 +174,24 @@ class Bin_Phase_env(QWidget,ui_dialog):
 
         print("SIMULATION DONE")            
 
-
-
-
-
         if self.type=='T':
             for k in range(len(self.rows[0])):
                 if self.rows[0][k][0]=='P':
                     self.datay.append(float(self.rows[1][k]))
                     #print(col)
                 length = len(self.rows[0][k])
-
                 if self.rows[0][k][0]=='x' and self.rows[0][k][length-2]=='1':
                     self.datax1.append(float(self.rows[1][k]))
                    # k+=1   
-
                 if self.rows[0][k][0]=='y' and self.rows[0][k][length-2]=='1':
                     self.datax2.append(float(self.rows[1][k]))
                     #k+=1        
-
                 #k+=1   
-
-        else:
-            
+        else: 
             for k in range(len(self.rows[0])):
                 if self.rows[0][k][0]=='T':
                     self.datay.append(float(self.rows[1][k]))
                     #print(col)
-
                 #print(self.rows[0][k]) 
                 length = len(self.rows[0][k])   
                 if self.rows[0][k][0]=='x' and self.rows[0][k][length-2]=='1':
@@ -229,28 +208,20 @@ class Bin_Phase_env(QWidget,ui_dialog):
         plt.addLegend()   
         plt.setXRange(0,1) 
 
-
         # print("SIZE UP AHEAD")
         # print(len(self.datay))
         # print(len(self.datax1))
         # print(len(self.datax2))
         # print("SIZES DONE")
-
         c1 = plt.plot(self.datax1, self.datay,pen=pg.mkPen('b',width = 1), name='dew points')
         c2 = plt.plot(self.datax2, self.datay,pen=pg.mkPen('r',width = 1), name='bubble points') 
-
-        
         view_box = plt.plotItem.vb
-
         self.tool_tip = ""
 
-
-        def pressEvent(evt):
+        def press_event(evt):
             #print("HELLO")
             a = 10
             pos = evt
-            
-
             mousepoint = view_box.mapSceneToView(pos)
             roi = pg.ROI(pos)
             find_color = plt.mapToGlobal(pos.toPoint())
@@ -270,9 +241,7 @@ class Bin_Phase_env(QWidget,ui_dialog):
                 self.lineEdit_y.setText("")
                 self.tool_tip = ""
                 QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
-                    
-
-        
+                     
         #self.prev = None     
         def entered(items):
             for i in items:
@@ -283,19 +252,12 @@ class Bin_Phase_env(QWidget,ui_dialog):
                     QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
                 else:
                     i.setToolTip(self.tool_tip)    
-
-
-           # print(items)    
-        
-        #proxy = pg.SignalProxy(plt.scene().sigMouseMoved, rateLimit = 60, slot = pressEvent)        
-        plt.scene().sigMouseMoved.connect(pressEvent)
+           # print(items)      
+        #proxy = pg.SignalProxy(plt.scene().sigMouseMoved, rateLimit = 60, slot = press_event)        
+        plt.scene().sigMouseMoved.connect(press_event)
         plt.scene().sigMouseHover.connect(entered)
         #c1.setAcceptHoverEvents(True)
         #c2.setAcceptHoverEvents(True)
-
-        
-
-
 
         # def hoverEnterEvent(c1,event):
         #     print("Object ZONE")
@@ -306,7 +268,6 @@ class Bin_Phase_env(QWidget,ui_dialog):
         #c1.hoverMoveEvent.connect(item)
         #c2.hoverMoveEvent.connect(item)
 
-
         plt.setLabel('left',self.other+self.otherunit,units = '')   
         plt.setLabel('bottom',self.comp1+'(mol. frac.)',units = '')
 
@@ -315,19 +276,3 @@ class Bin_Phase_env(QWidget,ui_dialog):
         
         self.tabWidget.addTab(self.new_tab,"Plot "+str(self.counter))
         self.counter+=1
-
-
-    
-
-
-
-
-
-
-        
-        
-
-
-            
-
-            
