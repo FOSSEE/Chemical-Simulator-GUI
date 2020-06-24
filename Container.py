@@ -190,7 +190,6 @@ class Container():
         try:
             DockWidget.show_result(NodeItem.get_dock_widget())
         except AttributeError:
-            print(NodeItem.name + ' does not have dockwidget')
             pass
 
 def flat_list(lst):

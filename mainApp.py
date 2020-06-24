@@ -227,7 +227,7 @@ class MainApp(QMainWindow,ui):
     '''        
     def new(self):
         self.undo_redo_helper()
-        self.comp.tableWidget.setRowCount(0)
+        self.comp = ComponentSelector(self)
         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>New</b> flowsheet is created ... </span>")
         dock_widget_lst.clear()
 
