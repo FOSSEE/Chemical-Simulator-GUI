@@ -130,8 +130,8 @@ class UnitOperation():
 
             for k in self.parameters:
                 self.OM_data_init += ', '
-                self.OM_data_init += k + ' = ' + ('"' + self.variables[k]['value'] + '"' if isinstance(self.variables[k]['value'], str)
-                     else str(json.dumps(self.variables[k]['value']).replace('[', '{').replace(']', '}')))
+                self.OM_data_init += k + ' = ' + (json.dumps(self.variables[k]['value']) if json.dumps(self.variables[k]['value']).replace('"', '').replace('_', '').isalpha()
+                                                   else json.dumps(self.variables[k]['value']).replace('[', '{').replace(']', '}').replace('"', ''))
 
             self.OM_data_init += ');\n'
         return self.OM_data_init  

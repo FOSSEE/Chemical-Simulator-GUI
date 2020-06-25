@@ -5,7 +5,7 @@ model Splitter
 //Header Files and Parameters
   extends Simulator.Files.Icons.Splitter;
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
-  parameter Integer Nc = 2 "Number of Components", No = 2 "Number of outlet streams";
+  parameter Integer Nc = 3 "Number of Components", No = 2 "Number of outlet streams";
   parameter String CalcType "Split_Ratio, Mass_Flow or Molar_Flow";
   
 //=============================================================================
@@ -21,7 +21,7 @@ model Splitter
   
   Real Pout_s[No](each min = 0, each start = Pg) "Outlet Pressure";
   Real Tout_s[No](each min = 0, each start = Tg) "Outlet Temperature";
-  Real xout_sc[No, Nc](each min = 0, each max = 1, start = xguess) "Outlet Mixture Molar Fraction";
+  Real xout_sc[No, Nc](each min = 0, each max = 1) "Outlet Mixture Molar Fraction";
   Real Fout_c[No](each min = 0,  start = Fg) "Outlet Mixture Molar Flow";
   Real Fmout_c[No](each min = 0, start = Fg) "Outlet Mixture Mass Flow";
   

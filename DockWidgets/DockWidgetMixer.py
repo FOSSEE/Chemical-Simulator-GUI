@@ -52,7 +52,7 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
         try:
             self.dict={}
             print("param.input_dict ", self.input_dict)
-            self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText()]
+            self.dict = [int(self.input_dict[0].text()), '"' + self.input_dict[1].currentText() + '"']
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
             self.hide()
