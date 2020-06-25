@@ -131,7 +131,7 @@ class UnitOperation():
             for k in self.parameters:
                 self.OM_data_init += ', '
                 self.OM_data_init += k + ' = ' + ('"' + self.variables[k]['value'] + '"' if isinstance(self.variables[k]['value'], str)
-                     else str(self.variables[k]['value']))
+                     else str(json.dumps(self.variables[k]['value']).replace('[', '{').replace(']', '}')))
 
             self.OM_data_init += ');\n'
         return self.OM_data_init  
@@ -153,6 +153,8 @@ class UnitOperation():
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
+            print(self.input_stms)
+            print(self.output_stms)
             self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
         
         if self.mode:
@@ -377,29 +379,30 @@ class Splitter(UnitOperation):
         self.no_of_outputs = 3 
         
         # self.input_stms = None
-        self.CalcType_modes = ['Split Ratios', 'Mole Flow Specs', 'Mass Flow Specs']
+        self.CalcType_modes = ['Split_Ratio', 'Molar_Flow', 'Mass_Flow']
 
-        self.parameters = ['NOO', 'CalcType']#, 'SpecVal_s'
+        self.parameters = ['No', 'CalcType', 'SpecVal_s']
         type(self).counter += 1 
 
         self.variables = {
-            'NOO'       : {'name':'No. of Output',          'value':3,                          'unit':''},
+            'No'       : {'name':'No. of Output',          'value':3,                          'unit':''},
             'CalcType'  : {'name':'Calculation Type',       'value':self.CalcType_modes[0],     'unit':''},
             'SpecVal_s' : {'name':'Specification Value',    'value':[50,50],                    'unit':''}
         }
         
         specval = self.variables['SpecVal_s']['value'] # [50,50]
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
+        print(self.specval)
 
     def param_setter(self,params):
         print("param_setter ", params)
-        self.variables['NOO']['value'] = int(params[0])
+        self.variables['No']['value'] = int(params[0])
         self.variables['CalcType']['value'] = params[1]
         self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]
-        if self.variables['CalcType']['value'] == 'Mole Flow Specs':
+        if self.variables['CalcType']['value'] == 'Molar_Flow':
             self.variables['SpecVal_s']['unit'] = 'mol/s'
-        elif self.variables['CalcType']['value'] == 'Mass Flow Specs':
-            self.variables['SpecVal_s']['unit'] = 'kg/s'
+        elif self.variables['CalcType']['value'] == 'Mass_Flow':
+            self.variables['SpecVal_s']['unit'] = 'g/s'
         print(self.variables)
 
 class Mixer(UnitOperation):

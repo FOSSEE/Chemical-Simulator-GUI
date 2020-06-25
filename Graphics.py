@@ -472,7 +472,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             if ok and text:
                 self.nop = int(text)
                 self.obj.no_of_outputs = self.nop
-                self.obj.variables['NOO']['value'] = self.nop
+                self.obj.variables['No']['value'] = self.nop
 
         self.dock_widget = None
         lst.append(self)

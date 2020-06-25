@@ -11,3 +11,4 @@ __pycache__/*
 .idea/*
 DockWidgets/__pycache__/*
 undo.dat
+test.py

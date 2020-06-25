@@ -30,9 +30,9 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
         try:
             print("input_params_list ", self.input_dict)
         
-            self.l1.setText(self.obj.variables['NOO']['name']+":")
-            self.le1.setText(str(self.obj.variables['NOO']['value']))
-            self.u1.setText(self.obj.variables['NOO']['unit'])
+            self.l1.setText(self.obj.variables['No']['name']+":")
+            self.le1.setText(str(self.obj.variables['No']['value']))
+            self.u1.setText(self.obj.variables['No']['unit'])
             
             for i in self.obj.CalcType_modes:
                 self.cb2.addItem(str(i))
@@ -52,12 +52,12 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             print(e)
 
     def fun(self):
-        if self.cb2.currentText() == 'Mole Flow Specs':
+        if self.cb2.currentText() == 'Molar_Flow':
             self.u3.setText('mol/s')
             self.u4.setText('mol/s')
-        elif self.cb2.currentText() == 'Mass Flow Specs':
-            self.u3.setText('kg/s')
-            self.u4.setText('kg/s')
+        elif self.cb2.currentText() == 'Mass_Flow':
+            self.u3.setText('g/s')
+            self.u4.setText('g/s')
         else:
             self.u3.setText('')
             self.u4.setText('')
