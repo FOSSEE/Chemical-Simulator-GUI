@@ -136,6 +136,7 @@ class UnitOperation():
             self.OM_data_init += ');\n'
         return self.OM_data_init  
 
+    
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
 
@@ -286,29 +287,62 @@ class CompoundSeparator(UnitOperation):
         type(self).counter += 1  
         self.variables = {
             'SepStrm'   : {'name':'Separation Stream',      'value':1,              'unit':''}, 
-            #'SepVal'    : {'name':'Separation Value',       'value':[],             'unit':''},
-            #'SepFact'   : {'name':'Separaction Factor',     'value':'',             'unit':''},
+            'SepVal_c'    : {'name':'Separation Value',       'value':[],             'unit':''},
+            'SepFact_c'   : {'name':'Separaction Factor',     'value':[],             'unit':''},
         }
-        
-        for i in self.compounds:
-            self.variables[i] = {'name':'SepVal_'+i,      'value':'',       'type':'', 'unit':''}
 
-        # self.SepFact = json.dumps(self.variables['SepFact']['value']).replace('[','{').replace(']','}')
-        # self.SepStrm = str(self.variables['SepStrm']['value'])
-        # self.SepVal = json.dumps(self.variables['SepVal']['value']).replace('[','{').replace(']','}')
     def param_setter(self,params):
-        print("param_setter ", params)
-        if params[0]:
+        print("param_setter CompSep ", params)
+      
+        if (params[0]):
             self.variables['SepStrm']['value'] = 1
-        elif params[1]:
+        else:
             self.variables['SepStrm']['value'] = 2
+
+        for index, i in enumerate(range(2, len(params))):
+            print(index, i)
+            if (i %2 != 0):
+                self.variables['SepVal_c']['value'].append(float(params[i]))   
+            else:
+                self.variables['SepFact_c']['value'].append(params[i].split(' ')[0])    
+
+        print(self.variables['SepStrm']['value'], self.variables['SepFact_c']['value'], self.variables['SepVal_c']['value'])
         
-        j = 2
-        for i in self.compounds:
-            self.variables[i]['type'] = params[j]
-            self.variables[i]['value'] = float(params[j+1])
-            j += 2
-        print(self.variables)
+        self.variables['SepFact_c']['value'] = json.dumps(self.variables['SepFact_c']['value']).replace('[','{').replace(']','}')
+        self.variables['SepStrm']['value'] = str(self.variables['SepStrm']['value'])
+        self.variables['SepVal_c']['value'] = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
+
+        print(self.variables['SepStrm']['value'], self.variables['SepFact_c']['value'], self.variables['SepVal_c']['value'])
+
+
+    def OM_Flowsheet_Initialize(self):
+        self.OM_data_init = ''
+        comp_count = len(self.compounds)
+        self.OM_data_init = self.OM_data_init + (
+        "Simulator.UnitOperations.CompoundSeparator " + self.name + "(Nc = " + str(comp_count))
+        self.OM_data_init = self.OM_data_init + (", C = {")
+        comp = str(self.compounds).strip('[').strip(']')
+        comp = comp.replace("'", "")
+        self.OM_data_init = self.OM_data_init + comp + ("},")
+        self.OM_data_init = self.OM_data_init + ("SepFact_c = "+self.variables['SepFact_c']['value']+",SepStrm = " + self.variables['SepStrm']['value']  + ");\n") #+ ", sepFactVal = " + self.variables['SepVal_c']['value']
+
+        return self.OM_data_init
+
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+       
+        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+
+        strcount = 1
+        for strm in self.output_stms:
+            self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out' + str(strcount) + ');\n')
+            strcount += 1
+        
+        self.OM_data_eqn += (self.name + '.SepVal_c ' + '=' + self.variables['SepVal_c']['value'] + ';\n')    
+
+        return self.OM_data_eqn
+
 
 class Flash(UnitOperation):
     def __init__(self,name='Flash'):
