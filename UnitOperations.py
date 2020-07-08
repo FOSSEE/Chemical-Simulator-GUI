@@ -38,7 +38,7 @@ class UnitOperation():
         self.for_naming = []
         self.multidict = []
         self.thermo_pack_req = False
-        self.thermo_package = None
+        self.thermo_package = 'RaoultsLaw'
 
     def param_getter(self,mode=None):
         params = {}
@@ -116,11 +116,18 @@ class UnitOperation():
             C = str(self.compounds).strip('[').strip(']')
             C = C.replace("'", "")  
             self.OM_data_init += ',C = {' + C + '}'  
-                        
-            for k,v in self.parameters.items():
+
+            # if len(self.parameters) > 0:
+            #     for k,v in self.parameters.items():
+            #         self.OM_data_init += ', '
+            #         self.OM_data_init += k + ' = ' + str(v)
+
+            for k in self.parameters:
                 self.OM_data_init += ', '
-                self.OM_data_init += k + ' = ' + str(v)
-                self.OM_data_init += ');\n' 
+                self.OM_data_init += k + ' = ' + (json.dumps(self.variables[k]['value']) if json.dumps(self.variables[k]['value']).replace('"', '').replace('_', '').isalpha()
+                                                   else json.dumps(self.variables[k]['value']).replace('[', '{').replace(']', '}').replace('"', ''))
+
+            self.OM_data_init += ');\n'
 
         else: 
             self.OM_data_init += 'Simulator.UnitOperations.' + self.type + ' ' + self.name + '(Nc = ' + str(len(self.compounds))
@@ -349,11 +356,15 @@ class Flash(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Flash.counter) 
         self.type = 'Flash'
+        self.extra = ['Flash']
+        self.for_naming = ['Flash']
         self.no_of_inputs = 1 
         self.no_of_outputs = 2  
         self.input_stms = []
         self.output_stms = []
         self.count = Flash.counter
+        self.thermo_pack_req = True
+        self.parameters = ['BTdef', 'Tdef', 'BPdef', 'Pdef']
 
         type(self).counter += 1 
         self.variables = {
@@ -371,6 +382,18 @@ class Flash(UnitOperation):
         self.variables['BPdef']['value'] = params[3]
         self.variables['Pdef']['value'] = params[4]        
         print(self.variables)
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+
+        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+
+        strcount = 1
+        for strm in self.output_stms:
+            self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out' + str(strcount) + ');\n')
+            strcount += 1
+
+        return self.OM_data_eqn
 
 class Pump(UnitOperation):
     def __init__(self,name='Pump'):

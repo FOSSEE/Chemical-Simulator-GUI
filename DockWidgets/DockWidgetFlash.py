@@ -29,7 +29,7 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
         try:
             print("input_params_list ", self.input_dict)
         
-            self.l1.setText(self.obj.variables['thermoPackage']['name']+":")
+            self.l1.setText(self.obj.variables['thermo_package']['name']+":")
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
             for j in self.lines:
                 self.cb1.addItem(str(j))
