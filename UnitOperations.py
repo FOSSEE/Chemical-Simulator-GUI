@@ -177,8 +177,6 @@ class ShortcutColumn(UnitOperation):
         self.type = 'ShortcutColumn'
         self.no_of_inputs = 1 
         self.no_of_outputs = 2  
-        self.input_stms = None
-        self.output_stms = None
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = ShortcutColumn.counter
@@ -225,8 +223,6 @@ class DistillationColumn(UnitOperation):
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
 
-        self.input_stms = None
-        self.output_stms = None 
         # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
         self.parameters = ['']
@@ -418,8 +414,6 @@ class Valve(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Valve.counter)
         self.type = 'Valve'
-        self.input_stms = None
-        self.output_stms = None
         self.modes_list = ['Pdel', 'Pout']
 
         type(self).counter += 1 
