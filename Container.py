@@ -186,11 +186,9 @@ class Container():
             self.msg_browser()
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
+            print("710 ", self.result)
 
-        try:
-            DockWidget.show_result(NodeItem.get_dock_widget())
-        except AttributeError:
-            pass
+        DockWidget.show_result(NodeItem.get_dock_widget())
 
 def flat_list(lst):
     flat_lst=[]

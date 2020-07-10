@@ -214,7 +214,7 @@ class DistillationColumn(UnitOperation):
     def __init__(self,name='DistillationColumn'):
         self.name = name + str(DistillationColumn.counter) 
         self.type = 'DistillationColumn'
-        self.no_of_inputs = 2 
+        self.no_of_inputs = 1 
         self.no_of_outputs = 2
 
         self.compounds = compound_selected
@@ -232,6 +232,7 @@ class DistillationColumn(UnitOperation):
 
         type(self).counter += 1  
         self.variables = {
+            'NI'   :            {'name':'Number of Input',          'value':2,                 'unit':''},
             'RR'    :           {'name':'Reflux Ratio',             'value':None,           'unit':''},
             'T'     :           {'name':'Temperature',              'value':300,            'unit':'K'},
             'Nout'  :           {'name':'No of Sidedraws',          'value':None,           'unit':''},

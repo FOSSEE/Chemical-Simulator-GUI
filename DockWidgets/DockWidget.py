@@ -187,10 +187,11 @@ class DockWidget(QDockWidget,ui_dialog):
 
     @staticmethod
     def show_result(lst):
-        #DockWidget1.flag = True
         for i in lst:
-            i.results_category(i.name)
-            #i.show()
+            try:
+                i.results_category(i.name)
+            except AttributeError:
+                pass
         
     # result data tab
     def results_category(self,name):

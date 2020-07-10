@@ -473,6 +473,12 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 self.nop = int(text)
                 self.obj.no_of_outputs = self.nop
                 self.obj.variables['No']['value'] = self.nop
+        elif self.obj.type == 'DistillationColumn':
+            text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:')
+            if ok and text:
+                self.nin = int(text)
+                self.obj.no_of_inputs = self.nin
+                self.obj.variables['NI']['value'] = self.nin
 
         self.dock_widget = None
         lst.append(self)
