@@ -38,7 +38,7 @@ class MaterialStream():
             'xvap'   : {'name':'Vapour Phase Mole Fraction',          'value':None,       'unit':'g/s'},
             'H_p[1]'  : {'name':'Mixture Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
             'S_p[1]'  : {'name':'Mixture Phase Molar Entropy',        'value':None,       'unit':'g/s'},
-            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':None,       'unit':'g/s'},
+            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':100,       'unit':'g/s'},
 
             'H_p[2]'  : {'name':'Liquid Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
             'S_p[2]'  : {'name':'Liquid Phase Molar Entropy',        'value':None,       'unit':'g/s'},
@@ -48,7 +48,7 @@ class MaterialStream():
             'S_p[3]'  : {'name':'Vapour Phase Molar Entropy',        'value':None,       'unit':'g/s'},
             'F_p[3]'  : {'name':'Vapour Molar Flow Rate',            'value':None,       'unit':'g/s'},
 
-            'x_pc'  : {'name':'Mole Fraction',    'value':1.0,      'unit':'mol/s'},
+            'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':'mol/s'},
             'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':'g/s'},
             
             'F_pc'  : {'name':'Mole Flow',        'value':100,      'unit':'mol/s'},
@@ -57,8 +57,9 @@ class MaterialStream():
         self.init_variables()
 
     def init_variables(self):
+        Nc = len(self.compound_names)
         for i, val in enumerate(self.compound_names):
-            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':None, 'unit':'mol/s'}
+            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':round(1/Nc,4), 'unit':'mol/s'}
             self.variables['xm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Fraction', 'value':None, 'unit':'g/s'}
             self.variables['F_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Flow', 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Flow', 'value':None, 'unit':'g/s'}
@@ -79,31 +80,38 @@ class MaterialStream():
     def param_getter(self,mode):
         dict = {}
 
+        temp = []
+        for i, val in enumerate(self.compound_names):
+            temp.append(self.variables['x_pc[1,' + str(i+1) + ']']['value'])
+        self.variables['x_pc']['value'] = temp
+
         if(mode=="PT"):
             self.mode1 = 'P'
             self.mode2 = 'T'
+            
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
-                    "MolFlow":self.variables['F_pc']['value'],"x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['H_p[1]']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['T']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2: self.variables['S_p[1]']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
         
         return dict
 
