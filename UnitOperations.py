@@ -123,6 +123,8 @@ class UnitOperation():
             #         self.OM_data_init += k + ' = ' + str(v)
 
             for k in self.parameters:
+                if(k == 'HKey_x_pc' or k == 'LKey_x_pc'):
+                    continue
                 self.OM_data_init += ', '
                 self.OM_data_init += k + ' = ' + (json.dumps(self.variables[k]['value']) if json.dumps(self.variables[k]['value']).replace('"', '').replace('_', '').isalpha()
                                                    else json.dumps(self.variables[k]['value']).replace('[', '{').replace(']', '}').replace('"', ''))
@@ -181,7 +183,12 @@ class ShortcutColumn(UnitOperation):
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = ShortcutColumn.counter
 
+        self.extra = ['ShortcutColumn']
+        self.for_naming = ['ShortcutColumn']
+        self.thermo_pack_req = True
+
         self.parameters = ['HKey', 'LKey', 'HKey_x_pc', 'LKey_x_pc', 'Ctype', 'Pcond', 'Preb', 'RR']
+        self.result_parameters = ['RRmin', 'Ntmin', 'Nt', 'Intray', 'Fliqstrip', 'Fliqrec', 'Fvapstrip', 'Fvaprec', 'Qc', 'Qr']
         type(self).counter += 1
 
         self.variables = {
@@ -190,16 +197,28 @@ class ShortcutColumn(UnitOperation):
             'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
             'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
             'Ctype' :           {'name':'Condensor Type',               'value':None,           'unit':''},
-            'thermo_package' :   {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
+            'thermo_package' :  {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
             'Pcond' :           {'name':'Condensor Pressure',           'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',            'value':101325,         'unit':'Pa'},
             'RR'    :           {'name':'Reflux Ratio',                 'value':1.5,            'unit':''},
+            
+            'RRmin' :           {'name':'Minimum Reflux Ratio',         'value': None ,     'unit':''},
+            'Ntmin' :           {'name':'Minimum Number of Stages',     'value': None,      'unit':''},
+            'Nt'    :           {'name':'Actual Number of Stages',      'value': None,      'unit':''},
+            'Intray'   :        {'name':'Optimal Feed Stage',           'value': None,      'unit':''},
+            'Fliqstrip' :       {'name':'Stripping Liquid',             'value': None,      'unit':'mol/s'},
+            'Fliqrec'   :       {'name':'Rectification Liquid',         'value': None,      'unit':'mol/s'},
+            'Fvapstrip' :       {'name':'Stripping Vapor',              'value': None,      'unit':'mol/s'},
+            'Fvaprec'   :       {'name':'Recification Vapour',          'value': None,      'unit':'mol/s'},
+            'Qc'    :           {'name':'Conderser Duty',               'value': None,      'unit':'W'},
+            'Qr'    :           {'name':'Reboiler Duty',                'value': None,      'unit':'W'},
+
         } 
       
     def param_setter(self,params):
         print("param_setter ", params)
-        self.variables['HKey']['value'] = params[0]
-        self.variables['LKey']['value'] = params[1]
+        self.variables['HKey']['value'] = self.compounds.index(params[0]) + 1
+        self.variables['LKey']['value'] = self.compounds.index(params[1]) + 1
         self.variables['HKey_x_pc']['value'] = params[2]
         self.variables['LKey_x_pc']['value'] = params[3]
         self.variables['Ctype']['value'] = params[4]
@@ -208,6 +227,21 @@ class ShortcutColumn(UnitOperation):
         self.variables['RR']['value'] = params[7]
 
         print(self.variables)
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+       
+        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+
+        strcount = 1
+        for strm in self.output_stms:
+            self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out' + str(strcount) + ');\n')
+            strcount += 1
+
+        self.OM_data_eqn += (self.name + '.x_pc[2, ' + self.name + '.HKey] = ' + str(self.variables['HKey_x_pc']['value'])  + ';\n')
+        self.OM_data_eqn += (self.name + '.x_pc[3, ' + self.name + '.LKey] = ' + str(self.variables['LKey_x_pc']['value'])  + ';\n')
+        
+        return self.OM_data_eqn
 
 
 class DistillationColumn(UnitOperation):

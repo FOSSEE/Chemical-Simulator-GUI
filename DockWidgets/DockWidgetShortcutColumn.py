@@ -34,12 +34,13 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             print("input_params_list ", self.input_dict)
         
             self.l1.setText(self.obj.variables['HKey']['name']+":")
+            self.l2.setText(self.obj.variables['LKey']['name']+":")
+
             print(self.obj.compounds)
             for i in self.obj.compounds:
                 self.cb1.addItem(str(i))
                 self.cb2.addItem(str(i))
 
-            self.l2.setText(self.obj.variables['LKey']['name']+":")
 
             self.l3.setText(self.obj.variables['HKey_x_pc']['name']+":")
             self.le3.setText(str(self.obj.variables['HKey_x_pc']['value']))
@@ -84,14 +85,40 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
         except Exception as e:
             print(e)
 
-
     @staticmethod
     def show_result(lst):
-        #DockWidget1.flag = True
         for i in lst:
-            i.resultsCategory(i.name)
-            #i.show()
+            try:
+                i.results_category(i.name)
+            except AttributeError:
+                pass
         
     # result data tab
     def results_category(self,name):
-        pass
+        flag = True
+        try:
+            print("Under result category name ", name)
+            result=self.container.result
+            obj = self.container.fetch_object(name)
+            self.tableWidget.setRowCount(0)
+            variKeys = obj.result_parameters
+            print(variKeys)
+            for i, val in enumerate(variKeys):
+                propertyname = name + '.' + val
+                print(i,val, propertyname)
+                if propertyname in result[0]:
+                    ind = result[0].index(propertyname)
+                    resultval = str(result[-1][ind])
+                    obj.variables[val]['value']= result[-1][ind]
+                    print("######Resultsfetch####",val,resultval)
+                    rowPosition = self.tableWidget.rowCount()
+                    self.tableWidget.insertRow(rowPosition)
+                    self.tableWidget.setItem(rowPosition , 0, QTableWidgetItem(obj.variables[val]['name']))
+                    self.tableWidget.setItem(rowPosition , 1, QTableWidgetItem(resultval))
+                    self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(obj.variables[val]['unit']))
+                    self.tableWidget.resizeColumnsToContents()
+
+            print(obj.variables)
+
+        except Exception as e:
+            print(e)
