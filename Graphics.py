@@ -41,6 +41,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         self.graphicsView = graphicsView
         self.pos = None
         self.unit_operations = unit_operations
+        # self.node_item_list = []
     
     def get_scene(self):
         return self.scene
@@ -50,6 +51,9 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
 
     def create_node_item(self,unit_operation, container):
         print("in create node item function")
+        # node_item = NodeItem(unit_operation, container, self.graphicsView)
+        # self.node_item_list.append(node_item)
+        # return node_item
         return NodeItem(unit_operation, container, self.graphicsView)
 
     # def boundingRect(self):
@@ -603,6 +607,15 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.show()
         stack.append(self.dock_widget)
         self.graphicsView.setInteractive(True)
+
+    def update_tooltip(self):
+        default_tooltip = f"{self.name}\n\n"
+        default_tooltip_dict = self.obj.param_getter(self.obj.modes_list[0])
+        for i, j in default_tooltip_dict.items():
+            if j is not None:
+                default_tooltip = default_tooltip + f"   {i} : {j}\n"
+        print("default tooltip ", default_tooltip_dict)
+        self.setToolTip(default_tooltip)
 
         
 def findMainWindow(self):

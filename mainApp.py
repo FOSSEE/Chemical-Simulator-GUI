@@ -262,8 +262,6 @@ class MainApp(QMainWindow,ui):
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
 
-
-
     '''
         Function for undo 
     '''

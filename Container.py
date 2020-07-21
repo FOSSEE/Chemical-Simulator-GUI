@@ -171,24 +171,31 @@ class Container():
         self.flowsheet.add_compound_list(self.compounds)
         print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
-                print("here",i)
-                self.flowsheet.add_unit_operations(i)
+            print("here",i)
+            self.flowsheet.add_unit_operations(i)
             
         if mode=='SM':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>Sequential</b> mode ... </span>")
             self.flowsheet.simulate_SM(self.ip,self.op)
             self.msg_browser()
             self.result=self.flowsheet.result_data
-            print("under SEQ mode simulation")
+            
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
             self.msg_browser()
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
-            print("710 ", self.result)
-
+            print("710 ")
+            print("under SEQ mode simulation")
+        
         DockWidget.show_result(NodeItem.get_dock_widget())
+
+        for i in self.graphics.scene.items():
+            if (isinstance(i, NodeItem)):
+                i.update_tooltip()
+
+        
 
 def flat_list(lst):
     flat_lst=[]
