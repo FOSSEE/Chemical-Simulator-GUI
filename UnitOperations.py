@@ -55,7 +55,6 @@ class UnitOperation():
     def param_setter(self,params):
         print("param_setter ", params)
         for k,v in params.items():
-            print(k,v)
             if k != self.mode:
                 self.k = v
                 self.variables[k]['value'] = v
@@ -66,10 +65,8 @@ class UnitOperation():
 
     def add_connection(self,flag,UnitOpr):
         if flag==1:                 # Input stream if flag is 1
-            print("INPUT CONNECTION")
             self.input_stms.append(UnitOpr)
         else :
-            print("OUTPUT CONNECTION")
             self.output_stms.append(UnitOpr)
 
     def set_pos(self,pos):
@@ -163,8 +160,6 @@ class UnitOperation():
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            print(self.input_stms)
-            print(self.output_stms)
             self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
         
         if self.mode:
@@ -246,6 +241,7 @@ class ShortcutColumn(UnitOperation):
 
 class DistillationColumn(UnitOperation):
     def __init__(self,name='DistillationColumn'):
+        UnitOperation.__init__(self)
         self.name = name + str(DistillationColumn.counter) 
         self.type = 'DistillationColumn'
         self.no_of_inputs = 1 
@@ -259,20 +255,19 @@ class DistillationColumn(UnitOperation):
 
         # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
-        self.parameters = ['']
+        self.parameters = ['Nt', 'Ni', 'InT_s', 'Ctype']
         #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
 
         type(self).counter += 1  
         self.variables = {
-            'NI'   :            {'name':'Number of Input',          'value':2,                 'unit':''},
+            'Ni'   :            {'name':'Number of Input',          'value':2,              'unit':''},
             'RR'    :           {'name':'Reflux Ratio',             'value':None,           'unit':''},
             'T'     :           {'name':'Temperature',              'value':300,            'unit':'K'},
             'Nout'  :           {'name':'No of Sidedraws',          'value':None,           'unit':''},
             'Nt'    :           {'name':'No of Stages',             'value':12,             'unit':''},
-            'InT_s' :           {'name':'No of Feed Stages',        'value':None,           'unit':''},
-            'In_s'  :           {'name':'No of Feeds',              'value':None,           'unit':''},
+            'InT_s' :           {'name':'Feed Stage',              'value':[],           'unit':''},
             'thermo_package' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
             'Ctype' :           {'name':'Condensor Type',           'value':'',             'unit':''},
             'Pcond' :           {'name':'Condensor Pressure',       'value':101325,         'unit':'Pa'},
@@ -280,22 +275,26 @@ class DistillationColumn(UnitOperation):
             'C_Spec':           {'name':'Condensor Specification',  'type':'Reflux Ratio',  'value':'',         'comp':'',      'unit':''},
             'R_Spec':           {'name':'Reboiler Specification',   'type':'',              'value':'',         'comp':'',      'unit':''},
         }
+       
     def param_setter(self,params):
         print("param_setter ", params)
+        temp = 0
         self.variables['Nt']['value'] = params[0]
-        self.variables['In_s']['value'] = params[1]
-        self.variables['InT_s']['value'] = params[2]
-        self.variables['Ctype']['value'] = params[3]
-        self.variables['Pcond']['value'] = params[4]
-        self.variables['C_Spec']['type'] = params[5]
+        for i in range(self.variables['Ni']['value']):
+            self.variables['InT_s']['value'].append(params[i+1])
+            temp = i + 1
+        
+        self.variables['Ctype']['value'] = params[temp+1]
+        self.variables['Pcond']['value'] = params[temp+2]
+        self.variables['C_Spec']['type'] = params[temp+3]
         if 'Compound' in self.variables['C_Spec']['type']:
-            self.variables['C_Spec']['comp'] = params[6]
-        self.variables['C_Spec']['value'] = params[7]
-        self.variables['Preb']['value'] = params[8]
-        self.variables['R_Spec']['type'] = params[9]
+            self.variables['C_Spec']['comp'] = params[temp+4]
+        self.variables['C_Spec']['value'] = params[temp+5]
+        self.variables['Preb']['value'] = params[temp+6]
+        self.variables['R_Spec']['type'] = params[temp+7]
         if 'Compound' in self.variables['R_Spec']['type']:
-            self.variables['R_Spec']['comp'] = params[10]
-        self.variables['R_Spec']['value'] = params[11]   
+            self.variables['R_Spec']['comp'] = params[temp+8]
+        self.variables['R_Spec']['value'] = params[temp+9]   
         print(self.variables)
         
 class ConvertionReactor(UnitOperation):
@@ -338,19 +337,14 @@ class CompoundSeparator(UnitOperation):
             self.variables['SepStrm']['value'] = 2
 
         for index, i in enumerate(range(2, len(params))):
-            print(index, i)
             if (i %2 != 0):
                 self.variables['SepVal_c']['value'].append(float(params[i]))   
             else:
                 self.variables['SepFact_c']['value'].append(params[i].split(' ')[0])    
-
-        print(self.variables['SepStrm']['value'], self.variables['SepFact_c']['value'], self.variables['SepVal_c']['value'])
         
         self.variables['SepFact_c']['value'] = json.dumps(self.variables['SepFact_c']['value']).replace('[','{').replace(']','}')
         self.variables['SepStrm']['value'] = str(self.variables['SepStrm']['value'])
         self.variables['SepVal_c']['value'] = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
-
-        print(self.variables['SepStrm']['value'], self.variables['SepFact_c']['value'], self.variables['SepVal_c']['value'])
 
 
     def OM_Flowsheet_Initialize(self):
@@ -478,7 +472,6 @@ class Splitter(UnitOperation):
         
         specval = self.variables['SpecVal_s']['value'] # [50,50]
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
-        print(self.specval)
 
     def param_setter(self,params):
         print("param_setter ", params)
@@ -509,9 +502,7 @@ class Mixer(UnitOperation):
             'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
     def param_setter(self, params):
-        print(self.input_stms, self.output_stms)
         self.output_stms = []
-        print(self.input_stms, self.output_stms)
         print("param_setter ", params)
         self.variables['NI']['value'] = int(params[0])
         self.variables['outPress']['value'] = params[1]

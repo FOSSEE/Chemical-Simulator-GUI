@@ -93,19 +93,14 @@ class Container():
     '''
     def delete(self,l):
         for item in l:
-            print('deleted objects ', item)
             self.scene.removeItem(item)
             for i in dock_widget_lst:
                 if i.name == item.name:
                     i.hide()
                     del i
                     break
-            for i in dock_widget_lst:
-                print(i.name)
-            print("delete ", dock_widget_lst)
+
             if hasattr(item,'input'):
-                print("In input ")
-                print(item.input)
                 for x in item.input:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
@@ -114,8 +109,6 @@ class Container():
                         self.scene.removeItem(x.other_line)
                         del x.other_line
             if hasattr(item,'output'):
-                print("in output ")
-                print(item.output)
                 for x in item.output:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
@@ -171,7 +164,6 @@ class Container():
         self.flowsheet.add_compound_list(self.compounds)
         print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
-            print("here",i)
             self.flowsheet.add_unit_operations(i)
             
         if mode=='SM':
@@ -186,8 +178,6 @@ class Container():
             self.msg_browser()
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
-            print("710 ")
-            print("under SEQ mode simulation")
         
         DockWidget.show_result(NodeItem.get_dock_widget())
 

@@ -78,36 +78,12 @@
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <layout class="QGridLayout" name="lay1">
-            <item row="1" column="0">
-             <widget class="QLabel" name="l2">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLineEdit" name="le1"/>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="l1">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QLineEdit" name="le2"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="l3">
-              <property name="text">
-               <string>TextLabel</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QLineEdit" name="le3"/>
-            </item>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <property name="verticalSpacing">
+             <number>0</number>
+            </property>
            </layout>
           </item>
          </layout>
