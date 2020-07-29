@@ -68,6 +68,9 @@ class UnitOperation():
             self.input_stms.append(UnitOpr)
         else :
             self.output_stms.append(UnitOpr)
+        
+        print("input and output stms : ")
+        print(self.input_stms, self.output_stms)
 
     def set_pos(self,pos):
         self.pos = pos
@@ -146,7 +149,7 @@ class UnitOperation():
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
 
-        if len(self.input_stms)>1:
+        if len(self.input_stms)>1 or self.type == 'Mixer':
             strcount = 1
             for strm in self.input_stms:
                 self.OM_data_eqn += ('connect(' + strm.name + '.Out,' + self.name + '.In[' + str(strcount) + ']);\n')
@@ -160,6 +163,7 @@ class UnitOperation():
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
+            print("self.output_stms ", self.output_stms)
             self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
         
         if self.mode:
@@ -492,17 +496,19 @@ class Mixer(UnitOperation):
         self.type = 'Mixer'
         self.no_of_inputs = 6
 
-        self.Pout_modes = ['Inlet Minimum', 'Inlet Average', 'Inlet Maximum']
+        self.Pout_modes = ['Inlet_Minimum', 'Inlet_Average', 'Inlet_Maximum']
         self.parameters = ['NI', 'outPress']
-        # self.output_stms = None
         type(self).counter += 1 
 
         self.variables = {
-            'NI'   : {'name':'Number of Input', 'value':6,                 'unit':''},
+            'NI'        : {'name':'Number of Input', 'value':6,                 'unit':''},
             'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
+
+        print(self.input_stms)
+        print(self.output_stms)
+        
     def param_setter(self, params):
-        self.output_stms = []
         print("param_setter ", params)
         self.variables['NI']['value'] = int(params[0])
         self.variables['outPress']['value'] = params[1]

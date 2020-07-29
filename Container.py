@@ -137,7 +137,7 @@ class Container():
             if(i.name==name):
                 return i
                 
-    def add_aompounds(self,comp):
+    def add_compounds(self,comp):
         self.compounds = comp
 
     def add_thermo_package(self,thermo):
@@ -181,11 +181,9 @@ class Container():
         
         DockWidget.show_result(NodeItem.get_dock_widget())
 
-        for i in self.graphics.scene.items():
-            if (isinstance(i, NodeItem)):
-                i.update_tooltip()
-
-        
+        # for i in self.graphics.scene.items():
+        #     if (isinstance(i, NodeItem)):
+        #         i.update_tooltip()
 
 def flat_list(lst):
     flat_lst=[]
