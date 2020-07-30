@@ -193,6 +193,9 @@ class DockWidget(QDockWidget,ui_dialog):
             except AttributeError:
                 pass
         
+    def clear_results(self):
+        self.tableWidget.setRowCount(0)
+
     # result data tab
     def results_category(self,name):
         flag = True

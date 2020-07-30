@@ -92,7 +92,10 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
                 i.results_category(i.name)
             except AttributeError:
                 pass
-        
+
+    def clear_results(self):
+        self.tableWidget.setRowCount(0)
+
     # result data tab
     def results_category(self,name):
         flag = True

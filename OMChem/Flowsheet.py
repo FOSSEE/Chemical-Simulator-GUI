@@ -60,23 +60,24 @@ class Flowsheet():
             #s = subprocess.check_output([self.omc_path, '-s',simpath])
             #print(s)
             #print("############### StdOut ################")
-            print(self.stdout)
+            print("stdout ", self.stdout)
+            print("stderr ", self.stderr)
             os.chdir(self.root_dir)
             #os.system(self.omc_path + ' -s ' + simpath)
-            print("Hello")
-        if self.sim_method == 'Eqn':
-            print("hhhh")
-            csvpath = os.path.join(self.sim_dir_path,'Flowsheet_res.csv')
-            print("csvPath",csvpath)
-            with open (csvpath,'r') as resultFile:
+            if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
                 self.result_data = []
-                print("opened")
-                csvreader = csv.reader(resultFile,delimiter=',')
-                for row in csvreader:
-                    print("124125")
-                    self.result_data.append(row)
-                print(self.result_data)
-            #self.ext_data()
+            else:
+                csvpath = os.path.join(self.sim_dir_path,'Flowsheet_res.csv')
+                print("csvPath",csvpath)
+                with open (csvpath,'r') as resultFile:
+                    self.result_data = []
+                    print("opened")
+                    csvreader = csv.reader(resultFile,delimiter=',')
+                    for row in csvreader:
+                        print("124125")
+                        self.result_data.append(row)
+                    print(self.result_data)
+                #self.ext_data()
 
     def send_for_simulation_SM(self,unitop):
 

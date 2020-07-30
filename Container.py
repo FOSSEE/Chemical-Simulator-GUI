@@ -157,6 +157,14 @@ class Container():
             self.msg.append("<span style=\"color:red\">"+stdout+"</span>")
     
     def simulate(self,mode):
+
+        for i in self.graphics.scene.items():
+            if (isinstance(i, NodeItem)):
+                try:
+                    i.dock_widget.clear_results()
+                except AttributeError:
+                    pass
+
         print("SIMULATE")
         print(mode)
         self.compounds = compound_selected
@@ -165,6 +173,7 @@ class Container():
         print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
             self.flowsheet.add_unit_operations(i)
+            
             
         if mode=='SM':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>Sequential</b> mode ... </span>")
@@ -178,6 +187,7 @@ class Container():
             self.msg_browser()
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
+
         
         DockWidget.show_result(NodeItem.get_dock_widget())
 

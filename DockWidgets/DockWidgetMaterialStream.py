@@ -168,6 +168,15 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             i.results_category(i.name)
             #i.show()
         
+    
+    def clear_results(self):
+        self.mTreeWidget.clear()
+        self.mTableWidget.setRowCount(0)
+        self.lTreeWidget.clear()
+        self.lTableWidget.setRowCount(0)
+        self.vTreeWidget.clear()
+        self.vTableWidget.setRowCount(0)
+
     # result data tab
     def results_category(self,name):
         flag = True

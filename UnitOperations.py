@@ -514,7 +514,6 @@ class Mixer(UnitOperation):
         self.variables['outPress']['value'] = params[1]
         print(self.variables)
         
-
 class Heater(UnitOperation):
 
     def __init__(self, name='Heater'):
