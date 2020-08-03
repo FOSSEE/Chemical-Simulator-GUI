@@ -40,41 +40,10 @@ class Container():
         time = str(now.hour) + ":" + str(now.minute) + ":" +str(now.second)
         return time
     
-    # def updateConn(self,key,value):
-    #     self.conn[key].append(value)
-    #     self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
-    #
-    # def connection(self):
-    #     try:
-    #         self.op.clear()
-    #         self.ip.clear()
-    #         self.opl.clear()
-    #         stm = ['MaterialStream','EngStm']
-    #         for i in self.conn:
-    #             if i.type not in stm:
-    #                 self.op[i]=self.conn[i]
-    #
-    #             for j in range(len(self.conn[i])):
-    #                 if self.conn[i][j].type not in stm:
-    #                     self.ip[self.conn[i][j]].append(i)
-    #
-    #         for i in self.op:
-    #             i.connect(InputStms=self.ip[i],OutputStms=self.op[i])
-    #
-    #         self.opl.append([self.op[i] for i in self.op])
-    #         self.opl=flat_list(flat_list(self.opl))
-    #     except Exception as e:
-    #         print(e)
-
-    # @staticmethod
-    # def addUnitOpObj(obj):
-    #     self.unit_operations.append(obj)
-
     def add_unit_operation(self, obj):
         box = None
         self.obj = obj
         self.scene = self.graphics.get_scene()
-        #self.graphicsView = graphicsView
         box  = self.graphics.create_node_item(self.obj, self)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)

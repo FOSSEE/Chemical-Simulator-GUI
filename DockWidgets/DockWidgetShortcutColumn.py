@@ -63,7 +63,13 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.l8.setText(self.obj.variables['RR']['name']+":") 
             self.le8.setText(str(self.obj.variables['RR']['value']))
 
-            self.input_dict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8]
+            self.l9.setText("Thermo Package :")
+
+            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            for j in self.lines:
+                self.cb6.addItem(str(j))
+            
+            self.input_dict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8, self.cb6]
  
         except Exception as e:
             print(e)
@@ -76,7 +82,8 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.dict=[]
             print("param.input_dict ", self.input_dict)
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].currentText(),float(self.input_dict[2].text()), float(self.input_dict[3].text()),
-                        self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text())]
+                        self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),
+                        self.input_dict[8].currentText()]
             
             print("param ", self.dict)
             self.obj.param_setter(self.dict)

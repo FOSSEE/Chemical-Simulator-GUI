@@ -41,9 +41,6 @@ class MainApp(QMainWindow,ui):
         
         # Loading and setting up style sheet
         self.setupUi(self)
-        # style = open('cyan.css','r')
-        # style = style.read()
-        # self.setStyleSheet(style)
         
         # Initializing attributes
         self.zoom_count = 0

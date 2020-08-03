@@ -224,6 +224,7 @@ class ShortcutColumn(UnitOperation):
         self.variables['Pcond']['value'] = params[5]
         self.variables['Preb']['value'] = params[6]
         self.variables['RR']['value'] = params[7]
+        self.thermo_package = params[8]
 
         print(self.variables)
 

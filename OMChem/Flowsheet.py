@@ -57,13 +57,8 @@ class Flowsheet():
             
             self.process = Popen([self.omc_path, '-s',simpath], stdout=PIPE, stderr=PIPE)
             self.stdout, self.stderr = self.process.communicate()
-            #s = subprocess.check_output([self.omc_path, '-s',simpath])
-            #print(s)
-            #print("############### StdOut ################")
-            print("stdout ", self.stdout)
-            print("stderr ", self.stderr)
+           
             os.chdir(self.root_dir)
-            #os.system(self.omc_path + ' -s ' + simpath)
             if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
                 self.result_data = []
             else:
@@ -74,10 +69,9 @@ class Flowsheet():
                     print("opened")
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
-                        print("124125")
+                        print("in reading csvreader")
                         self.result_data.append(row)
                     print(self.result_data)
-                #self.ext_data()
 
     def send_for_simulation_SM(self,unitop):
 
