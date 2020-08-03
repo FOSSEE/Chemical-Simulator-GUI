@@ -64,20 +64,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             print("input_params_list ", self.input_dict)
             
             for c,i in enumerate(self.input_dict):
-                if(i=="thermo_package"):
-                    print("thermo1")
-                    combo = QComboBox()
-                    self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
-                    print("thermo2")
-                    for j in self.lines:
-                        combo.addItem(str(j))
-                    lay = QGridLayout()
-                    lay.addWidget(QLabel(i+":"), 0,0, alignment=Qt.AlignLeft)
-                    lay.addWidget(combo, 0, 1, alignment=Qt.AlignRight)
-                    self.formLayout.addRow(lay)
-                    self.input_dict[i] = combo   
-                    print("thermo")
-                elif(i=="x_pc"):
+                if(i=="x_pc"):
                     noc = len(compound_selected)
                     print(noc)
                     self.x_pclist.clear()
@@ -111,6 +98,12 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         lay.addWidget(QLabel("mol/s"),0,2, alignment=Qt.AlignCenter)
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l            
+
+            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            for j in self.lines:
+                self.cbTP.addItem(str(j))
+            self.input_dict['Thermo Package'] = self.cbTP
+        
         except Exception as e:
             print(e)
 
@@ -123,13 +116,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
             print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
-                if(i=="thermo_package"):
-                    if (self.input_dict[i].currentText()):
-                        self.dict[i] = self.input_dict[i].currentText()
-                    else:
-                        self.show_error()
-                        break
-                elif(i =="x_pc"):
+                print(i)
+                if(i =="x_pc"):
                     l=[]
                     mf = []
                     total_moles = 0
@@ -145,14 +133,18 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         self.obj.variables[compound_selected[c]]['value'] = str(float(l[c])/total_moles)
                         self.x_pclist[c].setText(mf[-1])
                     self.dict[i] = ",".join(mf)
+                elif (i == "Thermo Package"):
+                    self.dict[i] = self.input_dict[i].currentText()
                 else:
                     if (self.input_dict[i].text()):
                         self.dict[i] = self.input_dict[i].text()
                     else:
-                        print(self.input_dict[i].text())
+                        print(self.input_dict[i])
                         self.show_error()
                         break
-            
+            # print(self.input_dict[-1].currentText())                        
+            # self.dict['Thermo Package'] = self.input_dict['Thermo Package'].currentText()
+
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
             self.hide()
