@@ -23,6 +23,7 @@ from DockWidgets.DockWidgetMixer import *
 from DockWidgets.DockWidgetSplitter import *
 from DockWidgets.DockWidgetFlash import *
 from DockWidgets.DockWidgetCompoundSeparator import *
+from DockWidgets.DockWidgetCompressorExpander import *
 
 import datetime
 
@@ -478,6 +479,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.dock_widget = eval("DockWidget"+self.obj.type)(self.obj.name,self.obj.type,self.obj,self.container)
         elif self.obj.type in stm:
             self.dock_widget = eval("DockWidget"+self.obj.type)(self.obj.name,self.obj.type,self.obj,self.container)
+        elif self.obj.type == "AdiabaticCompressor" or self.obj.type == "AdiabaticExpander":
+            self.dock_widget = eval("DockWidgetCompressorExpander")(self.obj.name,self.obj.type,self.obj,self.container)
         else:
             self.dock_widget = DockWidget(self.obj.name,self.obj.type,self.obj,self.container)
         dock_widget_lst.append(self.dock_widget)

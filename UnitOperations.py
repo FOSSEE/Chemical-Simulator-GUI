@@ -55,7 +55,11 @@ class UnitOperation():
     def param_setter(self,params):
         print("param_setter ", params)
         for k,v in params.items():
-            if k != self.mode:
+            print(k, v)
+            if k == 'Thermo Package':
+                self.thermo_package = v
+                print('haha')
+            elif k != self.mode:
                 self.k = v
                 self.variables[k]['value'] = v
             else:
@@ -577,7 +581,7 @@ class AdiabaticCompressor(UnitOperation):
         self.parameters = ['Eff']
         type(self).counter += 1
         self.variables = {
-            'Pdel'  : {'name':'Pressure Drop',          'value':0,       'unit':'Pa'},
+            'Pdel'  : {'name':'Pressure Increase',          'value':0,       'unit':'Pa'},
             'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
             'Pout'  : {'name':'Outlet Pressure',        'value':101325,  'unit':'Pa'},
             'Tout'  : {'name':'Outlet Temperature',     'value':298.15,  'unit':'K'},

@@ -36,9 +36,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.lTreeWidget.setHeaderItem(header)
         self.vTreeWidget.setHeaderItem(header)       
 
-        self.mTreeWidget.itemClicked.connect(lambda : self.printer(self.mTreeWidget.currentItem()))
-        self.lTreeWidget.itemClicked.connect(lambda : self.printer(self.lTreeWidget.currentItem()))
-        self.vTreeWidget.itemClicked.connect(lambda : self.printer(self.vTreeWidget.currentItem()))
+        # self.mTreeWidget.itemClicked.connect(lambda : self.printer(self.mTreeWidget.currentItem()))
+        # self.lTreeWidget.itemClicked.connect(lambda : self.printer(self.lTreeWidget.currentItem()))
+        # self.vTreeWidget.itemClicked.connect(lambda : self.printer(self.vTreeWidget.currentItem()))
 
     # input data tab
     def modes(self):
