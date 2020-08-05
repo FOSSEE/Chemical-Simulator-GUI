@@ -2,10 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
-import pandas as pd
-from functools import partial
 from ComponentSelector import *
-from collections import defaultdict
 from Graphics import *
 
 ui_dialog,_ = loadUiType('DockWidgets/DockWidgetMaterialStream.ui')
@@ -24,9 +21,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.modes()
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
 
-        print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
-        self.dict = {}
+        self.dict = {}          # a dictionary
 
         self.name_type = None
         self.container = container
@@ -35,10 +31,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.mTreeWidget.setHeaderItem(header)
         self.lTreeWidget.setHeaderItem(header)
         self.vTreeWidget.setHeaderItem(header)       
-
-        # self.mTreeWidget.itemClicked.connect(lambda : self.printer(self.mTreeWidget.currentItem()))
-        # self.lTreeWidget.itemClicked.connect(lambda : self.printer(self.lTreeWidget.currentItem()))
-        # self.vTreeWidget.itemClicked.connect(lambda : self.printer(self.vTreeWidget.currentItem()))
 
     # input data tab
     def modes(self):
@@ -60,9 +52,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.input_params_list()
 
     def input_params_list(self):
-        try:
-            print("input_params_list ", self.input_dict)
-            
+        try:            
             for c,i in enumerate(self.input_dict):
                 if(i=="x_pc"):
                     noc = len(compound_selected)
@@ -113,7 +103,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict={}
-
             print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
                 print(i)
@@ -142,8 +131,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         print(self.input_dict[i])
                         self.show_error()
                         break
-            # print(self.input_dict[-1].currentText())                        
-            # self.dict['Thermo Package'] = self.input_dict['Thermo Package'].currentText()
 
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
@@ -152,14 +139,10 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         except Exception as e:
             print(e)
 
-
     @staticmethod
     def show_result(lst):
-        #DockWidget1.flag = True
         for i in lst:
             i.results_category(i.name)
-            #i.show()
-        
     
     def clear_results(self):
         self.mTreeWidget.clear()
@@ -243,7 +226,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             child = QTreeWidgetItem(vroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
                             t += 1
                             flag = False
-                #print(obj.variables)
                 
                 # Phase Properties Tab
                 phaseResLst = []
@@ -295,7 +277,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             self.vTableWidget.setItem(vrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.vTableWidget.resizeColumnsToContents()                                
                     if not '[' in val:
-                        #print(p[val.split('.')[1]])
                         print(obj.variables[val.split('.')[1]]['name'])
                         mrowPosition = self.mTableWidget.rowCount()
                         self.mTableWidget.insertRow(mrowPosition)

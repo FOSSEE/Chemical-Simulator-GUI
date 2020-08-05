@@ -20,7 +20,6 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = []
-        print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
         self.dict = []
         self.input_params_list()
@@ -34,9 +33,7 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             print("input_params_list ", self.input_dict)
         
             # tab 1
-            # self.l1.setText(self.obj.variables['Nt']['name']+":")
-            # self.le1.setText(str(self.obj.variables['Nt']['value']))
-            # self.l2.setText(self.obj.variables['InT_s']['name']+":")
+            
             l1 = QLineEdit()
             self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft) 
             self.lay1.addWidget(l1,0,1, alignment=Qt.AlignCenter)

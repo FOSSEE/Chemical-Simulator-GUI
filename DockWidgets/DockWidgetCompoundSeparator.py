@@ -21,18 +21,13 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
         self.type = comptype
         self.input_dict = []
         
-        print("constructor ", self.input_dict)
         self.input_params_list()
         self.dict = []
             
     def input_params_list(self):
         try:
-            print("input_params_list ", self.input_dict)
             if self.type == 'CompoundSeparator':
-
-                # self.gridLayout = QGridLayout()
                 calculationGroupBox = QGroupBox('Calculation Parameters')
-                
                 calculationLayout = QGridLayout()
 
                 r1 = QRadioButton('Stream 1')
@@ -81,7 +76,6 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict=[]
-            print("param.input_dict ", self.input_dict)
            
             self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
             j = 2
@@ -91,7 +85,6 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 self.dict.append(self.input_dict[j+i+1].text())
                 j += 1
             
-            print("param ", self.dict)
             self.obj.param_setter(self.dict)
             self.hide()
             

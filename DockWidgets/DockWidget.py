@@ -23,7 +23,7 @@ class DockWidget(QDockWidget,ui_dialog):
         print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
 
-        self.dict = {}
+        self.dict = {}          # a dictionary
         self.container = container
         
     # input data tab
@@ -76,7 +76,7 @@ class DockWidget(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            self.dict={}
+            self.dict = {}
             print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
                 if (self.input_dict[i] == None):

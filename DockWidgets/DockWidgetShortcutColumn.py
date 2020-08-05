@@ -2,10 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
-import pandas as pd
-from functools import partial
 from ComponentSelector import *
-from collections import defaultdict
 from Graphics import *
 
 ui_dialog,_ = loadUiType('DockWidgets/DockWidgetShortcutColumn.ui')
@@ -20,7 +17,6 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = []
-        print("constructor ", self.input_dict)
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = []
@@ -30,9 +26,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
     # input data tab
     def input_params_list(self):
-        try:
-            print("input_params_list ", self.input_dict)
-        
+        try:        
             self.l1.setText(self.obj.variables['HKey']['name']+":")
             self.l2.setText(self.obj.variables['LKey']['name']+":")
 
@@ -40,7 +34,6 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             for i in self.obj.compounds:
                 self.cb1.addItem(str(i))
                 self.cb2.addItem(str(i))
-
 
             self.l3.setText(self.obj.variables['HKey_x_pc']['name']+":")
             self.le3.setText(str(self.obj.variables['HKey_x_pc']['value']))
@@ -80,12 +73,9 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict=[]
-            print("param.input_dict ", self.input_dict)
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].currentText(),float(self.input_dict[2].text()), float(self.input_dict[3].text()),
                         self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),
-                        self.input_dict[8].currentText()]
-            
-            print("param ", self.dict)
+                        self.input_dict[8].currentText()]            
             self.obj.param_setter(self.dict)
             self.hide()
             
@@ -127,8 +117,5 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
                     self.tableWidget.setItem(rowPosition , 1, QTableWidgetItem(resultval))
                     self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(obj.variables[val]['unit']))
                     self.tableWidget.resizeColumnsToContents()
-
-            print(obj.variables)
-
         except Exception as e:
             print(e)
