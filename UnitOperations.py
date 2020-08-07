@@ -1,17 +1,8 @@
 from OMChem.Flowsheet import Flowsheet
 from OMChem.EngStm import EngStm
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QTextDocument ,QTextCursor ,QTextCharFormat ,QFont ,QPixmap
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel
-from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
-from PyQt5.QtGui import *
-import PyQt5.QtCore as QtCore
-import PyQt5.QtWidgets as QtWidgets
 from ComponentSelector import *
 from Container import *
+from PyQt5.QtCore import *
 
 class UnitOperation():
     counter = 1
@@ -55,7 +46,6 @@ class UnitOperation():
     def param_setter(self,params):
         print("param_setter ", params)
         for k,v in params.items():
-            print(k, v)
             if k == 'Thermo Package':
                 self.thermo_package = v
                 print('haha')
@@ -65,16 +55,12 @@ class UnitOperation():
             else:
                 self.variables[k]['value'] = v
                 self.mode_val = params[self.mode]
-        print(self.variables)
 
     def add_connection(self,flag,UnitOpr):
         if flag==1:                 # Input stream if flag is 1
             self.input_stms.append(UnitOpr)
         else :
             self.output_stms.append(UnitOpr)
-        
-        print("input and output stms : ")
-        print(self.input_stms, self.output_stms)
 
     def set_pos(self,pos):
         self.pos = pos
@@ -120,11 +106,6 @@ class UnitOperation():
             C = str(self.compounds).strip('[').strip(']')
             C = C.replace("'", "")  
             self.OM_data_init += ',C = {' + C + '}'  
-
-            # if len(self.parameters) > 0:
-            #     for k,v in self.parameters.items():
-            #         self.OM_data_init += ', '
-            #         self.OM_data_init += k + ' = ' + str(v)
 
             for k in self.parameters:
                 if(k == 'HKey_x_pc' or k == 'LKey_x_pc'):
@@ -230,8 +211,6 @@ class ShortcutColumn(UnitOperation):
         self.variables['RR']['value'] = params[7]
         self.thermo_package = params[8]
 
-        print(self.variables)
-
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
        
@@ -246,7 +225,6 @@ class ShortcutColumn(UnitOperation):
         self.OM_data_eqn += (self.name + '.x_pc[3, ' + self.name + '.LKey] = ' + str(self.variables['LKey_x_pc']['value'])  + ';\n')
         
         return self.OM_data_eqn
-
 
 class DistillationColumn(UnitOperation):
     def __init__(self,name='DistillationColumn'):
@@ -344,7 +322,6 @@ class CompoundSeparator(UnitOperation):
             self.variables['SepStrm']['value'] = 1
         else:
             self.variables['SepStrm']['value'] = 2
-
         for index, i in enumerate(range(2, len(params))):
             if (i %2 != 0):
                 self.variables['SepVal_c']['value'].append(float(params[i]))   
@@ -384,7 +361,6 @@ class CompoundSeparator(UnitOperation):
 
         return self.OM_data_eqn
 
-
 class Flash(UnitOperation):
     def __init__(self,name='Flash'):
         UnitOperation.__init__(self)
@@ -408,6 +384,7 @@ class Flash(UnitOperation):
             'Tdef'  :           {'name':'Separation Temperature',           'value':298.15,     'unit':'K'},
             'Pdef'  :           {'name':'Separation Pressure',              'value':101325,     'unit':'Pa'}
         }
+
     def param_setter(self,params):
         print("param_setter ", params)
         self.variables['thermo_package']['value'] = params[0]
@@ -415,7 +392,6 @@ class Flash(UnitOperation):
         self.variables['Tdef']['value'] = params[2]
         self.variables['BPdef']['value'] = params[3]
         self.variables['Pdef']['value'] = params[4]        
-        print(self.variables)
 
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
@@ -467,7 +443,6 @@ class Splitter(UnitOperation):
         self.type = 'Splitter'
         self.no_of_outputs = 3 
         
-        # self.input_stms = None
         self.CalcType_modes = ['Split_Ratio', 'Molar_Flow', 'Mass_Flow']
 
         self.parameters = ['No', 'CalcType', 'SpecVal_s']
@@ -479,7 +454,7 @@ class Splitter(UnitOperation):
             'SpecVal_s' : {'name':'Specification Value',    'value':[50,50],                    'unit':''}
         }
         
-        specval = self.variables['SpecVal_s']['value'] # [50,50]
+        specval = self.variables['SpecVal_s']['value'] 
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
 
     def param_setter(self,params):
@@ -491,7 +466,6 @@ class Splitter(UnitOperation):
             self.variables['SpecVal_s']['unit'] = 'mol/s'
         elif self.variables['CalcType']['value'] == 'Mass_Flow':
             self.variables['SpecVal_s']['unit'] = 'g/s'
-        print(self.variables)
 
 class Mixer(UnitOperation):
 
@@ -509,15 +483,10 @@ class Mixer(UnitOperation):
             'NI'        : {'name':'Number of Input', 'value':6,                 'unit':''},
             'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
-
-        print(self.input_stms)
-        print(self.output_stms)
         
     def param_setter(self, params):
-        print("param_setter ", params)
         self.variables['NI']['value'] = int(params[0])
         self.variables['outPress']['value'] = params[1]
-        print(self.variables)
         
 class Heater(UnitOperation):
 

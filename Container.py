@@ -1,21 +1,10 @@
-from OMChem.Flowsheet import Flowsheet
-from ComponentSelector import *
 from collections import defaultdict
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel
-from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
-import PyQt5.QtCore as QtCore
-import PyQt5.QtWidgets as QtWidgets
 import datetime
-import itertools
-import json
 import pickle 
 import os
-import sys
+
+from OMChem.Flowsheet import Flowsheet
+from ComponentSelector import *
 from Graphics import *
 
 class Container():
@@ -157,7 +146,6 @@ class Container():
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
 
-        
         DockWidget.show_result(NodeItem.get_dock_widget())
 
         # for i in self.graphics.scene.items():

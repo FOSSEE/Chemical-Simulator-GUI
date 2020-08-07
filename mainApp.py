@@ -47,7 +47,7 @@ class MainApp(QMainWindow,ui):
         self.thrd = None
 
         # Creating instances of classes for the main app
-        self.container = Container.Container(self.textBrowser, self.graphicsView)        
+        self.container = Container(self.textBrowser, self.graphicsView)        
         self.comp = ComponentSelector(self)
 
         # Setting up interactive canvas        
