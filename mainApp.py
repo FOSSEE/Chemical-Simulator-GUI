@@ -1,31 +1,25 @@
-from functools import partial
-from collections import defaultdict
-import sys
-import numpy as np
-from OMChem.Flowsheet import Flowsheet
-import pandas as pd
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QTextDocument ,QTextCursor ,QTextCharFormat ,QFont ,QPixmap
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel, QUndoStack
-from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
-import PyQt5.QtGui as QtGui
-import PyQt5.QtCore as QtCore
-import PyQt5.QtWidgets as QtWidgets
-from ComponentSelector import *
-from Bin_Phase_env import *
-from UnitOperations import *
-from Streams import *
-import datetime
-from Container import *
-from Graphics import *
 import pickle
 import threading
 import os
 import ctypes
 import sys
+import datetime
+from functools import partial
+
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+import PyQt5.QtGui as QtGui
+import PyQt5.QtCore as QtCore
+import PyQt5.QtWidgets as QtWidgets
+
+from OMChem.Flowsheet import Flowsheet
+from ComponentSelector import *
+from Bin_Phase_env import *
+from UnitOperations import *
+from Streams import *
+from Container import *
+from Graphics import *
 
 ui,_ = loadUiType('main.ui')
 
@@ -51,7 +45,7 @@ class MainApp(QMainWindow,ui):
         self.comp = ComponentSelector(self)
 
         # Setting up interactive canvas        
-        self.scene = self.container.graphics.get_scene() ###
+        self.scene = self.container.graphics.get_scene()
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
@@ -128,14 +122,14 @@ class MainApp(QMainWindow,ui):
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.exec_()
 
+    '''
+        Creates Binary Phase envelope
+    '''
     def bin_phase_env(self):
-        #compounds = self.comp.getComp()
         if len(self.comp.get_compounds())<2:
             QMessageBox.about(self, 'Important', "Please select at least 2 Compounds first")
             self.comp.show()
-            #compunds = self.comp.getComp()
         else: 
-
             self.bin_phase = BinPhaseEnv(self.comp)
             self.bin_phase.show() 
 
@@ -162,6 +156,9 @@ class MainApp(QMainWindow,ui):
         self.thrd = threading.Thread(target=self.container.simulate, args=(mode,))
         self.thrd.start()
     
+    '''
+        Terminate the current running simulation
+    '''
     def terminate(self):
         os.chdir(self.container.flowsheet.root_dir)
         if self.thrd:
@@ -235,8 +232,6 @@ class MainApp(QMainWindow,ui):
         try:
             if event.key() == QtCore.Qt.Key_Delete:
                 l=self.scene.selectedItems()
-                # for i in l:
-                #     eval(i.type).counter -= 1
                 self.container.delete(l)
         except Exception as e:
             print(e)
@@ -312,9 +307,8 @@ class MainApp(QMainWindow,ui):
         file_name, _ = QFileDialog.getSaveFileName(self, "Save As",
                                                   initial_path, "%s Files (*.%s);; All Files (*)" %
                                                   (file_format.upper(), file_format))
-        #if file_name != "":
         try:
-            with open(file_name, 'wb') as f: #'saved_file.sim'
+            with open(file_name, 'wb') as f: 
                 pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
         except Exception as e:
             pass
@@ -330,8 +324,6 @@ class MainApp(QMainWindow,ui):
             file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
                                                       initial_path, "%s Files (*.%s);; All Files (*)" %
                                                       (file_format.upper(), file_format))
-            # if fileName != "":
-            # self.new()
 
             self.undo_redo_helper()
 
