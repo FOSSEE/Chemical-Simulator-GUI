@@ -1,21 +1,10 @@
-from OMChem.Flowsheet import Flowsheet
-from ComponentSelector import *
 from collections import defaultdict
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsProxyWidget, QGraphicsObject, QGraphicsEllipseItem ,QGraphicsPixmapItem,QApplication, QGraphicsView, QGraphicsScene, QHBoxLayout, QWidget, QLabel
-from PyQt5.QtGui import QBrush ,QTransform ,QMouseEvent
-import PyQt5.QtCore as QtCore
-import PyQt5.QtWidgets as QtWidgets
 import datetime
-import itertools
-import json
 import pickle 
 import os
-import sys
+
+from OMChem.Flowsheet import Flowsheet
+from ComponentSelector import *
 from Graphics import *
 
 class Container():
@@ -40,41 +29,10 @@ class Container():
         time = str(now.hour) + ":" + str(now.minute) + ":" +str(now.second)
         return time
     
-    # def updateConn(self,key,value):
-    #     self.conn[key].append(value)
-    #     self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+key.name+" </b> output is connected to input of<b> "+value.name +" </b></span>")
-    #
-    # def connection(self):
-    #     try:
-    #         self.op.clear()
-    #         self.ip.clear()
-    #         self.opl.clear()
-    #         stm = ['MaterialStream','EngStm']
-    #         for i in self.conn:
-    #             if i.type not in stm:
-    #                 self.op[i]=self.conn[i]
-    #
-    #             for j in range(len(self.conn[i])):
-    #                 if self.conn[i][j].type not in stm:
-    #                     self.ip[self.conn[i][j]].append(i)
-    #
-    #         for i in self.op:
-    #             i.connect(InputStms=self.ip[i],OutputStms=self.op[i])
-    #
-    #         self.opl.append([self.op[i] for i in self.op])
-    #         self.opl=flat_list(flat_list(self.opl))
-    #     except Exception as e:
-    #         print(e)
-
-    # @staticmethod
-    # def addUnitOpObj(obj):
-    #     self.unit_operations.append(obj)
-
     def add_unit_operation(self, obj):
         box = None
         self.obj = obj
         self.scene = self.graphics.get_scene()
-        #self.graphicsView = graphicsView
         box  = self.graphics.create_node_item(self.obj, self)
         self.scene.addItem(box)
         box.setPos(2500-30, 2500-30)
@@ -93,19 +51,14 @@ class Container():
     '''
     def delete(self,l):
         for item in l:
-            print('deleted objects ', item)
             self.scene.removeItem(item)
             for i in dock_widget_lst:
                 if i.name == item.name:
                     i.hide()
                     del i
                     break
-            for i in dock_widget_lst:
-                print(i.name)
-            print("delete ", dock_widget_lst)
+
             if hasattr(item,'input'):
-                print("In input ")
-                print(item.input)
                 for x in item.input:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
@@ -114,8 +67,6 @@ class Container():
                         self.scene.removeItem(x.other_line)
                         del x.other_line
             if hasattr(item,'output'):
-                print("in output ")
-                print(item.output)
                 for x in item.output:
                     if x.new_line:
                         self.scene.removeItem(x.new_line)
@@ -144,7 +95,7 @@ class Container():
             if(i.name==name):
                 return i
                 
-    def add_aompounds(self,comp):
+    def add_compounds(self,comp):
         self.compounds = comp
 
     def add_thermo_package(self,thermo):
@@ -164,6 +115,14 @@ class Container():
             self.msg.append("<span style=\"color:red\">"+stdout+"</span>")
     
     def simulate(self,mode):
+
+        for i in self.graphics.scene.items():
+            if (isinstance(i, NodeItem)):
+                try:
+                    i.dock_widget.clear_results()
+                except AttributeError:
+                    pass
+
         print("SIMULATE")
         print(mode)
         self.compounds = compound_selected
@@ -171,15 +130,15 @@ class Container():
         self.flowsheet.add_compound_list(self.compounds)
         print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
-                print("here",i)
-                self.flowsheet.add_unit_operations(i)
+            self.flowsheet.add_unit_operations(i)
+            
             
         if mode=='SM':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>Sequential</b> mode ... </span>")
             self.flowsheet.simulate_SM(self.ip,self.op)
             self.msg_browser()
             self.result=self.flowsheet.result_data
-            print("under SEQ mode simulation")
+            
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
@@ -187,11 +146,11 @@ class Container():
             self.result=self.flowsheet.result_data
             print("under Eqn mode simulation")
 
-        try:
-            DockWidget.show_result(NodeItem.get_dock_widget())
-        except AttributeError:
-            print(NodeItem.name + ' does not have dockwidget')
-            pass
+        DockWidget.show_result(NodeItem.get_dock_widget())
+
+        # for i in self.graphics.scene.items():
+        #     if (isinstance(i, NodeItem)):
+        #         i.update_tooltip()
 
 def flat_list(lst):
     flat_lst=[]

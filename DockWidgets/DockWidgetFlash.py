@@ -2,10 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
-import pandas as pd
-from functools import partial
 from ComponentSelector import *
-from collections import defaultdict
 from Graphics import *
 
 ui_dialog,_ = loadUiType('DockWidgets/DockWidgetFlash.ui')
@@ -20,16 +17,13 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = []
-        print("constructor ", self.input_dict)
         self.input_params_list()
         self.btn.clicked.connect(self.param)
-        self.dict = []
+        self.dict = []  # a list
 
     def input_params_list(self):
-        try:
-            print("input_params_list ", self.input_dict)
-        
-            self.l1.setText(self.obj.variables['thermoPackage']['name']+":")
+        try:        
+            self.l1.setText(self.obj.variables['thermo_package']['name']+":")
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
             for j in self.lines:
                 self.cb1.addItem(str(j))
@@ -63,7 +57,7 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            self.dict={}
+            self.dict = []
             print("param.input_dict ", self.input_dict)
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].isChecked(), float(self.input_dict[2].text()), self.input_dict[3].isChecked(), float(self.input_dict[4].text())]
             print("param ", self.dict)

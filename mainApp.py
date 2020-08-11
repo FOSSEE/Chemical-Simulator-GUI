@@ -41,16 +41,13 @@ class MainApp(QMainWindow,ui):
         
         # Loading and setting up style sheet
         self.setupUi(self)
-        # style = open('cyan.css','r')
-        # style = style.read()
-        # self.setStyleSheet(style)
         
         # Initializing attributes
         self.zoom_count = 0
         self.thrd = None
 
         # Creating instances of classes for the main app
-        self.container = Container.Container(self.textBrowser, self.graphicsView)        
+        self.container = Container(self.textBrowser, self.graphicsView)        
         self.comp = ComponentSelector(self)
 
         # Setting up interactive canvas        
@@ -227,7 +224,7 @@ class MainApp(QMainWindow,ui):
     '''        
     def new(self):
         self.undo_redo_helper()
-        self.comp.tableWidget.setRowCount(0)
+        self.comp = ComponentSelector(self)
         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>New</b> flowsheet is created ... </span>")
         dock_widget_lst.clear()
 
@@ -261,8 +258,6 @@ class MainApp(QMainWindow,ui):
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
-
-
 
     '''
         Function for undo 

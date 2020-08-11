@@ -5,9 +5,9 @@ from PyQt5.uic import loadUiType
 from ComponentSelector import *
 from Graphics import *
 
-ui_dialog,_ = loadUiType('DockWidgets/DockWidget.ui')
+ui_dialog,_ = loadUiType('DockWidgets/DockWidgetCompressorExpander.ui')
 
-class DockWidget(QDockWidget,ui_dialog):
+class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container, parent=None):
         QDockWidget.__init__(self,parent)
@@ -17,13 +17,14 @@ class DockWidget(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = {}
+        self.x_pclist = []
         self.modes()
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
        
-        print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
+        self.dict = {}
 
-        self.dict = {}          # a dictionary
+        self.name_type = None
         self.container = container
         
     # input data tab
@@ -56,9 +57,9 @@ class DockWidget(QDockWidget,ui_dialog):
         try:
             print("input_params_list ", self.input_dict)
             for c,i in enumerate(self.input_dict):
-                print(i)
                 if i == None:
                     continue
+                
                 l = QLineEdit()
                 if self.input_dict[i] != None:
                     l.setText(str(self.input_dict[i]))
@@ -66,8 +67,15 @@ class DockWidget(QDockWidget,ui_dialog):
                 lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft) 
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
                 lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
+              
                 self.formLayout.addRow(lay)
-                self.input_dict[i] = l    
+                self.input_dict[i] = l
+            
+            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            for j in self.lines:
+                self.cbTP.addItem(str(j))
+            self.input_dict['Thermo Package'] = self.cbTP
+            
         except Exception as e:
             print(e)
 
@@ -76,11 +84,12 @@ class DockWidget(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            self.dict = {}
-            print("param.input_dict ", self.input_dict)
+            self.dict={}
             for i in self.input_dict:
                 if (self.input_dict[i] == None):
                     continue                  
+                elif (i == "Thermo Package"):
+                    self.dict[i] = self.input_dict[i].currentText()
                 else:
                     print(self.input_dict[i], i, self.obj.type)
                     if (self.input_dict[i].text()):
@@ -90,7 +99,6 @@ class DockWidget(QDockWidget,ui_dialog):
                         self.show_error()
                         break
             
-            print("param ", self.dict)
             self.obj.param_setter(self.dict)
             self.hide()
             

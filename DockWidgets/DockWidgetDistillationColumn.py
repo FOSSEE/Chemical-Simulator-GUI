@@ -20,7 +20,6 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = []
-        print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
         self.dict = []
         self.input_params_list()
@@ -34,10 +33,18 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             print("input_params_list ", self.input_dict)
         
             # tab 1
-            self.l1.setText(self.obj.variables['Nt']['name']+":")
-            self.le1.setText(str(self.obj.variables['Nt']['value']))
-            self.l2.setText(self.obj.variables['In_s']['name']+":")
-            self.l3.setText(self.obj.variables['InT_s']['name']+":")
+            
+            l1 = QLineEdit()
+            self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft) 
+            self.lay1.addWidget(l1,0,1, alignment=Qt.AlignCenter)
+            self.input_dict.append(l1)     
+
+            for i in range(self.obj.variables['Ni']['value']):
+                print(i)
+                l = QLineEdit()   
+                self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),i+1,0, alignment=Qt.AlignLeft) 
+                self.lay1.addWidget(l,i+1,1, alignment=Qt.AlignCenter)
+                self.input_dict.append(l)
 
             # tab 2
             self.l4.setText(self.obj.variables['Ctype']['name']+":")
@@ -55,8 +62,13 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             for j in self.obj.compounds:
                 self.cb2.addItem(str(j))
             self.cb2.setDisabled(True)  
-            self.cb1.currentIndexChanged.connect(self.fun2)      
-            
+            self.cb1.currentIndexChanged.connect(self.fun2) 
+
+            self.input_dict.append(self.cb5)
+            self.input_dict.append(self.le5)
+            self.input_dict.append(self.cb1) 
+            self.input_dict.append(self.cb2)
+            self.input_dict.append(self.le6)                      
 
             # tab3
             self.l8.setText(self.obj.variables['Preb']['name']+":")
@@ -72,7 +84,12 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             self.cb4.setDisabled(True)
             self.cb3.currentIndexChanged.connect(self.fun3)
 
-            self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
+            self.input_dict.append(self.le7)
+            self.input_dict.append(self.cb3)
+            self.input_dict.append(self.cb4) 
+            self.input_dict.append(self.le8)
+
+            # self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
              
         except Exception as e:
             print(e)
@@ -95,10 +112,35 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict= []
+            temp = 0
             print("param.input_dict ", self.input_dict)
-            self.dict = [self.input_dict[0].text(),self.input_dict[1].text(),         self.input_dict[2].text(),           self.input_dict[3].currentText(),
-                        self.input_dict[4].text(), self.input_dict[5].currentText(),  self.input_dict[6].currentText(),    self.input_dict[7].text(),
-                        self.input_dict[8].text(), self.input_dict[9].currentText(),  self.input_dict[10].currentText(),   self.input_dict[11].text()]
+            self.dict.append(int(self.input_dict[0].text()))
+            
+            for i in range(self.obj.variables['Ni']['value']):
+                self.dict.append(int(self.input_dict[i+1].text()))
+                temp = i + 1
+                print(temp)
+
+            print(temp)
+            print(self.input_dict[temp+1])
+            self.dict.append(self.input_dict[temp+1].currentText())
+            print(temp+1)
+            self.dict.append(int(self.input_dict[temp+2].text()))
+            print(temp+2)
+            self.dict.append(self.input_dict[temp+3].currentText())
+            print(temp+3)
+            self.dict.append(self.input_dict[temp+4].currentText())
+            print(temp+4)
+            self.dict.append(int(self.input_dict[temp+5].text()))
+            print(temp+5)
+            self.dict.append(int(self.input_dict[temp+6].text()))
+            print(temp+6)
+            self.dict.append(self.input_dict[temp+7].currentText())
+            print(temp+7)
+            self.dict.append(self.input_dict[temp+8].currentText())
+            print(temp+8)
+            self.dict.append(int(self.input_dict[temp+9].text()))
+            print(temp+9)
             
             print("param ", self.dict)
             self.obj.param_setter(self.dict)

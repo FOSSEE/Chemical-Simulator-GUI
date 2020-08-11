@@ -1,8 +1,6 @@
-# from OMPython import OMCSession
-from PyQt5.QtCore import *
 import json
 import sys
-from collections import defaultdict
+from PyQt5.QtCore import *
 
 class MaterialStream():
     counter = 1
@@ -32,13 +30,13 @@ class MaterialStream():
         self.modes_list = ["PT","PH","PVF","TVF","PS"]
         
         self.variables = {
-            'P'     : {'name':'Pressure',         'value':101325,    'unit':'Pa'},          # {'Pa':1, 'mmHg':0, 'N/m^2':0}},
+            'P'     : {'name':'Pressure',         'value':101325,    'unit':'Pa'},         
             'T'     : {'name':'Temperature',      'value':300,       'unit':'K'},
 
             'xvap'   : {'name':'Vapour Phase Mole Fraction',          'value':None,       'unit':'g/s'},
             'H_p[1]'  : {'name':'Mixture Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
             'S_p[1]'  : {'name':'Mixture Phase Molar Entropy',        'value':None,       'unit':'g/s'},
-            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':None,       'unit':'g/s'},
+            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':100,       'unit':'g/s'},
 
             'H_p[2]'  : {'name':'Liquid Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
             'S_p[2]'  : {'name':'Liquid Phase Molar Entropy',        'value':None,       'unit':'g/s'},
@@ -48,7 +46,7 @@ class MaterialStream():
             'S_p[3]'  : {'name':'Vapour Phase Molar Entropy',        'value':None,       'unit':'g/s'},
             'F_p[3]'  : {'name':'Vapour Molar Flow Rate',            'value':None,       'unit':'g/s'},
 
-            'x_pc'  : {'name':'Mole Fraction',    'value':1.0,      'unit':'mol/s'},
+            'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':'mol/s'},
             'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':'g/s'},
             
             'F_pc'  : {'name':'Mole Flow',        'value':100,      'unit':'mol/s'},
@@ -57,8 +55,9 @@ class MaterialStream():
         self.init_variables()
 
     def init_variables(self):
+        Nc = len(self.compound_names)
         for i, val in enumerate(self.compound_names):
-            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':None, 'unit':'mol/s'}
+            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':round(1/Nc,4), 'unit':'mol/s'}
             self.variables['xm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Fraction', 'value':None, 'unit':'g/s'}
             self.variables['F_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Flow', 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Flow', 'value':None, 'unit':'g/s'}
@@ -79,68 +78,58 @@ class MaterialStream():
     def param_getter(self,mode):
         dict = {}
 
+        temp = []
+        for i, val in enumerate(self.compound_names):
+            temp.append(self.variables['x_pc[1,' + str(i+1) + ']']['value'])
+        self.variables['x_pc']['value'] = temp
+
         if(mode=="PT"):
             self.mode1 = 'P'
             self.mode2 = 'T'
+            
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
-                    "MolFlow":self.variables['F_pc']['value'],"x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value']}
+
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['H_p[1]']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['T']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'],  "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2: self.variables['S_p[1]']['value'],
-                    "MolFlow":self.variables['F_pc']['value'], "x_pc":self.variables['x_pc']['value'], "thermo_package":self.thermo_package}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
         
         return dict
 
     def param_setter(self,dict):
      
-        print("inside paramsetter ", dict)
-
         self.variables['x_pc']['value'] = dict['x_pc'].split(",")
-        self.thermo_package = dict['thermo_package']
+        self.thermo_package = dict['Thermo package']
         self.variables['F_p[1]']['value'] = dict['MolFlow']
-        print("inside")
-        # self.Prop[self.mode2] = dict[self.mode2]
-        # self.Prop[self.mode1] = dict[self.mode1]
         self.variables[self.mode1]['value'] = dict[self.mode1]
         self.variables[self.mode2]['value'] = dict[self.mode2]
-
-        print(self.variables)
-        print(self.variables['x_pc']['value'])
+        
         for i in range(len(self.compound_names)):
-            print('####### x_pc #########\n',self.variables['x_pc']['value'][i])
-            print('x_pc')
             if self.variables['x_pc']['value'][i]:
                 self.variables['x_pc[1,'+str(i+1)+']']['value'] = self.variables['x_pc']['value'][i]
             else:
                 self.variables['x_pc[1,'+str(i+1)+']']['value'] = None
-            print('xm_pc')
-            # if self.variables['xm_pc']['value'][i]:
-            #     self.variables['xm_pc[1,'+str(i+1)+']']['value'] = self.variables['xm_pc']['value'][i]
-            # else:
             self.variables['xm_pc[1,'+str(i+1)+']']['value'] = self.variables['xm_pc']['value']
 
-            print('f_pc')
             self.variables['F_pc[1,'+str(i+1)+']']['value'] = None
-            print('fm_pc')
             self.variables['Fm_pc[1,'+str(i+1)+']']['value'] = None
-            print('first for')
-        print('secnod for')
         for i in range(0,len(self.compound_names)):
             self.variables['x_pc[2,'+str(i+1)+']']['value'] = None
             self.variables['xm_pc[2,'+str(i+1)+']']['value'] = None
@@ -158,22 +147,12 @@ class MaterialStream():
     def get_min_eqn_values(self):
         x_pclist = []
         for i in range(0,len(self.compound_names)):
-            #print(self.Prop['x_pc[1,'+str(i+1)+']'])
-            #x_pclist.append(self.Prop['x_pc[1,'+str(i+1)+']'])
             x_pclist.append(self.variables['x_pc[1,'+str(i+1)+']']['value'])
-        print(x_pclist)
-        #x_pclist = list(self.Prop(x_pc[1,1)])
         x_pc = json.dumps(x_pclist)
-        print(x_pc)
         x_pc = x_pc.replace('[','{')
         x_pc = x_pc.replace(']','}')
         x_pc = x_pc.replace('"','')
-        '''
-        x_pcstr = json.dumps(self.x_pc)
-        x_pcstr = x_pcstr.replace('[','{')
-        x_pcstr = x_pcstr.replace(']','}')
-        x_pcstr = x_pcstr.replace('"','')
-        '''
+        
         if self.variables[self.mode1]['value']:
             self.eqn_dict[self.mode1] = self.variables[self.mode1]['value']
         if self.variables[self.mode2]['value']:
@@ -182,13 +161,6 @@ class MaterialStream():
             self.eqn_dict['x_pc[1,:]'] = x_pc
         if self.variables['F_pc']['value']:
             self.eqn_dict['F_p[1]'] = self.variables['F_pc']['value']  
-
-        print("##############$GetMinVEqnValuesStart$##################")
-        print("P:",self.variables[self.mode1]['value'])
-        print("T:",self.variables[self.mode2]['value'])
-        print("x_pc",self.variables['x_pc']['value'])
-        print("F_p",self.variables['F_p[1]']['value'])
-        print("##############$GetMinVEqnValuesEnd$##################")
 
     def get_start_values(self):
         try:
@@ -325,16 +297,13 @@ class MaterialStream():
         self.OM_data_init = self.OM_data_init + ("extends Simulator.Files.ThermodynamicPackages."+self.thermo_package+";\n")
         self.OM_data_init = self.OM_data_init + ("end ms"+str(self.count)+";\n")
         comp_count = len(addedcomp)
-        # self.get_start_values()
-
-        #self.OM_data_init = "Simulator.Streams.Mat_Stm_RL " + self.name +"(Nc = " + str(comp_count)
+       
         self.OM_data_init = self.OM_data_init + "ms"+str(self.count) +" " + self.name +"(Nc = " + str(comp_count)
         self.OM_data_init = self.OM_data_init + ",C = {"
         C = str(addedcomp).strip('[').strip(']')
         C = C.replace("'","")
         self.OM_data_init = self.OM_data_init + C + "},"
-        #for key, value in self.start_dict.items():
-        #    self.OM_data_init = self.OM_data_init + key + '(start = ' + str(value) + '),'
+        
         self.OM_data_init = self.OM_data_init[:-1]
         self.OM_data_init = self.OM_data_init + ');\n'        
         return self.OM_data_init
@@ -349,9 +318,7 @@ class MaterialStream():
         if method == 'SM':
             self.eqn_dict = {}
             self.get_min_eqn_values()
-            #self.GetEquationValues()
-        #self.GetEquationValues()
-
+           
         for key,value in self.eqn_dict.items():
             self.OM_data_eqn = self.OM_data_eqn + self.name + '.'+ key + ' = ' + str(value) + ';\n'
         return self.OM_data_eqn
