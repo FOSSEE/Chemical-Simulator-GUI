@@ -114,9 +114,9 @@ class MaterialStream():
         return dict
 
     def param_setter(self,dict):
-     
         self.variables['x_pc']['value'] = dict['x_pc'].split(",")
-        self.thermo_package = dict['Thermo package']
+        print('xpc is :' + str(self.variables['x_pc']['value']))
+        self.thermo_package = dict['Thermo Package']
         self.variables['F_p[1]']['value'] = dict['MolFlow']
         self.variables[self.mode1]['value'] = dict[self.mode1]
         self.variables[self.mode2]['value'] = dict[self.mode2]
