@@ -4,16 +4,16 @@ import numpy as np
 import os
 import csv
 from subprocess import Popen, PIPE
+
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QTextDocument ,QTextCursor ,QTextCharFormat ,QFont ,QPixmap
-from PyQt5.uic import loadUiType
-from PyQt5.QtCore import Qt
-#import PyQt5.QtGuiApplication 
 from PyQt5.QtGui import *
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
+from PyQt5.uic import loadUiType
+
+
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
@@ -65,7 +65,6 @@ class BinPhaseEnv(QWidget,ui_dialog):
         self.points = QLineEdit()
         self.points.setText("40")
         self.formLayout.addRow(QLabel("Number of data points"),self.points)    
-        #print("T-XY")
 
     def P_xy(self):
         self.radioButton_2.setChecked(True)
@@ -81,7 +80,6 @@ class BinPhaseEnv(QWidget,ui_dialog):
         self.points.setText("40")    
         self.formLayout.addRow(QLabel("T(K)"),self.first)
         self.formLayout.addRow(QLabel("Number of data points"),self.points)
-        #print("") 
 
     def get_omc_path(self):
         try:
@@ -97,9 +95,7 @@ class BinPhaseEnv(QWidget,ui_dialog):
             print("The OpenModelica compiler is missing in the System path please install it" )
             raise
 
-    def plot(self):
-        #print(self.type)
-        
+    def plot(self):        
         try:
             val = int(self.first.text(),10)
         except:
@@ -120,12 +116,6 @@ class BinPhaseEnv(QWidget,ui_dialog):
         self.comp2 = self.comboBox_2.currentText()
         self.thermoPack = self.comboBox_3.currentText()
 
-        # print(val)
-        # print(data_points)
-        # print(self.comp1)
-        # print(self.comp2)
-        # print(self.thermoPack)
-
         self.data.append("model Graph\n")
         self.data.append("import data = Simulator.Files.Chemsep_Database;\n")
         self.data.append("parameter data."+self.comp1+" comp1;\n")
@@ -143,8 +133,6 @@ class BinPhaseEnv(QWidget,ui_dialog):
             mosFile.write("loadFile(\"BinaryEnvelopes.mo\");\n")
             mosFile.write("loadFile(\"Graph.mo\");\n")
             mosFile.write("simulate(Graph, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n")
-
-        print(self.data)
 
         self.resdata = []
         self.omc_path = self.get_omc_path()
@@ -164,62 +152,43 @@ class BinPhaseEnv(QWidget,ui_dialog):
         self.rows = []
 
         with open (csvpath,'r') as resultFile:
-                self.resdata = []
-                print("opened")
-                csvreader = csv.reader(resultFile,delimiter=',')
-                for row in csvreader:
-                    print("124125")
-                    self.resdata.append(row)
-                    self.rows.append(row)
-
-        print("SIMULATION DONE")            
+            self.resdata = []
+            csvreader = csv.reader(resultFile,delimiter=',')
+            for row in csvreader:
+                self.resdata.append(row)
+                self.rows.append(row)
 
         if self.type=='T':
             for k in range(len(self.rows[0])):
                 if self.rows[0][k][0]=='P':
                     self.datay.append(float(self.rows[1][k]))
-                    #print(col)
                 length = len(self.rows[0][k])
                 if self.rows[0][k][0]=='x' and self.rows[0][k][length-2]=='1':
                     self.datax1.append(float(self.rows[1][k]))
-                   # k+=1   
                 if self.rows[0][k][0]=='y' and self.rows[0][k][length-2]=='1':
                     self.datax2.append(float(self.rows[1][k]))
-                    #k+=1        
-                #k+=1   
         else: 
             for k in range(len(self.rows[0])):
                 if self.rows[0][k][0]=='T':
                     self.datay.append(float(self.rows[1][k]))
-                    #print(col)
-                #print(self.rows[0][k]) 
                 length = len(self.rows[0][k])   
                 if self.rows[0][k][0]=='x' and self.rows[0][k][length-2]=='1':
-
                     self.datax1.append(float(self.rows[1][k]))
-                   # k+=1   
 
                 if self.rows[0][k][0]=='y' and self.rows[0][k][length-2]=='1':
                     self.datax2.append(float(self.rows[1][k]))
-                    #k+=1      
 
         plt = pg.PlotWidget()
         plt.showGrid(x=True,y=True)
         plt.addLegend()   
         plt.setXRange(0,1) 
 
-        # print("SIZE UP AHEAD")
-        # print(len(self.datay))
-        # print(len(self.datax1))
-        # print(len(self.datax2))
-        # print("SIZES DONE")
         c1 = plt.plot(self.datax1, self.datay,pen=pg.mkPen('b',width = 1), name='dew points')
         c2 = plt.plot(self.datax2, self.datay,pen=pg.mkPen('r',width = 1), name='bubble points') 
         view_box = plt.plotItem.vb
         self.tool_tip = ""
 
         def press_event(evt):
-            #print("HELLO")
             a = 10
             pos = evt
             mousepoint = view_box.mapSceneToView(pos)
@@ -229,7 +198,6 @@ class BinPhaseEnv(QWidget,ui_dialog):
             screen = QGuiApplication.primaryScreen()
             image = screen.grabWindow(QApplication.desktop().winId()).toImage()
             colour = QtGui.QColor(image.pixel(find_color.x(),find_color.y()))
-            #print("red:{}, green:{}, blue:{}".format(colour.red(),colour.green(),colour.blue()))
 
             if colour.red()==255 or colour.blue()==255:
                 self.lineEdit_x.setText(str(round(mousepoint.x(),3)))
@@ -242,31 +210,17 @@ class BinPhaseEnv(QWidget,ui_dialog):
                 self.tool_tip = ""
                 QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
                      
-        #self.prev = None     
         def entered(items):
             for i in items:
-                #print(i.__class__.__name__)
                 if i.__class__.__name__ =="LegendItem":
                     self.lineEdit_x.setText("")
                     self.lineEdit_y.setText("")
                     QApplication.setOverrideCursor(QCursor(QtCore.Qt.ArrowCursor))
                 else:
                     i.setToolTip(self.tool_tip)    
-           # print(items)      
-        #proxy = pg.SignalProxy(plt.scene().sigMouseMoved, rateLimit = 60, slot = press_event)        
+                 
         plt.scene().sigMouseMoved.connect(press_event)
         plt.scene().sigMouseHover.connect(entered)
-        #c1.setAcceptHoverEvents(True)
-        #c2.setAcceptHoverEvents(True)
-
-        # def hoverEnterEvent(c1,event):
-        #     print("Object ZONE")
-
-        # def hoverEnterEvent(c2,event):
-        #     print("Object ZONE")    
-
-        #c1.hoverMoveEvent.connect(item)
-        #c2.hoverMoveEvent.connect(item)
 
         plt.setLabel('left',self.other+self.otherunit,units = '')   
         plt.setLabel('bottom',self.comp1+'(mol. frac.)',units = '')

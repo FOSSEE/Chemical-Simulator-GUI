@@ -12,7 +12,8 @@ class ConvReactor():
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = []
-        self.OutputStms = []   self.Tdef = str(Tdef)
+        self.OutputStms = []
+        self.Tdef = str(Tdef)
       
         self.type = 'ConvReactor'
         self.EngStms = EngStms(name="EngStm")

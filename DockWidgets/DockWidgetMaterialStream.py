@@ -52,33 +52,33 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.input_params_list()
 
     def input_params_list(self):
-        try:            
+        try:
             for c,i in enumerate(self.input_dict):
                 if(i=="x_pc"):
                     noc = len(compound_selected)
                     print(noc)
                     self.x_pclist.clear()
-                        
+
                     gp = QGroupBox("Mole Fractions")
                     lay = QGridLayout()
                     for j in range(noc):
-                        l = QLineEdit()  
+                        l = QLineEdit()
                         if self.input_dict[i] != '':
                             l.setText(str(self.obj.variables['x_pc']['value'][j]))
                             print('l = ', str(self.obj.variables['x_pc']['value'][j]))
-                                
+
                         self.input_dict[i] = "x_pc"
                         lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment=Qt.AlignLeft)
                         lay.addWidget(l,j,1, alignment=Qt.AlignCenter)
-                        self.x_pclist.append(l)                    
+                        self.x_pclist.append(l)
                     gp.setLayout(lay)
-                    self.formLayout.addRow(gp) 
+                    self.formLayout.addRow(gp)
                 else:
                     print("elseloop")
                     l = QLineEdit()
                     if self.input_dict[i] != None:
                         l.setText(str(self.input_dict[i]))
-                        
+
                     lay = QGridLayout()
                     lay.addWidget(QLabel(i+":"),0,0, alignment=Qt.AlignLeft)
                     lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
@@ -87,13 +87,13 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     else:
                         lay.addWidget(QLabel("mol/s"),0,2, alignment=Qt.AlignCenter)
                     self.formLayout.addRow(lay)
-                    self.input_dict[i] = l            
+                    self.input_dict[i] = l
 
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
             for j in self.lines:
                 self.cbTP.addItem(str(j))
             self.input_dict['Thermo Package'] = self.cbTP
-        
+
         except Exception as e:
             print(e)
 
@@ -133,6 +133,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         break
 
             print("param ", self.dict)
+
             self.obj.param_setter(self.dict)
             self.hide()
             
