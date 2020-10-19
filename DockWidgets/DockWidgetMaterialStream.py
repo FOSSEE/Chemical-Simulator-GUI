@@ -30,7 +30,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         header = QTreeWidgetItem(['Compound','Value','Unit'])
         self.mTreeWidget.setHeaderItem(header)
         self.lTreeWidget.setHeaderItem(header)
-        self.vTreeWidget.setHeaderItem(header)       
+        self.vTreeWidget.setHeaderItem(header)
 
     # input data tab
     def modes(self):
@@ -68,9 +68,10 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             print('l = ', str(self.obj.variables['x_pc']['value'][j]))
 
                         self.input_dict[i] = "x_pc"
-                        lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment=Qt.AlignLeft)
+                        lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment= Qt.AlignLeft)
                         lay.addWidget(l,j,1, alignment=Qt.AlignCenter)
                         self.x_pclist.append(l)
+                        lay.setSizeConstraint(QLayout.SetFixedSize)
                     gp.setLayout(lay)
                     self.formLayout.addRow(gp)
                 else:
