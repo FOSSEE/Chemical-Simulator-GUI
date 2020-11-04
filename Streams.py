@@ -33,21 +33,21 @@ class MaterialStream():
             'P'     : {'name':'Pressure',         'value':101325,    'unit':'Pa'},         
             'T'     : {'name':'Temperature',      'value':300,       'unit':'K'},
 
-            'xvap'   : {'name':'Vapour Phase Mole Fraction',          'value':None,       'unit':'g/s'},
-            'H_p[1]'  : {'name':'Mixture Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
-            'S_p[1]'  : {'name':'Mixture Phase Molar Entropy',        'value':None,       'unit':'g/s'},
-            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':100,       'unit':'g/s'},
+            'xvap'   : {'name':'Vapour Phase Mole Fraction',          'value':None,       'unit':''},
+            'H_p[1]'  : {'name':'Mixture Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[1]'  : {'name':'Mixture Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':100,       'unit':'mol/s'},
 
-            'H_p[2]'  : {'name':'Liquid Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
-            'S_p[2]'  : {'name':'Liquid Phase Molar Entropy',        'value':None,       'unit':'g/s'},
-            'F_p[2]'  : {'name':'Liquid Molar Flow Rate',            'value':None,       'unit':'g/s'},
+            'H_p[2]'  : {'name':'Liquid Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[2]'  : {'name':'Liquid Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[2]'  : {'name':'Liquid Molar Flow Rate',            'value':None,       'unit':'mol/s'},
 
-            'H_p[3]'  : {'name':'Vapour Phase Molar Entalpy',        'value':None,       'unit':'g/s'},
-            'S_p[3]'  : {'name':'Vapour Phase Molar Entropy',        'value':None,       'unit':'g/s'},
-            'F_p[3]'  : {'name':'Vapour Molar Flow Rate',            'value':None,       'unit':'g/s'},
+            'H_p[3]'  : {'name':'Vapour Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[3]'  : {'name':'Vapour Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[3]'  : {'name':'Vapour Molar Flow Rate',            'value':None,       'unit':'mol/s'},
 
-            'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':'mol/s'},
-            'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':'g/s'},
+            'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':''},
+            'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':''},
             
             'F_pc'  : {'name':'Mole Flow',        'value':100,      'unit':'mol/s'},
             'Fm_pc' : {'name':'Mass Flow',        'value':None,     'unit':'g/s'},
@@ -57,18 +57,18 @@ class MaterialStream():
     def init_variables(self):
         Nc = len(self.compound_names)
         for i, val in enumerate(self.compound_names):
-            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':round(1/Nc,4), 'unit':'mol/s'}
-            self.variables['xm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Fraction', 'value':None, 'unit':'g/s'}
+            self.variables['x_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Fraction', 'value':round(1/Nc,4), 'unit':''}
+            self.variables['xm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Fraction', 'value':None, 'unit':''}
             self.variables['F_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mole Flow', 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[1,'+ str(i+1)+']'] = {'name':val + ' Mixture Mass Flow', 'value':None, 'unit':'g/s'}
 
-            self.variables['x_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mole Fraction'], 'value':None, 'unit':'mol/s'}
-            self.variables['xm_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mass Fraction'], 'value':None, 'unit':'g/s'}
+            self.variables['x_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mole Fraction'], 'value':None, 'unit':''}
+            self.variables['xm_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mass Fraction'], 'value':None, 'unit':''}
             self.variables['F_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mole Flow'], 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[2,'+ str(i+1)+']'] = {'name':[val + ' Liquid Mass Flow'], 'value':None, 'unit':'g/s'}
 
-            self.variables['x_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mole Fraction'], 'value':None, 'unit':'mol/s'}
-            self.variables['xm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Fraction'], 'value':None, 'unit':'g/s'}
+            self.variables['x_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mole Fraction'], 'value':None, 'unit':''}
+            self.variables['xm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Fraction'], 'value':None, 'unit':''}
             self.variables['F_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mole Flow'], 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Flow'], 'value':None, 'unit':'g/s'}
 
