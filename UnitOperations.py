@@ -178,8 +178,8 @@ class ShortcutColumn(UnitOperation):
         self.variables = {
             'HKey'  :           {'name':'Heavy Key',                    'value':None,           'unit':''},
             'LKey'  :           {'name':'Light Key',                    'value':None,           'unit':''},
-            'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
-            'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':'mol/s'},
+            'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':''},
+            'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':''},
             'Ctype' :           {'name':'Condensor Type',               'value':None,           'unit':''},
             'thermo_package' :  {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
             'Pcond' :           {'name':'Condensor Pressure',           'value':101325,         'unit':'Pa'},
@@ -306,7 +306,7 @@ class CompoundSeparator(UnitOperation):
         self.no_of_inputs = 1 
         self.no_of_outputs = 2 
 
-        self.SepFact_modes = ['Molar_Flow   (mol/s)', 'Mass_Flow    (kg/s)', 'Inlet_Molar_Flow_Percent', 'Outlet_Molar_Flow_Percent']
+        self.SepFact_modes = ['Molar_Flow   (mol/s)', 'Mass_Flow    (g/s)', 'Inlet_Molar_Flow_Percent', 'Outlet_Molar_Flow_Percent']
 
         type(self).counter += 1  
         self.variables = {

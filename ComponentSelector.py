@@ -2,6 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
+import os, sys
 import pandas as pd
 from Simulator.Databases.Databases import ChemsepDatabase
 ui_dialog,_ = loadUiType('ComponentSelector.ui')

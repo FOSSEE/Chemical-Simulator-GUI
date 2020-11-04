@@ -30,7 +30,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         header = QTreeWidgetItem(['Compound','Value','Unit'])
         self.mTreeWidget.setHeaderItem(header)
         self.lTreeWidget.setHeaderItem(header)
-        self.vTreeWidget.setHeaderItem(header)       
+        self.vTreeWidget.setHeaderItem(header)
 
     # input data tab
     def modes(self):
@@ -68,9 +68,10 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             print('l = ', str(self.obj.variables['x_pc']['value'][j]))
 
                         self.input_dict[i] = "x_pc"
-                        lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment=Qt.AlignLeft)
+                        lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment= Qt.AlignLeft)
                         lay.addWidget(l,j,1, alignment=Qt.AlignCenter)
                         self.x_pclist.append(l)
+                        lay.setSizeConstraint(QLayout.SetFixedSize)
                     gp.setLayout(lay)
                     self.formLayout.addRow(gp)
                 else:
@@ -155,7 +156,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
     # result data tab
     def results_category(self,name):
-        flag = True
         try:
             print("Under result category name ", name)
             result=self.container.result
@@ -181,9 +181,13 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                 print(ll)
               
                 j = 0
-                t = 0
-                namee = klst[j]
+                namee = 'none'
                 print("namee ", namee)
+                #initialization for treewidgets
+                lroot = 1
+                mroot = 1
+                vroot = 1
+
 
                 for i,k in enumerate(ll):
                     ind = result[0].index(k)
@@ -193,40 +197,29 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     print("######Resultsfetch####",resultval)
                     print(k[k.find(".")+1:k.find("[")])
                     obj.variables[k.split('.')[1]]['value'] = resultval
-                    if namee in k:
-                        if i%3 == 0: 
-                            if(flag):                                  
-                                mroot = QTreeWidgetItem(self.mTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(mroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                        elif i%3 == 1:                                
-                            if(flag):
-                                lroot = QTreeWidgetItem(self.lTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(lroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                        elif i%3 == 2:                                
-                            if (flag):
-                                vroot = QTreeWidgetItem(self.vTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(vroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                            t += 1
-                            flag = False
-                    else:
-                        j += 1
-                        t = 0
+
+                    if namee not in k:
+                        mroot = QTreeWidgetItem(self.mTreeWidget, [lst[j]])
+                        lroot = QTreeWidgetItem(self.lTreeWidget, [lst[j]])
+                        vroot = QTreeWidgetItem(self.vTreeWidget, [lst[j]])
                         namee = klst[j]
-                        flag = True
-                        if i%3 == 0:
-                            if (flag):                                   
-                                mroot = QTreeWidgetItem(self.mTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(mroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                        elif i%3 == 1:                                
-                            if (flag):
-                                lroot = QTreeWidgetItem(self.lTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(lroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                        elif i%3 == 2:                                
-                            if (flag):
-                                vroot = QTreeWidgetItem(self.vTreeWidget, [lst[j]])
-                            child = QTreeWidgetItem(vroot, [compound_selected[t], str(resultval),obj.variables[k.split('.')[1]]['unit']])
-                            t += 1
-                            flag = False
+
+                    phase_no = int(k[k.index(',') - 1])  # phase no is from modelica list
+                    compound_no = int(k[k.index(',') + 1]) - 1  # compound is from python list
+
+                    if phase_no == 1:
+                        child = QTreeWidgetItem(mroot, [compound_selected[compound_no], str(resultval),
+                                                        obj.variables[k.split('.')[1]]['unit']])
+                    elif phase_no == 2:
+                        child = QTreeWidgetItem(lroot, [compound_selected[compound_no], str(resultval),
+                                                        obj.variables[k.split('.')[1]]['unit']])
+                    elif phase_no == 3:
+                        child = QTreeWidgetItem(vroot, [compound_selected[compound_no], str(resultval),
+                                                        obj.variables[k.split('.')[1]]['unit']])
+                        if (compound_no + 1) == len(compound_selected):
+                            j += 1
+
+
                 
                 # Phase Properties Tab
                 phaseResLst = []
