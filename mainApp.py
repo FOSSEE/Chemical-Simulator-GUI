@@ -242,12 +242,13 @@ class MainApp(QMainWindow,ui):
     def undo_redo_helper(self):
         for i in self.container.unit_operations:
             type(i).counter = 1
-        del self.container
+        self.container = None
         for i in dock_widget_lst:
             i.hide()
             del i
         lst.clear()
-        self.container = Container.Container(self.textBrowser, self.graphicsView)
+        self.container = Container(self.textBrowser, self.graphicsView)
+
         compound_selected.clear()
         self.scene = self.container.graphics.get_scene()
         self.graphicsView.setScene(self.scene)
