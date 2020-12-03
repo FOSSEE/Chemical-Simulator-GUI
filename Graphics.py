@@ -56,6 +56,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
             self.scene.addItem(new_box)
 
+
         for i in obj:
             if i.type == "MaterialStream":
                 print(eval(i.type))
@@ -462,6 +463,16 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.setFixedHeight(640)
         self.dock_widget.DockWidgetFeature(QDockWidget.AllDockWidgetFeatures)
         self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+
+        # updating input values
+        if self.dock_widget.obj.type != 'MaterialStream':
+            print(self.dock_widget.obj.type)
+            try:
+                self.dock_widget.obj.param_setter(self.dock_widget.obj.param_getter(self.dock_widget.obj.mode))
+            except Exception as e:
+                print(e)
+        # self.dock_widget.param()
+
         self.dock_widget.hide()
         
         self.pic=QtGui.QPixmap("Icons/"+self.type+".png")

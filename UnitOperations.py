@@ -48,7 +48,6 @@ class UnitOperation():
         for k,v in params.items():
             if k == 'Thermo Package':
                 self.thermo_package = v
-                print('haha')
             elif k != self.mode:
                 self.k = v
                 self.variables[k]['value'] = v
@@ -152,7 +151,7 @@ class UnitOperation():
             self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
         
         if self.mode:
-            self.OM_data_eqn += (self.name + '.' + self.mode + '=' + self.mode_val + ';\n')    
+            self.OM_data_eqn += (self.name + '.' + self.mode + '=' + str(self.mode_val) + ';\n')
 
         return self.OM_data_eqn
 
