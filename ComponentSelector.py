@@ -43,9 +43,8 @@ class ComponentSelector(QDialog,ui_dialog):
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setModel(self.model)
 
-        #QCompleter completes the text written in lineedit    
-        self.lineEdit.setCompleter(self.completer)  
-		
+        # QCompleter completes the text written in lineedit
+        self.lineEdit.setCompleter(self.completer)
         self.compoundSelectButton.clicked.connect(self.compound_selection)
         self.compoundSelectButton.setAutoDefault(False)
         self.pushButton.clicked.connect(self.accept)
@@ -87,15 +86,20 @@ class ComponentSelector(QDialog,ui_dialog):
         self.temp_comp= component.replace(removing_attrib,'')
         return(self.temp_comp)
     
-    def compound_selection(self):
-        self.comp = self.lineEdit.text()      #gets entered text
+    def compound_selection(self, *args):
+        if len(args) == 2:
+            self.comp = args[1]     #helpful when loading saved data
+        else:
+            self.comp = self.lineEdit.text()      #gets entered text
         if self.comp in self.lines: #matches with the db
+            if self.comp not in compound_selected:
+                compound_selected.append(self.comp)  # appending compound in the list
             self.obj=self.get_object(self.comp)   #obj will store the key of the dictionary
             #and thus store the instance of the class to which  the component belongs
             self.removing_attrib='(' + self.obj.name + ')' #getting the attribute that is to be removed
             self.comp=self.get_original_name(self.comp,self.removing_attrib)
             #getting only air, water etc from air chemsep etc
-            compound_selected.append(self.comp)    #appending that in the list
+
             
             self.prop_list=self.obj.get_comp_prop(self.comp) #getting prop of the comp
             #obj is the required class  object
@@ -120,7 +124,7 @@ class ComponentSelector(QDialog,ui_dialog):
 
     @staticmethod
     def set_compounds(compounds):
-        #compound_selected = compounds
+        # compound_selected = compounds
         for i in compounds:
             compound_selected.append(i)
 

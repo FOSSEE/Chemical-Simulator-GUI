@@ -331,10 +331,17 @@ class MainApp(QMainWindow,ui):
             with open(file_name, 'rb') as f:
                 obj = pickle.load(f)
             print(obj)
+            compound_selected = obj[-1]
+            obj.pop()
+            print(compound_selected)
+            self.comp.set_compounds(compound_selected)
+            for i in compound_selected:
+                self.comp.compound_selection(self.comp, i)
             self.container.graphics.load_canvas(obj, self.container)
 
+
         except Exception as e:
-            pass
+            print(e)
 
 def main():
 

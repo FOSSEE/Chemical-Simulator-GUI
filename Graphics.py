@@ -30,32 +30,24 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         self.graphicsView = graphicsView
         self.pos = None
         self.unit_operations = unit_operations
-    
+
     def get_scene(self):
         return self.scene
-
-    def get_component_selector(self):
-        return ComponentSelector(self)
 
     def create_node_item(self,unit_operation, container):
         return NodeItem(unit_operation, container, self.graphicsView)
     
     def load_canvas(self, obj, container):
         stm = ['MaterialStream','EngStm']
-        compounds = obj[-1]
-        obj.pop()
-        ComponentSelector.set_compounds(compounds)
-
         for i in obj:
-            if(i in self.unit_operations):
-               pass
+            if i in self.unit_operations:
+                pass
             else:
                 self.unit_operations.append(i)
             print(self.unit_operations)
             new_box = self.create_node_item(i, container)
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
             self.scene.addItem(new_box)
-
 
         for i in obj:
             if i.type == "MaterialStream":
