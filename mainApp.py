@@ -242,12 +242,13 @@ class MainApp(QMainWindow,ui):
     def undo_redo_helper(self):
         for i in self.container.unit_operations:
             type(i).counter = 1
-        del self.container
+        self.container = None
         for i in dock_widget_lst:
             i.hide()
             del i
         lst.clear()
-        self.container = Container.Container(self.textBrowser, self.graphicsView)
+        self.container = Container(self.textBrowser, self.graphicsView)
+
         compound_selected.clear()
         self.scene = self.container.graphics.get_scene()
         self.graphicsView.setScene(self.scene)
@@ -330,10 +331,17 @@ class MainApp(QMainWindow,ui):
             with open(file_name, 'rb') as f:
                 obj = pickle.load(f)
             print(obj)
+            compound_selected = obj[-1]
+            obj.pop()
+            print(compound_selected)
+            self.comp.set_compounds(compound_selected)
+            for i in compound_selected:
+                self.comp.compound_selection(self.comp, i)
             self.container.graphics.load_canvas(obj, self.container)
 
+
         except Exception as e:
-            pass
+            print(e)
 
 def main():
 

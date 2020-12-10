@@ -62,10 +62,10 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     gp = QGroupBox("Mole Fractions")
                     lay = QGridLayout()
                     for j in range(noc):
-                        l = QLineEdit()
-                        if self.input_dict[i] != '':
-                            l.setText(str(self.obj.variables['x_pc']['value'][j]))
-                            print('l = ', str(self.obj.variables['x_pc']['value'][j]))
+                        l = QLineEdit(str(self.obj.variables['x_pc']['value'][j]))
+                        # if self.input_dict[i] != '':
+                        #     l.setText(str(self.obj.variables['x_pc']['value'][j]))
+                        #     print('l = ', str(self.obj.variables['x_pc']['value'][j]))
 
                         self.input_dict[i] = "x_pc"
                         lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment= Qt.AlignLeft)
@@ -140,6 +140,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             
         except Exception as e:
             print(e)
+
+    def update_input_values(self):
+        self.init()
 
     @staticmethod
     def show_result(lst):
@@ -285,19 +288,20 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
        
             self.input_dict = {}
             self.input_dict = self.obj.param_getter(self.comboBox.currentText())
-            print("before", self.input_dict)
-            self.input_dict.pop("x_pc")
-            temp = self.input_dict.pop('thermo_package')
+            # print("before", self.input_dict)
+            # self.input_dict.pop("x_pc")
+            # temp = self.input_dict.pop('thermo_package')
             for i in range(len(compound_selected)):
                 print(i)
                 self.input_dict['x_pc[1,' + str(i+1) + ']'] = self.obj.variables['x_pc[1,' + str(i+1) +']']['value']
-            self.input_dict['thermo_package'] = temp
-            print("after", self.input_dict)
+            # self.input_dict['thermo_package'] = temp
+            # print("after", self.input_dict)
             
-            # chaning index for updating the input data
+            # changing index for updating the input data
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+
 
 
 

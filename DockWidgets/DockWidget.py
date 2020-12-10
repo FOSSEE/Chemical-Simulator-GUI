@@ -59,15 +59,13 @@ class DockWidget(QDockWidget,ui_dialog):
                 print(i)
                 if i == None:
                     continue
-                l = QLineEdit()
-                if self.input_dict[i] != None:
-                    l.setText(str(self.input_dict[i]))
+                l = QLineEdit(self.obj.variables[i]['value'])
                 lay = QGridLayout()
-                lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft) 
+                lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
                 lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
                 self.formLayout.addRow(lay)
-                self.input_dict[i] = l    
+                self.input_dict[i] = l
         except Exception as e:
             print(e)
 
@@ -132,7 +130,16 @@ class DockWidget(QDockWidget,ui_dialog):
                     self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(obj.variables[val]['unit']))
                     self.tableWidget.resizeColumnsToContents()
 
+                    # Updating result in class
+                    obj.variables[val]['value'] = resultval
+                    # try:
+                    #     if obj.type == "Heater":
+                    #         print(obj.variables[val]['name'] + str(obj.variables[val]['value']))
+                    # except Exception as e:
+                    #     print(e)
+
+
+
         except Exception as e:
             print(e)
 
-        

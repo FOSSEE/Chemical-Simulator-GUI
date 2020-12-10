@@ -30,25 +30,18 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         self.graphicsView = graphicsView
         self.pos = None
         self.unit_operations = unit_operations
-    
+
     def get_scene(self):
         return self.scene
-
-    def get_component_selector(self):
-        return ComponentSelector(self)
 
     def create_node_item(self,unit_operation, container):
         return NodeItem(unit_operation, container, self.graphicsView)
     
     def load_canvas(self, obj, container):
         stm = ['MaterialStream','EngStm']
-        compounds = obj[-1]
-        obj.pop()
-        ComponentSelector.set_compounds(compounds)
-
         for i in obj:
-            if(i in self.unit_operations):
-               pass
+            if i in self.unit_operations:
+                pass
             else:
                 self.unit_operations.append(i)
             print(self.unit_operations)
@@ -462,6 +455,16 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.setFixedHeight(640)
         self.dock_widget.DockWidgetFeature(QDockWidget.AllDockWidgetFeatures)
         self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+
+        # updating input values
+        if self.dock_widget.obj.type != 'MaterialStream':
+            print(self.dock_widget.obj.type)
+            try:
+                self.dock_widget.obj.param_setter(self.dock_widget.obj.param_getter(self.dock_widget.obj.mode))
+            except Exception as e:
+                print(e)
+        # self.dock_widget.param()
+
         self.dock_widget.hide()
         
         self.pic=QtGui.QPixmap("Icons/"+self.type+".png")

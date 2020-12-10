@@ -89,6 +89,7 @@ class MaterialStream():
             
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
                     "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value']}
+            print('dictionary is :' + str(dict))
 
         elif(mode=="PH"):
             self.mode1 = 'P'
