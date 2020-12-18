@@ -2,8 +2,8 @@ within Simulator.UnitOperations.DistillationColumn;
 
   model DistCol
     extends Simulator.Files.Icons.DistillationColumn;
-     parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
     parameter Integer Nc "Number of components";
+    parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
     import data = Simulator.Files.ChemsepDatabase;
     parameter Boolean Bin_t[Nt] = Simulator.Files.OtherFunctions.colBoolCalc(Nt, Ni, InT_s);
     parameter Integer Nt = 4 "Number of stages";
@@ -26,7 +26,7 @@ within Simulator.UnitOperations.DistillationColumn;
       Placement(visible = true, transformation(origin = {252, -588}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {250, -598}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
     Simulator.Files.Interfaces.matConn Out_s[Nout](each Nc = Nc) annotation(
       Placement(visible = true, transformation(origin = {-36, 32}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-70, 60}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
-    Simulator.Files.Interfaces.enConn En[NQ](each Nc = Nc) annotation(
+    Simulator.Files.Interfaces.enConn En[NQ] annotation(
       Placement(visible = true, transformation(origin = {-34, -54}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-70, -60}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
   equation
   for i in 1:Ni loop

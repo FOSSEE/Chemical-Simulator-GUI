@@ -11,7 +11,7 @@ class UnitOperation():
         self.OM_data_init = ''
         self.input_stms = []
         self.output_stms = []
-        self.compounds = compound_selected
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
         self.name = ''
         self.mode = None
         self.mode_val = None
@@ -232,9 +232,6 @@ class DistillationColumn(UnitOperation):
         self.type = 'DistillationColumn'
         self.no_of_inputs = 1 
         self.no_of_outputs = 2
-
-        self.compounds = compound_selected
-
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
@@ -276,12 +273,87 @@ class DistillationColumn(UnitOperation):
         if 'Compound' in self.variables['C_Spec']['type']:
             self.variables['C_Spec']['comp'] = params[temp+4]
         self.variables['C_Spec']['value'] = params[temp+5]
+        for var in self.variables:
+            if self.variables[var]['name'] == self.variables['C_Spec']['type']:
+                self.variables[var]['value'] = params[temp+5]
+
         self.variables['Preb']['value'] = params[temp+6]
+        # R_Spec variable value won't be updated to class here. It will be updated in result
         self.variables['R_Spec']['type'] = params[temp+7]
         if 'Compound' in self.variables['R_Spec']['type']:
             self.variables['R_Spec']['comp'] = params[temp+8]
         self.variables['R_Spec']['value'] = params[temp+9]   
         print(self.variables)
+
+    def OM_Flowsheet_Initialize(self):
+        self.OM_data_init = ''
+        self.OM_data_init = self.OM_data_init + 'model Condenser\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.Cond;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Condenser;\n'
+        self.OM_data_init = self.OM_data_init + 'model Tray\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.DistTray;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Tray;\n'
+        self.OM_data_init = self.OM_data_init + 'model Reboiler\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.Reb;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Reboiler;\n'
+        self.OM_data_init = self.OM_data_init + ("model distCol" + str(self.count) + "\n")
+        self.OM_data_init = self.OM_data_init + ("extends Simulator.UnitOperations.DistillationColumn.DistCol;\n")
+        self.OM_data_init = self.OM_data_init + (
+             "Condenser condenser(Nc = Nc, C = C, Ctype =Ctype, Bin = Bin_t[1], T(start = 300));\n")
+        self.OM_data_init = self.OM_data_init + (
+            "Reboiler reboiler(Nc = Nc, C = C, Bin = Bin_t[Nt]);\n")
+        self.OM_data_init = self.OM_data_init + (
+             "Tray tray[Nt - 2](each Nc = Nc, each C = C, Bin = Bin_t[2:Nt - 1]);\n")
+        self.OM_data_init = self.OM_data_init + ("end distCol" + str(self.count) + ";\n")
+        comp_count = len(self.compounds)
+        self.OM_data_init = self.OM_data_init + (
+                "distCol" + str(self.count) + " " + self.name + "(Nc = " + str(comp_count))
+        self.OM_data_init = self.OM_data_init + (", C= C")
+
+        self.OM_data_init = self.OM_data_init + "," + (
+                    "Nt=" + str(self.variables['Nt']['value']) + "," + "Ni="
+                    + str(self.variables['Ni']['value']) + ",InT_s=" + "{" +
+                    str(self.variables['InT_s']['value']).strip('[').strip(']') + "}" + ',Ctype ="' +
+                    self.variables['Ctype']['value'] + '");\n')
+        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm1.name+';\n'
+        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm2.name+';\n'
+        return self.OM_data_init
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
+        # self.OM_data_eqn = self.OM_data_eqn + (
+        #             'connect(' + self.name + '.' + 'condensor_duty' + ',' + self.EngStm1.name + '.inlet);\n')
+           # self.OM_data_eqn = self.OM_data_eqn + (
+           #             'connect(' + self.name + '.reboiler_duty' + ', ' + self.EngStm2.name + '.inlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + (
+                'connect(' + self.name + '.Dist' + ", " + self.output_stms[0].name + '.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + (
+                'connect(' + self.name + '.Bot' + ", " + self.output_stms[1].name + '.In);\n')
+        for i in range(len(self.input_stms)):
+            self.OM_data_eqn = self.OM_data_eqn + (
+                    'connect(' + self.input_stms[i].name + '.Out' + ", " + self.name + '.In_s[' + str(
+                i + 1) + ']);\n')
+        if self.variables['R_Spec']['type'] == "Product Molar Flow   (mol/s)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'F_p[1] = ' + str(
+                               self.variables['R_Spec']['value']) + ';\n')
+        if self.variables['C_Spec']['type'] == "Reflux Ratio":
+            self.OM_data_eqn = self.OM_data_eqn + (
+                        self.name + '.' + 'RR' + '=' + str(self.variables['RR']['value']) + ';\n')
+        else:
+            self.OM_data_eqn = self.OM_data_eqn + (
+                    self.name + '.Condenser.' + self.mode + '=' + str(self.modeVal) + ';\n')
+
+
+
+        self.OM_data_eqn = self.OM_data_eqn + self.name + '.reboiler.P=' + str(
+            self.variables['Preb']['value']) + ';\n'
+        self.OM_data_eqn = self.OM_data_eqn + self.name + '.condenser.P=' + str(
+            self.variables['Pcond']['value']) + ';\n'
+        return self.OM_data_eqn
         
 class ConvertionReactor(UnitOperation):
     def __init__(self,name='',Nr=None,b=None,X=None,Z=None,a=[],operation=None,Tdef=None):
