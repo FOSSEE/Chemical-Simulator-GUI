@@ -69,7 +69,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab1">
          <attribute name="title">
@@ -90,7 +90,7 @@
         </widget>
         <widget class="QWidget" name="tab2">
          <attribute name="title">
-          <string>Condensor</string>
+          <string>Condenser</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>

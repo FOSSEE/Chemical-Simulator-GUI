@@ -179,9 +179,9 @@ class ShortcutColumn(UnitOperation):
             'LKey'  :           {'name':'Light Key',                    'value':None,           'unit':''},
             'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':''},
             'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':''},
-            'Ctype' :           {'name':'Condensor Type',               'value':None,           'unit':''},
+            'Ctype' :           {'name':'Condenser Type',               'value':None,           'unit':''},
             'thermo_package' :  {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
-            'Pcond' :           {'name':'Condensor Pressure',           'value':101325,         'unit':'Pa'},
+            'Pcond' :           {'name':'Condenser Pressure',           'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',            'value':101325,         'unit':'Pa'},
             'RR'    :           {'name':'Reflux Ratio',                 'value':1.5,            'unit':''},
             
@@ -238,25 +238,25 @@ class DistillationColumn(UnitOperation):
 
         # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
-        self.parameters = ['Nt', 'Ni', 'InT_s', 'Ctype']
+        self.parameters = ['Nt', 'Ni', 'Ctype', 'Pcond', 'condmode', 'C_comp', 'C_Spec', 'Preb', 'rebmode', 'rebcomp', 'R_Spec']
         #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
 
         type(self).counter += 1  
         self.variables = {
-            'Ni'   :            {'name':'Number of Input',          'value':2,              'unit':''},
+            'Ni'   :            {'name':'Number of Input',          'value':1,              'unit':''},
             'RR'    :           {'name':'Reflux Ratio',             'value':None,           'unit':''},
             'T'     :           {'name':'Temperature',              'value':300,            'unit':'K'},
             'Nout'  :           {'name':'No of Sidedraws',          'value':None,           'unit':''},
             'Nt'    :           {'name':'No of Stages',             'value':12,             'unit':''},
             'InT_s' :           {'name':'Feed Stage',              'value':[],           'unit':''},
             'thermo_package' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
-            'Ctype' :           {'name':'Condensor Type',           'value':'',             'unit':''},
-            'Pcond' :           {'name':'Condensor Pressure',       'value':101325,         'unit':'Pa'},
+            'Ctype' :           {'name':'Condenser Type',           'value':'Total',             'unit':''},
+            'Pcond' :           {'name':'Condenser Pressure',       'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',        'value':101325,         'unit':'Pa'},
-            'C_Spec':           {'name':'Condensor Specification',  'type':'Reflux Ratio',  'value':'',         'comp':'',      'unit':''},
-            'R_Spec':           {'name':'Reboiler Specification',   'type':'',              'value':'',         'comp':'',      'unit':''},
+            'C_Spec':           {'name':'Condenser Specification',  'type':self.Cspec_list[0],  'value':'',         'comp':compound_selected[0],      'unit':''},
+            'R_Spec':           {'name':'Reboiler Specification',   'type':self.Rspec_list[0],       'value':'',         'comp':compound_selected[0],      'unit':''},
         }
        
     def param_setter(self,params):
