@@ -36,8 +36,8 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             
             l1 = QLineEdit()
             l1.setText(str(self.obj.variables['Nt']['value']))
-            self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft) 
-            self.lay1.addWidget(l1,0,1, alignment=Qt.AlignCenter)
+            self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft)
+            self.lay1.addWidget(l1,0,1, alignment=Qt.AlignLeft)
             self.input_dict.append(l1)     
 
 
@@ -46,8 +46,8 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
                 l = QLineEdit()
                 if len(self.obj.variables['InT_s']['value']) is not 0:
                     l.setText(str(self.obj.variables['InT_s']['value'][i]))
-                self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),i+1,0, alignment=Qt.AlignLeft)
-                self.lay1.addWidget(l,i+1,1, alignment=Qt.AlignCenter)
+                self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),2*(i+1),0, alignment=Qt.AlignLeft)
+                self.lay1.addWidget(l,2*(i+1),1, alignment=Qt.AlignLeft)
                 self.input_dict.append(l)
 
             # tab 2
