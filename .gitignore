@@ -10,5 +10,5 @@ Simulator/simulateEQN.mos
 __pycache__/*
 .idea/*
 DockWidgets/__pycache__/*
-undo.dat
+Undo.dat
 test.py

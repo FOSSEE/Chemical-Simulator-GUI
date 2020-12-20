@@ -56,38 +56,40 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
                 ip = i.input_stms
                 op = i.output_stms
                 for j in ip:
+                    ip_index = ip.index(j)
                     pointA = NodeItem.get_instances(j.name)
                     pointB = NodeItem.get_instances(i.name)
                     rect = pointA.output[0].boundingRect()
                     pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
                     pointAA = pointA.output[0].mapToScene(pointAA)
-                    rectB = pointB.input[0].boundingRect()
+                    rectB = pointB.input[ip_index].boundingRect()
                     pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
-                    pointBB = pointB.input[0].mapToScene(pointBB)
+                    pointBB = pointB.input[ip_index].mapToScene(pointBB)
                     self.new_line = NodeLine(pointAA, pointBB, 'in')
                     self.new_line.source = pointA.output[0]
                     self.new_line.target = pointB.input[0]
                     pointA.output[0].out_lines.append(self.new_line)
-                    pointB.input[0].in_lines.append(self.new_line)
+                    pointB.input[ip_index].in_lines.append(self.new_line)
                     pointA.output[0].other_line = self.new_line
-                    pointB.input[0].other_line = self.new_line
+                    pointB.input[ip_index].other_line = self.new_line
                     self.scene.addItem(self.new_line)
                     self.new_line.updatePath()      
                 for k in op:
+                    op_index = op.index(k)
                     pointA = NodeItem.get_instances(i.name)
                     pointB = NodeItem.get_instances(k.name)
-                    rect = pointA.output[0].boundingRect()
+                    rect = pointA.output[op_index].boundingRect()
                     pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
-                    pointAA = pointA.output[0].mapToScene(pointAA)
+                    pointAA = pointA.output[op_index].mapToScene(pointAA)
                     rectB = pointB.input[0].boundingRect()
                     pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
                     pointBB = pointB.input[0].mapToScene(pointBB)
                     self.new_line = NodeLine(pointAA, pointBB, 'out')
-                    self.new_line.source = pointA.output[0]
+                    self.new_line.source = pointA.output[op.index(k)]
                     self.new_line.target = pointB.input[0]
-                    pointA.output[0].out_lines.append(self.new_line)
+                    pointA.output[op_index].out_lines.append(self.new_line)
                     pointB.input[0].in_lines.append(self.new_line)
-                    pointA.output[0].other_line = self.new_line
+                    pointA.output[op_index].other_line = self.new_line
                     pointB.input[0].other_line = self.new_line
                     self.scene.addItem(self.new_line)
                     self.new_line.updatePath()
