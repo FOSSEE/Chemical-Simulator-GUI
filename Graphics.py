@@ -420,19 +420,19 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         self.nin = self.obj.no_of_inputs
         self.nop = self.obj.no_of_outputs
-        if self.obj.type == 'Mixer':
+        if self.obj.type == 'Mixer' and not self.obj.saved:
             text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:')
             if ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
-        elif self.obj.type == 'Splitter':
+        elif self.obj.type == 'Splitter' and not self.obj.saved:
             text, ok = QInputDialog.getText(self.container.graphicsView, 'Splitter', 'Enter number of output:')
             if ok and text:
                 self.nop = int(text)
                 self.obj.no_of_outputs = self.nop
                 self.obj.variables['No']['value'] = self.nop
-        elif self.obj.type == 'DistillationColumn':
+        elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
             text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:')
             if ok and text:
                 self.nin = int(text)

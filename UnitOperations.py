@@ -30,6 +30,7 @@ class UnitOperation():
         self.multidict = []
         self.thermo_pack_req = False
         self.thermo_package = 'RaoultsLaw'
+        self.saved = False
 
     def param_getter(self,mode=None):
         params = {}
