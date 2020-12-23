@@ -59,7 +59,7 @@ class DockWidget(QDockWidget,ui_dialog):
                 print(i)
                 if i == None:
                     continue
-                l = QLineEdit(self.obj.variables[i]['value'])
+                l = QLineEdit(str(self.obj.variables[i]['value']))
                 lay = QGridLayout()
                 lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
