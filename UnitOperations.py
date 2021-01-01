@@ -9,8 +9,8 @@ class UnitOperation():
     def __init__(self):
         self.OM_data_eqn = ''
         self.OM_data_init = ''
-        self.input_stms = []
-        self.output_stms = []
+        self.input_stms = {}
+        self.output_stms = {}
         self.compounds = [c[:c.index('(')] for c in compound_selected]
         self.name = ''
         self.mode = None
@@ -56,11 +56,11 @@ class UnitOperation():
                 self.variables[k]['value'] = v
                 self.mode_val = params[self.mode]
 
-    def add_connection(self,flag,UnitOpr):
+    def add_connection(self,flag,sourceId, UnitOpr):
         if flag==1:                 # Input stream if flag is 1
-            self.input_stms.append(UnitOpr)
+            self.input_stms[sourceId] = UnitOpr
         else :
-            self.output_stms.append(UnitOpr)
+            self.output_stms[sourceId] = UnitOpr
 
     def set_pos(self,pos):
         self.pos = pos

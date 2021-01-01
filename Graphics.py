@@ -14,7 +14,6 @@ from DockWidgets.DockWidgetSplitter import *
 from DockWidgets.DockWidgetFlash import *
 from DockWidgets.DockWidgetCompoundSeparator import *
 from DockWidgets.DockWidgetCompressorExpander import *
-
 from Container import *
 from Streams import *
 from UnitOperations import *
@@ -55,41 +54,41 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
             elif i.type not in stm:
                 ip = i.input_stms
                 op = i.output_stms
-                for j in ip:
-                    ip_index = ip.index(j)
-                    pointA = NodeItem.get_instances(j.name)
+                for k, v in ip.items():
+                    pointA = NodeItem.get_instances(v.name)
                     pointB = NodeItem.get_instances(i.name)
                     rect = pointA.output[0].boundingRect()
                     pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
                     pointAA = pointA.output[0].mapToScene(pointAA)
-                    rectB = pointB.input[ip_index].boundingRect()
+                    socketB = next((s for s in pointB.input if k == s.id))
+                    rectB = socketB.boundingRect()
                     pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
-                    pointBB = pointB.input[ip_index].mapToScene(pointBB)
+                    pointBB = socketB.mapToScene(pointBB)
                     self.new_line = NodeLine(pointAA, pointBB, 'in')
                     self.new_line.source = pointA.output[0]
-                    self.new_line.target = pointB.input[0]
+                    self.new_line.target = socketB
                     pointA.output[0].out_lines.append(self.new_line)
-                    pointB.input[ip_index].in_lines.append(self.new_line)
+                    socketB.in_lines.append(self.new_line)
                     pointA.output[0].other_line = self.new_line
-                    pointB.input[ip_index].other_line = self.new_line
+                    socketB.other_line = self.new_line
                     self.scene.addItem(self.new_line)
                     self.new_line.updatePath()      
-                for k in op:
-                    op_index = op.index(k)
+                for k, v in op.items():
                     pointA = NodeItem.get_instances(i.name)
-                    pointB = NodeItem.get_instances(k.name)
-                    rect = pointA.output[op_index].boundingRect()
+                    pointB = NodeItem.get_instances(v.name)
+                    socketA = next(s for s in pointA.output if k == s.id)
+                    rect = socketA.boundingRect()
                     pointAA = QtCore.QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()/2)
-                    pointAA = pointA.output[op_index].mapToScene(pointAA)
+                    pointAA = socketA.mapToScene(pointAA)
                     rectB = pointB.input[0].boundingRect()
                     pointBB = QtCore.QPointF(rectB.x() + rectB.width()/2, rectB.y() + rectB.height()/2)
                     pointBB = pointB.input[0].mapToScene(pointBB)
                     self.new_line = NodeLine(pointAA, pointBB, 'out')
-                    self.new_line.source = pointA.output[op.index(k)]
+                    self.new_line.source = socketA
                     self.new_line.target = pointB.input[0]
-                    pointA.output[op_index].out_lines.append(self.new_line)
+                    socketA.out_lines.append(self.new_line)
                     pointB.input[0].in_lines.append(self.new_line)
-                    pointA.output[op_index].other_line = self.new_line
+                    socketA.other_line = self.new_line
                     pointB.input[0].other_line = self.new_line
                     self.scene.addItem(self.new_line)
                     self.new_line.updatePath()
@@ -245,11 +244,12 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         del self._pointB
 
 class NodeSocket(QtWidgets.QGraphicsItem):
-    def __init__(self, rect, parent, socketType):
+    def __init__(self, rect, parent, socketType, id):
         super(NodeSocket, self).__init__(parent)
         self.rect = rect
         self.type = socketType
         self.parent=parent
+        self.id = id
         self.setAcceptHoverEvents(True)
         self.new_line=None
         self.other_line=None
@@ -330,20 +330,22 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line.target = item
             item.in_lines.append(self.new_line)
             self.new_line.pointB = item.get_center()
+            print(type(self.new_line.source))
             if self.new_line.source.parent.obj.type not in stm:
-                self.new_line.source.parent.obj.add_connection(0,self.new_line.target.parent.obj)
+                self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
-                self.new_line.target.parent.obj.add_connection(1,self.new_line.source.parent.obj) # Input stream if flag is 1
+                self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj) # Input stream if flag is 1
 
         elif (self.type =='in') and (item.type == 'op'):
             self.new_line.source = item
             self.new_line.target = self
             item.out_lines.append(self.new_line)
             self.new_line.pointA = item.get_center()
+            print(type(self.new_line.source))
             if self.new_line.source.parent.obj.type not in stm:
-                self.new_line.source.parent.obj.add_connection(0,self.new_line.target.parent.obj)
+                self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
-                self.new_line.target.parent.obj.add_connection(1,self.new_line.source.parent.obj)
+                self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
 
 
         else:
@@ -356,7 +358,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             super(NodeSocket, self).mouseReleaseEvent(event)
 
         try:
-            data = Container.get_last_list('Undo')
+            data = get_last_list('Undo')
             comp_selected = data[-1]
             data.remove(comp_selected)
             for i in range(len(data)):
@@ -365,7 +367,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 elif data[i].name == self.new_line.target.parent.obj.name:
                     data[i] = self.new_line.target.parent.obj
             data.append(comp_selected)
-            Container.push('Undo', data)
+            push('Undo', data)
         except Exception as e:
             print(e)
             
@@ -420,8 +422,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip = default_tooltip + f"   {i} : {j}\n"
             self.setToolTip(default_tooltip)
 
-        self.nin = self.obj.no_of_inputs
-        self.nop = self.obj.no_of_outputs
+
         if self.obj.type == 'Mixer' and not self.obj.saved:
             text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:')
             if ok and text:
@@ -440,6 +441,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['Ni']['value'] = self.nin
+
+        self.nin = self.obj.no_of_inputs
+        self.nop = self.obj.no_of_outputs
 
         self.dock_widget = None
         lst.append(self)
@@ -519,28 +523,28 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def initialize_sockets(self,type):
         if(self.type=="Flash" or self.type=="CompoundSeparator"):
-            input = [NodeSocket(QtCore.QRect(5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-9,(self.rect.height()*x*1/(self.nop+1)),4,4), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-9,(self.rect.height()*x*1/(self.nop+1)),4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="AdiabaticCompressor" or self.type=="AdiabaticExpander"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5, (self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="Cooler" or self.type=="Heater"):
-            input = [NodeSocket(QtCore.QRect(3.5,(self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(3.5, (self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="Pump"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-7, 4,4), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-1.5,4,4), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-7, 4,4), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-1.5,4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="DistillationColumn" or self.type=="ShortcutColumn"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)),5,5), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-55,5,5), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)),5,5), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-55,5,5), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="MaterialStream"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in') for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'op') for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
 
     def mouseMoveEvent(self, event):
