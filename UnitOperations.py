@@ -541,7 +541,7 @@ class Splitter(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Splitter.counter) 
         self.type = 'Splitter'
-        self.no_of_outputs = 3 
+        self.no_of_outputs = 2
         
         self.CalcType_modes = ['Split_Ratio', 'Molar_Flow', 'Mass_Flow']
 
@@ -551,7 +551,7 @@ class Splitter(UnitOperation):
         self.variables = {
             'No'       : {'name':'No. of Output',          'value':3,                          'unit':''},
             'CalcType'  : {'name':'Calculation Type',       'value':self.CalcType_modes[0],     'unit':''},
-            'SpecVal_s' : {'name':'Specification Value',    'value':[50,50],                    'unit':''}
+            'SpecVal_s' : {'name':'Specification Value',    'value':[0.5,0.5],                    'unit':''}
         }
         
         specval = self.variables['SpecVal_s']['value'] 
@@ -566,6 +566,8 @@ class Splitter(UnitOperation):
             self.variables['SpecVal_s']['unit'] = 'mol/s'
         elif self.variables['CalcType']['value'] == 'Mass_Flow':
             self.variables['SpecVal_s']['unit'] = 'g/s'
+        else:
+            self.variables['SpecVal_s']['unit'] = ''
 
 class Mixer(UnitOperation):
 

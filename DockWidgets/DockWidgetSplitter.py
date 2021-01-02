@@ -27,18 +27,20 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.l1.setText(self.obj.variables['No']['name']+":")
             self.le1.setText(str(self.obj.variables['No']['value']))
             self.u1.setText(self.obj.variables['No']['unit'])
-            
+
+            self.l2.setText(self.obj.variables['CalcType']['name'] + ":")
             for i in self.obj.CalcType_modes:
                 self.cb2.addItem(str(i))
-            self.l2.setText(self.obj.variables['CalcType']['name']+":")
-
+            self.cb2.setCurrentText(self.obj.variables['CalcType']['value'])
 
             self.l3.setText("Stream 1 :")
-            self.u3.setText('')
+            self.le3.setText(str(self.obj.variables['SpecVal_s']['value'][0]))
+            self.u3.setText(self.obj.variables['SpecVal_s']['unit'])
             self.l4.setText("Stream 2 :")
-            self.u4.setText('')
+            self.le4.setText(str(self.obj.variables['SpecVal_s']['value'][1]))
+            self.u4.setText(str(self.obj.variables['SpecVal_s']['unit']))
             self.cb2.currentIndexChanged.connect(self.fun)
-           
+
             self.input_dict = [self.le1, self.cb2, self.le3, self.le4]
  
         except Exception as e:
