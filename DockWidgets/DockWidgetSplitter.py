@@ -32,6 +32,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
                 self.cb2.addItem(str(i))
             self.l2.setText(self.obj.variables['CalcType']['name']+":")
 
+
             self.l3.setText("Stream 1 :")
             self.u3.setText('')
             self.l4.setText("Stream 2 :")
