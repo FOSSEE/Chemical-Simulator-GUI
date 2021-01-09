@@ -27,15 +27,18 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
             for j in self.lines:
                 self.cb1.addItem(str(j))
+            self.cb1.setCurrentText(self.obj.variables['thermo_package']['value'])
             
             self.check1.setText(self.obj.variables['Tdef']['name']+":")
             self.le2.setText(str(self.obj.variables['Tdef']['value']))
             self.u2.setText(self.obj.variables['Tdef']['unit'])
             self.check1.toggled.connect(self.fun)
+            self.check1.setChecked(self.obj.variables['BTdef']['value'])
             self.check2.setText(self.obj.variables['Pdef']['name']+":")
             self.le3.setText(str(self.obj.variables['Pdef']['value']))
             self.u3.setText(self.obj.variables['Pdef']['unit'])
             self.check2.toggled.connect(self.fun)
+            self.check2.setChecked(self.obj.variables['BPdef']['value'])
 
             self.input_dict = [self.cb1, self.check1, self.le2, self.check2, self.le3]
  
