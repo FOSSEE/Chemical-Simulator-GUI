@@ -27,8 +27,9 @@ class MaterialStream():
         MaterialStream.counter+=1
         self.start_dict = {}
         self.eqn_dict = {}
-        self.modes_list = ["PT","PH","PVF","TVF","PS"]
+        self.modes_list = ["PT", "PH", "PVF", "TVF", "PS"]
         self.saved = False
+        self.mode = self.modes_list[0]
         
         self.variables = {
             'P'     : {'name':'Pressure',         'value':101325,    'unit':'Pa'},         

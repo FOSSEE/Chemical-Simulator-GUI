@@ -46,6 +46,10 @@ class UnitOperation():
         
     def param_setter(self,params):
         print("param_setter ", params)
+        try:
+            self.mode = list(params.keys())[0]
+        except Exception as e:
+            print(e)
         for k,v in params.items():
             if k == 'Thermo Package':
                 self.thermo_package = v
@@ -55,6 +59,7 @@ class UnitOperation():
             else:
                 self.variables[k]['value'] = v
                 self.mode_val = params[self.mode]
+
 
     def add_connection(self,flag,sourceId, UnitOpr):
         if flag==1:                 # Input stream if flag is 1
@@ -236,7 +241,7 @@ class DistillationColumn(UnitOperation):
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
-
+        self.thermo_pack_req = True
         # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
         self.parameters = ['Nt', 'Ni', 'Ctype', 'Pcond', 'condmode', 'C_comp', 'C_Spec', 'Preb', 'rebmode', 'rebcomp', 'R_Spec']
