@@ -31,11 +31,16 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 calculationLayout = QGridLayout()
 
                 r1 = QRadioButton('Stream 1')
-                r1.setChecked(True)
                 r1.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                 r2 = QRadioButton('Stream 2')
-                r2.setChecked(False)
                 r2.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+                if self.obj.variables['SepStrm']['value'] == 1:
+                    r1.setChecked(True)
+                    r2.setChecked(False)
+                else:
+                    r1.setChecked(False)
+                    r2.setChecked(True)
+
 
                 lst = [r1, r2]
                 calculationLayout.addWidget(r1, 0, 1)
@@ -45,9 +50,11 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                     combo = QComboBox()
                     print("CompoundSeparator combo")
                     for j in self.obj.SepFact_modes:
-                        combo.addItem(str(j))   
+                        combo.addItem(str(j))
+                    print(self.obj.variables['SepFact_c']['value'][k])
+                    combo.setCurrentText(self.obj.variables['SepFact_c']['value'][k])
                     combo.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-                    l = QLineEdit()
+                    l = QLineEdit(str(self.obj.variables['SepVal_c']['value'][k]))
                     l.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                     calculationLayout.addWidget(QLabel(val+" :"), k+1,0, alignment=Qt.AlignLeft)
                     calculationLayout.addWidget(combo, k+1, 1, alignment=Qt.AlignCenter)
