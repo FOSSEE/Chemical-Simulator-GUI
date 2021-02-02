@@ -181,11 +181,11 @@ class ShortcutColumn(UnitOperation):
         type(self).counter += 1
 
         self.variables = {
-            'HKey'  :           {'name':'Heavy Key',                    'value':None,           'unit':''},
-            'LKey'  :           {'name':'Light Key',                    'value':None,           'unit':''},
+            'HKey'  :           {'name':'Heavy Key',                    'value': 0,           'unit':''},
+            'LKey'  :           {'name':'Light Key',                    'value': 0,           'unit':''},
             'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':''},
             'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':''},
-            'Ctype' :           {'name':'Condenser Type',               'value':None,           'unit':''},
+            'Ctype' :           {'name':'Condenser Type',               'value':'Total',           'unit':''},
             'thermo_package' :  {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
             'Pcond' :           {'name':'Condenser Pressure',           'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',            'value':101325,         'unit':'Pa'},
@@ -214,7 +214,7 @@ class ShortcutColumn(UnitOperation):
         self.variables['Pcond']['value'] = params[5]
         self.variables['Preb']['value'] = params[6]
         self.variables['RR']['value'] = params[7]
-        self.thermo_package = params[8]
+        self.variables['thermo_package']['value'] = params[8]
 
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
@@ -289,7 +289,8 @@ class DistillationColumn(UnitOperation):
         self.variables['R_Spec']['type'] = params[temp+7]
         if 'Compound' in self.variables['R_Spec']['type']:
             self.variables['R_Spec']['comp'] = params[temp+8]
-        self.variables['R_Spec']['value'] = params[temp+9]   
+        self.variables['R_Spec']['value'] = params[temp+9]
+        self.variables['thermo_package']['value'] = params[temp+10]
         print(self.variables)
 
     def OM_Flowsheet_Initialize(self):
@@ -443,7 +444,7 @@ class CompoundSeparator(UnitOperation):
         SepFact = []
         for i in range(len(self.compounds)):
             SepFact.append(self.variables['SepFact_c']['value'][i].split(' ')[0])
-        SepFact  = json.dumps(SepFact).replace('[','{').replace(']','}')
+        SepFact  = json.dumps(SepFact).replace('[', '{').replace(']', '}')
         self.OM_data_init = ''
         comp_count = len(self.compounds)
         self.OM_data_init = self.OM_data_init + (
