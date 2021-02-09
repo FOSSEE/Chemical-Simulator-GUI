@@ -35,32 +35,42 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             # tab 1
             
             l1 = QLineEdit()
-            self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft) 
-            self.lay1.addWidget(l1,0,1, alignment=Qt.AlignCenter)
+            l1.setText(str(self.obj.variables['Nt']['value']))
+            self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft)
+            self.lay1.addWidget(l1,0,1, alignment=Qt.AlignLeft)
             self.input_dict.append(l1)     
+
 
             for i in range(self.obj.variables['Ni']['value']):
                 print(i)
-                l = QLineEdit()   
-                self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),i+1,0, alignment=Qt.AlignLeft) 
-                self.lay1.addWidget(l,i+1,1, alignment=Qt.AlignCenter)
+                l = QLineEdit()
+                if len(self.obj.variables['InT_s']['value']) is not 0:
+                    l.setText(str(self.obj.variables['InT_s']['value'][i]))
+                self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),2*(i+1),0, alignment=Qt.AlignLeft)
+                self.lay1.addWidget(l,2*(i+1),1, alignment=Qt.AlignLeft)
                 self.input_dict.append(l)
 
             # tab 2
             self.l4.setText(self.obj.variables['Ctype']['name']+":")
+
             self.u1.setText(self.obj.variables['Ctype']['unit'])
             self.l5.setText(self.obj.variables['Pcond']['name']+":")
             self.le5.setText(str(self.obj.variables['Pcond']['value']))
             self.u2.setText(self.obj.variables['Pcond']['unit'])
             self.l6.setText(self.obj.variables['C_Spec']['name']+":")
+            self.le6.setText(str(self.obj.variables['C_Spec']['value']))
             self.l7.setText("Compounds :")
 
             self.cb5.addItem("Total")
             self.cb5.addItem("Partial")
+            self.cb5.setCurrentText(self.obj.variables['Ctype']['value'])
             for j in self.obj.Cspec_list:
                 self.cb1.addItem(str(j))
+            self.cb1.setCurrentText(self.obj.variables['C_Spec']['type'])
             for j in self.obj.compounds:
                 self.cb2.addItem(str(j))
+            self.cb2.setCurrentText(self.obj.variables['C_Spec']['comp'])
+
             self.cb2.setDisabled(True)  
             self.cb1.currentIndexChanged.connect(self.fun2) 
 
@@ -75,12 +85,15 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             self.le7.setText(str(self.obj.variables['Preb']['value']))
             self.u3.setText(self.obj.variables['Preb']['unit'])
             self.l9.setText(self.obj.variables['R_Spec']['name']+":")
+            self.le8.setText(str(self.obj.variables['R_Spec']['value']))
             self.l10.setText('Compounds')
         
             for j in self.obj.Rspec_list:
                 self.cb3.addItem(str(j))
+            self.cb3.setCurrentText(self.obj.variables['R_Spec']['type'])
             for j in self.obj.compounds:
                 self.cb4.addItem(str(j))
+            self.cb4.setCurrentText(self.obj.variables['R_Spec']['comp'])
             self.cb4.setDisabled(True)
             self.cb3.currentIndexChanged.connect(self.fun3)
 

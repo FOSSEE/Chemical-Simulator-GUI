@@ -9,9 +9,9 @@ class UnitOperation():
     def __init__(self):
         self.OM_data_eqn = ''
         self.OM_data_init = ''
-        self.input_stms = []
-        self.output_stms = []
-        self.compounds = compound_selected
+        self.input_stms = {}
+        self.output_stms = {}
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
         self.name = ''
         self.mode = None
         self.mode_val = None
@@ -30,6 +30,7 @@ class UnitOperation():
         self.multidict = []
         self.thermo_pack_req = False
         self.thermo_package = 'RaoultsLaw'
+        self.saved = False
 
     def param_getter(self,mode=None):
         params = {}
@@ -45,6 +46,10 @@ class UnitOperation():
         
     def param_setter(self,params):
         print("param_setter ", params)
+        try:
+            self.mode = list(params.keys())[0]
+        except Exception as e:
+            print(e)
         for k,v in params.items():
             if k == 'Thermo Package':
                 self.thermo_package = v
@@ -55,11 +60,12 @@ class UnitOperation():
                 self.variables[k]['value'] = v
                 self.mode_val = params[self.mode]
 
-    def add_connection(self,flag,UnitOpr):
+
+    def add_connection(self,flag,sourceId, UnitOpr):
         if flag==1:                 # Input stream if flag is 1
-            self.input_stms.append(UnitOpr)
+            self.input_stms[sourceId] = UnitOpr
         else :
-            self.output_stms.append(UnitOpr)
+            self.output_stms[sourceId] = UnitOpr
 
     def set_pos(self,pos):
         self.pos = pos
@@ -175,13 +181,13 @@ class ShortcutColumn(UnitOperation):
         type(self).counter += 1
 
         self.variables = {
-            'HKey'  :           {'name':'Heavy Key',                    'value':None,           'unit':''},
-            'LKey'  :           {'name':'Light Key',                    'value':None,           'unit':''},
+            'HKey'  :           {'name':'Heavy Key',                    'value': 0,           'unit':''},
+            'LKey'  :           {'name':'Light Key',                    'value': 0,           'unit':''},
             'HKey_x_pc' :       {'name':'Heavy Key Mole Fraction',      'value':0.01,           'unit':''},
             'LKey_x_pc' :       {'name':'Light Key Mole Fraction',      'value':0.01,           'unit':''},
-            'Ctype' :           {'name':'Condensor Type',               'value':None,           'unit':''},
+            'Ctype' :           {'name':'Condenser Type',               'value':'Total',           'unit':''},
             'thermo_package' :  {'name':'Thermo Package',               'value':'Raoults_Law',  'unit':''},
-            'Pcond' :           {'name':'Condensor Pressure',           'value':101325,         'unit':'Pa'},
+            'Pcond' :           {'name':'Condenser Pressure',           'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',            'value':101325,         'unit':'Pa'},
             'RR'    :           {'name':'Reflux Ratio',                 'value':1.5,            'unit':''},
             
@@ -208,7 +214,7 @@ class ShortcutColumn(UnitOperation):
         self.variables['Pcond']['value'] = params[5]
         self.variables['Preb']['value'] = params[6]
         self.variables['RR']['value'] = params[7]
-        self.thermo_package = params[8]
+        self.variables['thermo_package']['value'] = params[8]
 
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
@@ -232,34 +238,31 @@ class DistillationColumn(UnitOperation):
         self.type = 'DistillationColumn'
         self.no_of_inputs = 1 
         self.no_of_outputs = 2
-
-        self.compounds = compound_selected
-
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
-
+        self.thermo_pack_req = True
         # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
-        self.parameters = ['Nt', 'Ni', 'InT_s', 'Ctype']
+        self.parameters = ['Nt', 'Ni', 'Ctype', 'Pcond', 'condmode', 'C_comp', 'C_Spec', 'Preb', 'rebmode', 'rebcomp', 'R_Spec']
         #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
 
         type(self).counter += 1  
         self.variables = {
-            'Ni'   :            {'name':'Number of Input',          'value':2,              'unit':''},
+            'Ni'   :            {'name':'Number of Input',          'value':1,              'unit':''},
             'RR'    :           {'name':'Reflux Ratio',             'value':None,           'unit':''},
             'T'     :           {'name':'Temperature',              'value':300,            'unit':'K'},
             'Nout'  :           {'name':'No of Sidedraws',          'value':None,           'unit':''},
             'Nt'    :           {'name':'No of Stages',             'value':12,             'unit':''},
             'InT_s' :           {'name':'Feed Stage',              'value':[],           'unit':''},
             'thermo_package' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
-            'Ctype' :           {'name':'Condensor Type',           'value':'',             'unit':''},
-            'Pcond' :           {'name':'Condensor Pressure',       'value':101325,         'unit':'Pa'},
+            'Ctype' :           {'name':'Condenser Type',           'value':'Total',             'unit':''},
+            'Pcond' :           {'name':'Condenser Pressure',       'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',        'value':101325,         'unit':'Pa'},
-            'C_Spec':           {'name':'Condensor Specification',  'type':'Reflux Ratio',  'value':'',         'comp':'',      'unit':''},
-            'R_Spec':           {'name':'Reboiler Specification',   'type':'',              'value':'',         'comp':'',      'unit':''},
+            'C_Spec':           {'name':'Condenser Specification',  'type':self.Cspec_list[0],  'value':'',         'comp':compound_selected[0],      'unit':''},
+            'R_Spec':           {'name':'Reboiler Specification',   'type':self.Rspec_list[0],       'value':'',         'comp':compound_selected[0],      'unit':''},
         }
        
     def param_setter(self,params):
@@ -275,13 +278,117 @@ class DistillationColumn(UnitOperation):
         self.variables['C_Spec']['type'] = params[temp+3]
         if 'Compound' in self.variables['C_Spec']['type']:
             self.variables['C_Spec']['comp'] = params[temp+4]
+        # C_Spec variable value won't be updated to class here. It will be updated in result
         self.variables['C_Spec']['value'] = params[temp+5]
+        for var in self.variables:
+            if self.variables[var]['name'] == self.variables['C_Spec']['type']:
+                self.variables[var]['value'] = params[temp+5]
+
         self.variables['Preb']['value'] = params[temp+6]
+        # R_Spec variable value won't be updated to class here. It will be updated in result
         self.variables['R_Spec']['type'] = params[temp+7]
         if 'Compound' in self.variables['R_Spec']['type']:
             self.variables['R_Spec']['comp'] = params[temp+8]
-        self.variables['R_Spec']['value'] = params[temp+9]   
+        self.variables['R_Spec']['value'] = params[temp+9]
+        self.variables['thermo_package']['value'] = params[temp+10]
         print(self.variables)
+
+    def OM_Flowsheet_Initialize(self):
+        self.OM_data_init = ''
+        self.OM_data_init = self.OM_data_init + 'model Condenser\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.Cond;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Condenser;\n'
+        self.OM_data_init = self.OM_data_init + 'model Tray\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.DistTray;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Tray;\n'
+        self.OM_data_init = self.OM_data_init + 'model Reboiler\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.UnitOperations.DistillationColumn.Reb;\n'
+        self.OM_data_init = self.OM_data_init + 'extends Simulator.Files.ThermodynamicPackages.' + self.thermo_package + ';\n'
+        self.OM_data_init = self.OM_data_init + 'end Reboiler;\n'
+        self.OM_data_init = self.OM_data_init + ("model distCol" + str(self.count) + "\n")
+        self.OM_data_init = self.OM_data_init + ("extends Simulator.UnitOperations.DistillationColumn.DistCol;\n")
+        self.OM_data_init = self.OM_data_init + (
+             "Condenser condenser(Nc = Nc, C = C, Ctype =Ctype, Bin = Bin_t[1], T(start = 300));\n")
+        self.OM_data_init = self.OM_data_init + (
+            "Reboiler reboiler(Nc = Nc, C = C, Bin = Bin_t[Nt]);\n")
+        self.OM_data_init = self.OM_data_init + (
+             "Tray tray[Nt - 2](each Nc = Nc, each C = C, Bin = Bin_t[2:Nt - 1]);\n")
+        self.OM_data_init = self.OM_data_init + ("end distCol" + str(self.count) + ";\n")
+        comp_count = len(self.compounds)
+        self.OM_data_init = self.OM_data_init + (
+                "distCol" + str(self.count) + " " + self.name + "(Nc = " + str(comp_count))
+        self.OM_data_init = self.OM_data_init + (", C= C")
+
+        self.OM_data_init = self.OM_data_init + "," + (
+                    "Nt=" + str(self.variables['Nt']['value']) + "," + "Ni="
+                    + str(self.variables['Ni']['value']) + ",InT_s=" + "{" +
+                    str(self.variables['InT_s']['value']).strip('[').strip(']') + "}" + ',Ctype ="' +
+                    self.variables['Ctype']['value'] + '");\n')
+        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm1.name+';\n'
+        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm2.name+';\n'
+        return self.OM_data_init
+
+    def OM_Flowsheet_Equation(self):
+        self.OM_data_eqn = ''
+        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
+        # self.OM_data_eqn = self.OM_data_eqn + (
+        #             'connect(' + self.name + '.' + 'condensor_duty' + ',' + self.EngStm1.name + '.inlet);\n')
+           # self.OM_data_eqn = self.OM_data_eqn + (
+           #             'connect(' + self.name + '.reboiler_duty' + ', ' + self.EngStm2.name + '.inlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + (
+                'connect(' + self.name + '.Dist' + ", " + self.output_stms[0].name + '.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + (
+                'connect(' + self.name + '.Bot' + ", " + self.output_stms[1].name + '.In);\n')
+        for i in range(len(self.input_stms)):
+            self.OM_data_eqn = self.OM_data_eqn + (
+                    'connect(' + self.input_stms[i].name + '.Out' + ", " + self.name + '.In_s[' + str(
+                i + 1) + ']);\n')
+        # ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',
+        #  'Compound Molar Flow    (mol/s)']
+        if self.variables['C_Spec']['type'] == "Reflux Ratio":
+            self.OM_data_eqn = self.OM_data_eqn + (
+                        self.name + '.' + 'RR' + '=' + str(self.variables['RR']['value']) + ';\n')
+        elif self.variables['C_Spec']['type'] == "Product Molar Flow   (mol/s)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.' + 'F_p[1] = ' + str(
+                self.variables['C_Spec']['value']) + ';\n')
+        elif self.variables['C_Spec']['type'] == "Temperature  (K)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.' + 'T = ' + str(
+                self.variables['C_Spec']['value']) + ';\n')
+        elif self.variables['C_Spec']['type'] == "Compound Molar Fraction":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.x_pc[1,:' +
+                               str(self.compounds.index(self.variables['C_Spec']['comp']) + 1) + '] = ' + str(
+                               self.variables['C_Spec']['value']) + ';\n')
+        elif self.variables['C_Spec']['type'] == "Compound Molar Flow    (mol/s)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.F_pc[1,:' +
+                               str(self.compounds.index(self.variables['C_Spec']['comp']) + 1) + '] = ' + str(
+                               self.variables['C_Spec']['value']) + ';\n')
+        else:
+            self.OM_data_eqn = self.OM_data_eqn + (
+                    self.name + '.Condenser.' + self.mode + '=' + str(self.modeVal) + ';\n')
+
+        if self.variables['R_Spec']['type'] == "Product Molar Flow   (mol/s)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'F_p[1] = ' + str(
+                               self.variables['R_Spec']['value']) + ';\n')
+        elif self.variables['R_Spec']['type'] == "Temperature  (K)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'T = ' + str(
+                               self.variables['R_Spec']['value']) + ';\n')
+        elif self.variables['R_Spec']['type'] == "Compound Molar Fraction":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.x_pc[1,:' +
+                               str(self.compounds.index(self.variables['R_Spec']['comp']) + 1) + '] = ' + str(
+                               self.variables['R_Spec']['value']) + ';\n')
+        elif self.variables['R_Spec']['type'] == "Compound Molar Flow    (mol/s)":
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.F_pc[1,:' +
+                               str(self.compounds.index(self.variables['R_Spec']['comp']) + 1) + '] = ' + str(
+                               self.variables['R_Spec']['value']) + ';\n')
+
+
+        self.OM_data_eqn = self.OM_data_eqn + self.name + '.reboiler.P=' + str(
+            self.variables['Preb']['value']) + ';\n'
+        self.OM_data_eqn = self.OM_data_eqn + self.name + '.condenser.P=' + str(
+            self.variables['Pcond']['value']) + ';\n'
+        return self.OM_data_eqn
         
 class ConvertionReactor(UnitOperation):
     def __init__(self,name='',Nr=None,b=None,X=None,Z=None,a=[],operation=None,Tdef=None):
@@ -305,13 +412,13 @@ class CompoundSeparator(UnitOperation):
         self.no_of_inputs = 1 
         self.no_of_outputs = 2 
 
-        self.SepFact_modes = ['Molar_Flow   (mol/s)', 'Mass_Flow    (g/s)', 'Inlet_Molar_Flow_Percent', 'Outlet_Molar_Flow_Percent']
+        self.SepFact_modes = ['Molar_Flow   (mol/s)', 'Mass_Flow   (g/s)', 'Inlet_Molar_Flow_Percent', 'Outlet_Molar_Flow_Percent']
 
         type(self).counter += 1  
         self.variables = {
             'SepStrm'   : {'name':'Separation Stream',      'value':1,              'unit':''}, 
-            'SepVal_c'    : {'name':'Separation Value',       'value':[],             'unit':''},
-            'SepFact_c'   : {'name':'Separaction Factor',     'value':[],             'unit':''},
+            'SepVal_c'    : {'name':'Separation Value',       'value':['']*len(self.compounds),             'unit':''},
+            'SepFact_c'   : {'name':'Separaction Factor',     'value':['']*len(self.compounds),             'unit':''},
         }
 
     def param_setter(self,params):
@@ -323,16 +430,21 @@ class CompoundSeparator(UnitOperation):
             self.variables['SepStrm']['value'] = 2
         for index, i in enumerate(range(2, len(params))):
             if (i %2 != 0):
-                self.variables['SepVal_c']['value'].append(float(params[i]))   
+                self.variables['SepVal_c']['value'][index//2] = float(params[i])
             else:
-                self.variables['SepFact_c']['value'].append(params[i].split(' ')[0])    
+                self.variables['SepFact_c']['value'][index//2] = params[i]
         
-        self.variables['SepFact_c']['value'] = json.dumps(self.variables['SepFact_c']['value']).replace('[','{').replace(']','}')
-        self.variables['SepStrm']['value'] = str(self.variables['SepStrm']['value'])
-        self.variables['SepVal_c']['value'] = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
+        # self.variables['SepFact_c']['value'] = json.dumps(self.variables['SepFact_c']['value']).replace('[','{').replace(']','}')
+        # self.variables['SepStrm']['value'] = str(self.variables['SepStrm']['value'])
+        # self.variables['SepVal_c']['value'] = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
 
 
     def OM_Flowsheet_Initialize(self):
+        SepStrm = str(self.variables['SepStrm']['value'])
+        SepFact = []
+        for i in range(len(self.compounds)):
+            SepFact.append(self.variables['SepFact_c']['value'][i].split(' ')[0])
+        SepFact  = json.dumps(SepFact).replace('[', '{').replace(']', '}')
         self.OM_data_init = ''
         comp_count = len(self.compounds)
         self.OM_data_init = self.OM_data_init + (
@@ -341,12 +453,13 @@ class CompoundSeparator(UnitOperation):
         comp = str(self.compounds).strip('[').strip(']')
         comp = comp.replace("'", "")
         self.OM_data_init = self.OM_data_init + comp + ("},")
-        self.OM_data_init = self.OM_data_init + ("SepFact_c = "+self.variables['SepFact_c']['value']+",SepStrm = " + self.variables['SepStrm']['value']  + ");\n") #+ ", sepFactVal = " + self.variables['SepVal_c']['value']
+        self.OM_data_init = self.OM_data_init + ("SepFact_c = " + SepFact + ",SepStrm = " + SepStrm + ");\n")
 
         return self.OM_data_init
 
 
     def OM_Flowsheet_Equation(self):
+        SepVal = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
         self.OM_data_eqn = ''
        
         self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
@@ -356,7 +469,7 @@ class CompoundSeparator(UnitOperation):
             self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out' + str(strcount) + ');\n')
             strcount += 1
         
-        self.OM_data_eqn += (self.name + '.SepVal_c ' + '=' + self.variables['SepVal_c']['value'] + ';\n')    
+        self.OM_data_eqn += (self.name + '.SepVal_c ' + '=' + SepVal + ';\n')
 
         return self.OM_data_eqn
 
@@ -440,7 +553,7 @@ class Splitter(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Splitter.counter) 
         self.type = 'Splitter'
-        self.no_of_outputs = 3 
+        self.no_of_outputs = 2
         
         self.CalcType_modes = ['Split_Ratio', 'Molar_Flow', 'Mass_Flow']
 
@@ -450,7 +563,7 @@ class Splitter(UnitOperation):
         self.variables = {
             'No'       : {'name':'No. of Output',          'value':3,                          'unit':''},
             'CalcType'  : {'name':'Calculation Type',       'value':self.CalcType_modes[0],     'unit':''},
-            'SpecVal_s' : {'name':'Specification Value',    'value':[50,50],                    'unit':''}
+            'SpecVal_s' : {'name':'Specification Value',    'value':[0.5,0.5],                    'unit':''}
         }
         
         specval = self.variables['SpecVal_s']['value'] 
@@ -465,6 +578,8 @@ class Splitter(UnitOperation):
             self.variables['SpecVal_s']['unit'] = 'mol/s'
         elif self.variables['CalcType']['value'] == 'Mass_Flow':
             self.variables['SpecVal_s']['unit'] = 'g/s'
+        else:
+            self.variables['SpecVal_s']['unit'] = ''
 
 class Mixer(UnitOperation):
 

@@ -32,6 +32,7 @@ class DockWidget(QDockWidget,ui_dialog):
         if(modes_list):
             for j in modes_list:
                 self.comboBox.addItem(str(self.obj.variables[j]['name']))
+            self.comboBox.setCurrentText(self.obj.variables[self.obj.mode]['name'])
             self.mode_selection()
         else:
             self.comboBox.setDisabled(True)
@@ -59,7 +60,7 @@ class DockWidget(QDockWidget,ui_dialog):
                 print(i)
                 if i == None:
                     continue
-                l = QLineEdit(self.obj.variables[i]['value'])
+                l = QLineEdit(str(self.obj.variables[i]['value']))
                 lay = QGridLayout()
                 lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
@@ -68,6 +69,7 @@ class DockWidget(QDockWidget,ui_dialog):
                 self.input_dict[i] = l
         except Exception as e:
             print(e)
+
 
     def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")

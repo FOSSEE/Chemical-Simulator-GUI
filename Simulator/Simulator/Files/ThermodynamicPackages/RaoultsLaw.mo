@@ -1,7 +1,7 @@
 within Simulator.Files.ThermodynamicPackages;
 
   model RaoultsLaw
-    import Simulator.Files.Thermodynamic_Functions.*;
+    import Simulator.Files.ThermodynamicFunctions.*;
     Real K_c[Nc](each min = 0), Cpres_p[3], Hres_p[3], Sres_p[3];
     Real gma_c[Nc], gmabubl_c[Nc], gmadew_c[Nc];
     Real philiqbubl_c[Nc], phivapdew_c[Nc], Pvap_c[Nc];

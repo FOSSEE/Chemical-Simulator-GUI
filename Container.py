@@ -127,7 +127,7 @@ class Container():
         print(mode)
         self.compounds = compound_selected
         self.flowsheet = Flowsheet()
-        self.flowsheet.add_compound_list(self.compounds)
+        self.flowsheet.add_compound_list([c[:c.index('(')] for c in self.compounds])
         print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
             self.flowsheet.add_unit_operations(i)

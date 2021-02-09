@@ -105,6 +105,10 @@ class Flowsheet():
             lcase = c.lower()
             self.data.append("parameter database." + ucase +' '+ ucase + "; \n")
 
+        self.data.append("parameter Integer Nc = " + str(len(self.compounds)) + ";\n")
+        self.data.append("parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc] = {" +
+                         str(self.compounds).strip('[').strip(']').replace("'", "") + "};\n")
+
         for unitop in self.unit_operations:
             if unitop.type != 'MaterialStream':
                 self.data.append(unitop.OM_Flowsheet_Initialize())

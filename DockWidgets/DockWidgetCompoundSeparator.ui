@@ -34,7 +34,7 @@
      <x>10</x>
      <y>40</y>
      <width>331</width>
-     <height>191</height>
+     <height>281</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout"/>

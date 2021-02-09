@@ -299,6 +299,7 @@ class MainApp(QMainWindow,ui):
         data = []
         for i in self.container.unit_operations:
             data.append(i)
+            i.saved = True
             print(i.pos)
         data.append(compound_selected)
         print(data)

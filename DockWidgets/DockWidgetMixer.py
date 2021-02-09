@@ -30,6 +30,7 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
             self.u1.setText(self.obj.variables['NI']['unit'])
             for i in self.obj.Pout_modes:
                 self.cb2.addItem(str(i))
+            self.cb2.setCurrentText(self.obj.variables['outPress']['value'])
 
             self.l2.setText(self.obj.variables['outPress']['name']+":")
             self.input_dict = [self.le1, self.cb2]

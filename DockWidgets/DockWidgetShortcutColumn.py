@@ -34,6 +34,8 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             for i in self.obj.compounds:
                 self.cb1.addItem(str(i))
                 self.cb2.addItem(str(i))
+            self.cb1.setCurrentText(self.obj.compounds[int(self.obj.variables['HKey']['value'])-1])
+            self.cb2.setCurrentText(self.obj.compounds[int(self.obj.variables['LKey']['value'])-1])
 
             self.l3.setText(self.obj.variables['HKey_x_pc']['name']+":")
             self.le3.setText(str(self.obj.variables['HKey_x_pc']['value']))
@@ -45,6 +47,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.l5.setText(self.obj.variables['Ctype']['name']+":")
             self.cb5.addItem('Total')
             self.cb5.addItem('Partial')
+            self.cb5.setCurrentText(self.obj.variables['Ctype']['value'])
 
             self.l6.setText(self.obj.variables['Pcond']['name']+":")
             self.le6.setText(str(self.obj.variables['Pcond']['value']))
@@ -61,9 +64,10 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
             for j in self.lines:
                 self.cb6.addItem(str(j))
+            self.cb6.setCurrentText(self.obj.variables['thermo_package']['value'])
             
             self.input_dict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8, self.cb6]
- 
+
         except Exception as e:
             print(e)
     

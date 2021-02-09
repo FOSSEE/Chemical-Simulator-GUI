@@ -38,6 +38,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         if(modes_list):
             for j in modes_list:
                 self.comboBox.addItem(str(j))
+            self.comboBox.setCurrentText(self.obj.mode)
             self.mode_selection()
         else:
             self.input_dict= {}
@@ -46,9 +47,13 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
     def mode_selection(self):
         self.input_dict= {}
-        for i in reversed(range(self.formLayout.count())):
-            self.formLayout.removeRow(i) 
+        try: # removing existing rows while changing modes
+            for i in reversed(range(self.formLayout.count())):
+                self.formLayout.removeRow(i)
+        except Exception as e:
+            print(e)
         self.input_dict = self.obj.param_getter(self.comboBox.currentText())
+        self.obj.mode = self.comboBox.currentText()
         self.input_params_list()
 
     def input_params_list(self):

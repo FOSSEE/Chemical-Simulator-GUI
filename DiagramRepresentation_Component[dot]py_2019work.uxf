@@ -1,0 +1,62 @@
+<diagram program="umletino" version="14.3.0"><zoom_level>10</zoom_level><element><id>UMLClass</id><coordinates><x>30</x><y>60</y><w>100</w><h>110</h></coordinates><panel_attributes>Chemsep
+Database</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>610</x><y>70</y><w>130</w><h>40</h></coordinates><panel_attributes>get_comp_name_list()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>430</x><y>70</y><w>100</w><h>40</h></coordinates><panel_attributes>comp_name_list</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>240</x><y>70</y><w>100</w><h>40</h></coordinates><panel_attributes>Comp Name</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>180</x><y>210</y><w>100</w><h>40</h></coordinates><panel_attributes>get_value()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>350</x><y>210</y><w>100</w><h>40</h></coordinates><panel_attributes>get_comp_prop()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>30</x><y>350</y><w>120</w><h>120</h></coordinates><panel_attributes>Doct 1 {Dictionary}
+
+DB1: comp1,
+comp2...comp n
+
+DB2: comp1,
+comp2...comp n</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>170</x><y>350</y><w>100</w><h>40</h></coordinates><panel_attributes>comp</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>380</x><y>350</y><w>100</w><h>40</h></coordinates><panel_attributes>get_object()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>590</x><y>350</y><w>100</w><h>40</h></coordinates><panel_attributes>removing
+ attribute</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>820</x><y>350</y><w>130</w><h>40</h></coordinates><panel_attributes>compound_selected</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>500</x><y>490</y><w>100</w><h>40</h></coordinates><panel_attributes>prop_list</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>690</x><y>490</y><w>100</w><h>40</h></coordinates><panel_attributes>Dict</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>500</x><y>600</y><w>100</w><h>40</h></coordinates><panel_attributes>final_mo()</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>700</x><y>600</y><w>100</w><h>40</h></coordinates><panel_attributes>addToTable()</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>730</x><y>390</y><w>30</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;40;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>540</x><y>530</y><w>120</w><h>90</h></coordinates><panel_attributes>lt=&lt;&lt;-
+send information
+for simulation</panel_attributes><additional_attributes>10;70;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>730</x><y>530</y><w>80</w><h>90</h></coordinates><panel_attributes>lt=&lt;&lt;-
+send data 
+to table</panel_attributes><additional_attributes>10;70;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>130</x><y>70</y><w>130</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-
+Looping through 
+"compound"
+to get each element</panel_attributes><additional_attributes>110;20;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>270</x><y>350</y><w>130</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-
+Find
+which database
+it belongs to</panel_attributes><additional_attributes>110;20;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>480</x><y>350</y><w>130</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-
+get the
+removing
+ attribute</panel_attributes><additional_attributes>110;20;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>690</x><y>350</y><w>150</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-
+get original name 
+and save 
+it in the list</panel_attributes><additional_attributes>130;20;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>330</x><y>70</y><w>130</w><h>90</h></coordinates><panel_attributes>lt=&lt;&lt;-
+appending 
+db_name
+"self_name"
+and saving in the list
+</panel_attributes><additional_attributes>100;20;20;20</additional_attributes></element><element><id>Relation</id><coordinates><x>530</x><y>70</y><w>100</w><h>60</h></coordinates><panel_attributes>lt=&lt;&lt;-
+function 
+to fetch 
+the list</panel_attributes><additional_attributes>80;20;10;20</additional_attributes></element><element><id>UMLSyncBarHorizontal</id><coordinates><x>230</x><y>150</y><w>160</w><h>20</h></coordinates><panel_attributes>{joinSpec=
+date is on or 
+after July 1st
+and the exam 
+is passed}</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLSyncBarHorizontal</id><coordinates><x>540</x><y>420</y><w>250</w><h>20</h></coordinates><panel_attributes>{joinSpec=
+date is on or 
+after July 1st
+and the exam 
+is passed}</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>540</x><y>430</y><w>140</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;-
+get_comp_prop()
+get_original_name()</panel_attributes><additional_attributes>10;60;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>730</x><y>430</y><w>90</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;-
+get_value() </panel_attributes><additional_attributes>10;60;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>280</x><y>110</y><w>30</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>230</x><y>160</y><w>120</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;-
+Get Value like
+ CAS Number etc</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>360</x><y>160</y><w>170</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;-
+Get component properties</panel_attributes><additional_attributes>10;50;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>210</x><y>290</y><w>130</w><h>80</h></coordinates><panel_attributes>lt=&lt;&lt;-
+Text from Line Edit</panel_attributes><additional_attributes>10;60;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>810</x><y>460</y><w>60</w><h>30</h></coordinates><panel_attributes>lt=&lt;&lt;-</panel_attributes><additional_attributes>40;10;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>860</x><y>450</y><w>110</w><h>80</h></coordinates><panel_attributes>lt=.
+CAS Number 
+Molecular wt
+Name
+Molecular Formula</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>170</x><y>410</y><w>110</w><h>50</h></coordinates><panel_attributes>lt=.
+comp name 
+appended with 
+database name</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>10</x><y>490</y><w>200</w><h>120</h></coordinates><panel_attributes>lt=.
+Keys: Instances of the databances
+
+Values: 'get_comp_name_list()'
+
+'lines' :  = stores compounds from 
+databases which is then sent to 
+model for auto_complete feature.</panel_attributes><additional_attributes></additional_attributes></element></diagram>
