@@ -141,20 +141,21 @@ class UnitOperation():
 
         if len(self.input_stms)>1 or self.type == 'Mixer':
             strcount = 1
-            for strm in self.input_stms:
+            for strm in self.input_stms.values():
                 self.OM_data_eqn += ('connect(' + strm.name + '.Out,' + self.name + '.In[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+            print(self.input_stms)
+            self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[1].name + '.Out);\n')
 
         if len(self.output_stms)>1:
             strcount = 1
-            for strm in self.output_stms:
+            for strm in self.output_stms.values():
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
             print("self.output_stms ", self.output_stms)
-            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[0].name + '.In);\n')    
+            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[1].name + '.In);\n')
         
         if self.mode:
             self.OM_data_eqn += (self.name + '.' + self.mode + '=' + str(self.mode_val) + ';\n')
@@ -219,7 +220,7 @@ class ShortcutColumn(UnitOperation):
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
        
-        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[1].name + '.Out);\n')
 
         strcount = 1
         for strm in self.output_stms:
@@ -343,7 +344,7 @@ class DistillationColumn(UnitOperation):
                 'connect(' + self.name + '.Bot' + ", " + self.output_stms[1].name + '.In);\n')
         for i in range(len(self.input_stms)):
             self.OM_data_eqn = self.OM_data_eqn + (
-                    'connect(' + self.input_stms[i].name + '.Out' + ", " + self.name + '.In_s[' + str(
+                    'connect(' + self.input_stms[i +1].name + '.Out' + ", " + self.name + '.In_s[' + str(
                 i + 1) + ']);\n')
         # ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',
         #  'Compound Molar Flow    (mol/s)']
