@@ -102,6 +102,13 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             self.input_dict.append(self.cb4) 
             self.input_dict.append(self.le8)
 
+            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            for j in self.lines:
+                self.cbTP.addItem(str(j))
+            self.cbTP.setCurrentText(self.obj.variables['thermo_package']['value'])
+
+            self.input_dict.append(self.cbTP)
+
             # self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
              
         except Exception as e:
@@ -154,7 +161,9 @@ class DockWidgetDistillationColumn(QDockWidget,ui_dialog):
             print(temp+8)
             self.dict.append(int(self.input_dict[temp+9].text()))
             print(temp+9)
-            
+            self.dict.append(self.input_dict[temp+10].currentText())
+            print(temp + 10)
+
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
             self.hide()
