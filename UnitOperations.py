@@ -247,6 +247,7 @@ class DistillationColumn(UnitOperation):
         self.modes_list = []
         self.parameters = ['Nt', 'Ni', 'Ctype', 'Pcond', 'condmode', 'C_comp', 'C_Spec', 'Preb', 'rebmode', 'rebcomp', 'R_Spec']
         #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
+        self.result_parameters = ['Cduty.Q', 'Rduty.Q']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
 
@@ -258,12 +259,16 @@ class DistillationColumn(UnitOperation):
             'Nout'  :           {'name':'No of Sidedraws',          'value':None,           'unit':''},
             'Nt'    :           {'name':'No of Stages',             'value':12,             'unit':''},
             'InT_s' :           {'name':'Feed Stage',              'value':[],           'unit':''},
-            'thermo_package' :   {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
+            'thermo_package' :  {'name':'Thermo Package',           'value':'Raoults_Law',  'unit':''},
             'Ctype' :           {'name':'Condenser Type',           'value':'Total',             'unit':''},
             'Pcond' :           {'name':'Condenser Pressure',       'value':101325,         'unit':'Pa'},
             'Preb'  :           {'name':'Reboiler Pressure',        'value':101325,         'unit':'Pa'},
             'C_Spec':           {'name':'Condenser Specification',  'type':self.Cspec_list[0],  'value':'',         'comp':compound_selected[0],      'unit':''},
             'R_Spec':           {'name':'Reboiler Specification',   'type':self.Rspec_list[0],       'value':'',         'comp':compound_selected[0],      'unit':''},
+            'Cduty.Q':          {'name':'Condenser Duty', 'value': '', 'unit':'W'},
+            'Rduty.Q':          {'name':'Reboiler Duty', 'value': '', 'unit': 'W'},
+            'Stages.T':         {'name':'Stagewise Temperature', 'value':[], 'unit':'K'},
+            'Stages.x_pc':      {'name': 'Stagewise Component Mole Fraction', 'value':[],'unit':''}
         }
        
     def param_setter(self,params):
@@ -339,9 +344,9 @@ class DistillationColumn(UnitOperation):
            # self.OM_data_eqn = self.OM_data_eqn + (
            #             'connect(' + self.name + '.reboiler_duty' + ', ' + self.EngStm2.name + '.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + (
-                'connect(' + self.name + '.Dist' + ", " + self.output_stms[0].name + '.In);\n')
+                'connect(' + self.name + '.Dist' + ", " + self.output_stms[1].name + '.In);\n')
         self.OM_data_eqn = self.OM_data_eqn + (
-                'connect(' + self.name + '.Bot' + ", " + self.output_stms[1].name + '.In);\n')
+                'connect(' + self.name + '.Bot' + ", " + self.output_stms[2].name + '.In);\n')
         for i in range(len(self.input_stms)):
             self.OM_data_eqn = self.OM_data_eqn + (
                     'connect(' + self.input_stms[i +1].name + '.Out' + ", " + self.name + '.In_s[' + str(
@@ -352,17 +357,17 @@ class DistillationColumn(UnitOperation):
             self.OM_data_eqn = self.OM_data_eqn + (
                         self.name + '.' + 'RR' + '=' + str(self.variables['RR']['value']) + ';\n')
         elif self.variables['C_Spec']['type'] == "Product Molar Flow   (mol/s)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.' + 'F_p[1] = ' + str(
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'F_p[1] = ' + str(
                 self.variables['C_Spec']['value']) + ';\n')
         elif self.variables['C_Spec']['type'] == "Temperature  (K)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.' + 'T = ' + str(
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'T = ' + str(
                 self.variables['C_Spec']['value']) + ';\n')
         elif self.variables['C_Spec']['type'] == "Compound Molar Fraction":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.x_pc[1,:' +
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.x_pc[1,:' +
                                str(self.compounds.index(self.variables['C_Spec']['comp']) + 1) + '] = ' + str(
                                self.variables['C_Spec']['value']) + ';\n')
         elif self.variables['C_Spec']['type'] == "Compound Molar Flow    (mol/s)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[0].name + '.F_pc[1,:' +
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.F_pc[1,:' +
                                str(self.compounds.index(self.variables['C_Spec']['comp']) + 1) + '] = ' + str(
                                self.variables['C_Spec']['value']) + ';\n')
         else:
@@ -370,17 +375,17 @@ class DistillationColumn(UnitOperation):
                     self.name + '.Condenser.' + self.mode + '=' + str(self.modeVal) + ';\n')
 
         if self.variables['R_Spec']['type'] == "Product Molar Flow   (mol/s)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'F_p[1] = ' + str(
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[2].name + '.' + 'F_p[1] = ' + str(
                                self.variables['R_Spec']['value']) + ';\n')
         elif self.variables['R_Spec']['type'] == "Temperature  (K)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.' + 'T = ' + str(
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[2].name + '.' + 'T = ' + str(
                                self.variables['R_Spec']['value']) + ';\n')
         elif self.variables['R_Spec']['type'] == "Compound Molar Fraction":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.x_pc[1,:' +
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[2].name + '.x_pc[1,:' +
                                str(self.compounds.index(self.variables['R_Spec']['comp']) + 1) + '] = ' + str(
                                self.variables['R_Spec']['value']) + ';\n')
         elif self.variables['R_Spec']['type'] == "Compound Molar Flow    (mol/s)":
-            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.F_pc[1,:' +
+            self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[2].name + '.F_pc[1,:' +
                                str(self.compounds.index(self.variables['R_Spec']['comp']) + 1) + '] = ' + str(
                                self.variables['R_Spec']['value']) + ';\n')
 

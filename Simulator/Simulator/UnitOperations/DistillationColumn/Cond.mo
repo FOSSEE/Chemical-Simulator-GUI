@@ -71,8 +71,8 @@ within Simulator.UnitOperations.DistillationColumn;
     En.Q = Q;
 //Adjustment for thermodynamic packages
     x_pc[1, :] = (Fout .* xout_c[:] + Fliqout .* xliqout_c[:]) ./ (Fout + Fliqout);
-     x_pc[2, :] = xliqout_c[:];
-     x_pc[3, :] = K_c[:] .* x_pc[2, :];
+    x_pc[2, :] = xliqout_c[:];
+    x_pc[3, :] = K_c[:] .* x_pc[2, :];
 //Bubble point calculation
     Pbubl = sum(gmabubl_c[:] .* x_pc[1, :] .* Pvap_c[:] ./ philiqbubl_c[:]);
 //Dew point calculation
