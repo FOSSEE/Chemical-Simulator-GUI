@@ -311,7 +311,6 @@ class MaterialStream():
         self.OM_data_init = self.OM_data_init + ');\n'        
         return self.OM_data_init
 
-
     def OM_Flowsheet_Equation(self,addedcomp,method):
         self.OM_data_eqn = ''
         self.comp_count = len(addedcomp)

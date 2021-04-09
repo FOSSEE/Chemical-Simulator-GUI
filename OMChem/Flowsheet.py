@@ -121,7 +121,7 @@ class Flowsheet():
         self.stm = ['MaterialStream','EngStm']
         for unitop in self.unit_operations:
             if unitop.type not in self.stm:
-                for j in unitop.output_stms: 
+                for j in unitop.output_stms.values():
                     self.outlist.append(j)  
                 
         for unitop in self.unit_operations:
