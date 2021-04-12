@@ -222,7 +222,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             Nt = self.obj.variables['Nt']['value']
             Nc = len(self.obj.compounds)
             # initializing temporary arrays
-            Stages_T = [None]*Nt
+            Stages_T = [None for i in range(Nt)]
         # Can be uncommented when F_p and F_pc implemented in modelica table
             # Stages_F_p = [[None for i in range(3)] for j in range(Nt)]
             # Stages_F_pc = [[[None for i in range(3)] for j in range(Nc)] for k in range(Nt)]
@@ -342,6 +342,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                 for j in range(Nc):
                     x_pc_table.setItem(i, 2*j, QTableWidgetItem(Stages_x_pc[i][j][1]))
                     x_pc_table.setItem(i, 2 * j + 1, QTableWidgetItem(Stages_x_pc[i][j][2]))
+
             for t in tables:
                 t.resizeColumnsToContents()
         except Exception as e:

@@ -593,7 +593,7 @@ class Mixer(UnitOperation):
         UnitOperation.__init__(self)
         self.name = name + str(Mixer.counter) 
         self.type = 'Mixer'
-        self.no_of_inputs = 6
+        self.no_of_inputs = 2
 
         self.Pout_modes = ['Inlet_Minimum', 'Inlet_Average', 'Inlet_Maximum']
         self.parameters = ['NI', 'outPress']
