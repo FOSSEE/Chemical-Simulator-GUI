@@ -44,6 +44,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
                 pass
             else:
                 self.unit_operations.append(i)
+                type(i).counter += 1
             print(self.unit_operations)
             new_box = self.create_node_item(i, container)
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
