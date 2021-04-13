@@ -100,14 +100,23 @@ class Flowsheet():
         self.sim_method = 'Eqn'
         self.data.append("model Flowsheet\n")
         
-        for c in self.compounds:
-            ucase = c.title()
-            lcase = c.lower()
-            self.data.append("parameter database." + ucase +' '+ ucase + "; \n")
+        tempCompounds = self.compounds
+        for c in tempCompounds:
+            CompName = c
+            CompName = CompName.replace(" ", "")
+            CompName = CompName.replace("-", "")
+            CompName = CompName.replace(",", "")
+            CompName = CompName.replace("1", "One")
+            CompName = CompName.replace("2", "Two")
+            CompName = CompName.replace("3", "Three")
+            CompName = CompName.replace("4", "Four")
+            CompName = CompName.replace("5", "Five")
+            self.data.append("parameter database." + CompName +' '+ CompName + "; \n")
+            tempCompounds[tempCompounds.index(c)] = CompName
 
-        self.data.append("parameter Integer Nc = " + str(len(self.compounds)) + ";\n")
+        self.data.append("parameter Integer Nc = " + str(len(tempCompounds)) + ";\n")
         self.data.append("parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc] = {" +
-                         str(self.compounds).strip('[').strip(']').replace("'", "") + "};\n")
+                         str(tempCompounds).strip('[').strip(']').replace("'", "") + "};\n")
 
         for unitop in self.unit_operations:
             if unitop.type != 'MaterialStream':
@@ -185,9 +194,9 @@ class Flowsheet():
                 self.data.append("model "+unitop.name.lower()+'\n')
                 
                 for c in self.compounds:
-                    ucase = c.title()
+                    c = c.title()
                     lcase = c.lower()
-                    self.data.append("parameter Simulator.Files.Chemsep_Database." + ucase +' '+ ucase + "; \n")
+                    self.data.append("parameter Simulator.Files.Chemsep_Database." + c +' '+ c + "; \n")
                 
                 self.data.append(unitop.OM_Flowsheet_Initialize())
                 
