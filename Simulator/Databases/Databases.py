@@ -60,6 +60,7 @@ class ChemsepDatabase():
                 CompName = CompName.replace("3","Three")
                 CompName = CompName.replace("4","Four")
                 CompName = CompName.replace("5","Five")
+
                 CAS = comp.getElementsByTagName("CAS")[0].getAttribute("value")
                 CriticalTemp = comp.getElementsByTagName("CriticalTemperature")[0].getAttribute("value")
                 CriticalPres = comp.getElementsByTagName("CriticalPressure")[0].getAttribute("value")

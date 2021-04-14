@@ -111,8 +111,8 @@ class ComponentSelector(QDialog,ui_dialog):
             
             self.CAS=self.obj.get_value(self.comp,'CAS')
             self.name=self.comp
-            self.molecular_formula=self.obj.get_value(self.comp,'Smiles')
-            self.molecular_weight=self.obj.get_value(self.comp,'MolecularWeight')
+            self.molecular_formula=self.obj.get_value(self.comp, 'StructureFormula')
+            self.molecular_weight=self.obj.get_value(self.comp, 'MolecularWeight')
             
             dict={'CAS':self.CAS,'Name':self.name,'Molecular Formula':self.molecular_formula,'Molecular Weight':self.molecular_weight}
             #converted everything to a dictionary which will be passes to addtable 

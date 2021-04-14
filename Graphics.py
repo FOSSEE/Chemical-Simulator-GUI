@@ -4,6 +4,7 @@ from PyQt5.QtGui import *
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
+from PyQt5.QtWidgets import QLineEdit
 
 from DockWidgets.DockWidget import *
 from DockWidgets.DockWidgetMaterialStream import *
@@ -43,6 +44,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
                 pass
             else:
                 self.unit_operations.append(i)
+                type(i).counter += 1
             print(self.unit_operations)
             new_box = self.create_node_item(i, container)
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
@@ -424,7 +426,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
 
         if self.obj.type == 'Mixer' and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:')
+            text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:',
+                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
             if ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
@@ -436,7 +439,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
         #         self.obj.no_of_outputs = self.nop
         #         self.obj.variables['No']['value'] = self.nop
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:')
+            text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:',
+                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
             if ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
