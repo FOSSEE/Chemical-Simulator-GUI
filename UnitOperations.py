@@ -468,10 +468,10 @@ class CompoundSeparator(UnitOperation):
         SepVal = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
         self.OM_data_eqn = ''
        
-        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[0].name + '.Out);\n')
+        self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[1].name + '.Out);\n')
 
         strcount = 1
-        for strm in self.output_stms:
+        for strm in self.output_stms.values():
             self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out' + str(strcount) + ');\n')
             strcount += 1
         
