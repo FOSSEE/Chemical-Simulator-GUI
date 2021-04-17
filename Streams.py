@@ -163,7 +163,7 @@ class MaterialStream():
         if self.variables['x_pc']['value']:
             self.eqn_dict['x_pc[1,:]'] = x_pc
         if self.variables['F_pc']['value']:
-            self.eqn_dict['F_p[1]'] = self.variables['F_pc']['value']  
+            self.eqn_dict['F_p[1]'] = self.variables['F_p[1]']['value']
 
     def get_start_values(self):
         try:

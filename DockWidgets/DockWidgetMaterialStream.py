@@ -150,8 +150,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.init()
 
     @staticmethod
-    def show_result(lst):
-        for i in lst:
+    def show_result(ms_lst):
+        for i in ms_lst:
             i.results_category(i.name)
     
     def clear_results(self):
@@ -171,7 +171,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
 
             d = {"Mole Fraction":"x_pc", "Mass Fraction":"xm_pc", "Mole Flow":"F_pc", "Mass Flow":"Fm_pc"}
-            lst = list(d.keys())
+            ms_lst = list(d.keys())
             klst = list(d.values())
 
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap", "Phase Molar Enthalpy":"H_p", 
@@ -207,9 +207,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     obj.variables[k.split('.')[1]]['value'] = resultval
 
                     if namee not in k:
-                        mroot = QTreeWidgetItem(self.mTreeWidget, [lst[j]])
-                        lroot = QTreeWidgetItem(self.lTreeWidget, [lst[j]])
-                        vroot = QTreeWidgetItem(self.vTreeWidget, [lst[j]])
+                        mroot = QTreeWidgetItem(self.mTreeWidget, [ms_lst[j]])
+                        lroot = QTreeWidgetItem(self.lTreeWidget, [ms_lst[j]])
+                        vroot = QTreeWidgetItem(self.vTreeWidget, [ms_lst[j]])
                         namee = klst[j]
 
                     phase_no = int(k[k.index(',') - 1])  # phase no is from modelica list
@@ -307,7 +307,16 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
 
+            try:
 
+                for i in self.parent().container.graphics.graphicsView.items():
+                    try:
+                        if i.obj == self.obj:
+                            i.update_tooltip()
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                print(e)
 
 
         except Exception as e:

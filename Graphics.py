@@ -580,6 +580,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             if j is not None:
                 default_tooltip = default_tooltip + f"   {i} : {j}\n"
         self.setToolTip(default_tooltip)
+
         
 def findMainWindow(self):
     '''

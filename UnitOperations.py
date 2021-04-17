@@ -567,7 +567,7 @@ class Splitter(UnitOperation):
         type(self).counter += 1 
 
         self.variables = {
-            'No'       : {'name':'No. of Output',          'value':3,                          'unit':''},
+            'No'       : {'name':'No. of Output',          'value':2,                          'unit':''},
             'CalcType'  : {'name':'Calculation Type',       'value':self.CalcType_modes[0],     'unit':''},
             'SpecVal_s' : {'name':'Specification Value',    'value':[0.5,0.5],                    'unit':''}
         }

@@ -148,6 +148,7 @@ class Container():
 
         DockWidget.show_result(NodeItem.get_dock_widget())
 
+
         # for i in self.graphics.scene.items():
         #     if (isinstance(i, NodeItem)):
         #         i.update_tooltip()
