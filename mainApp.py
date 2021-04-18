@@ -99,7 +99,7 @@ class MainApp(QMainWindow,ui):
     def button_handler(self):
         self.pushButton.clicked.connect(partial(self.component,'MaterialStream'))
         self.pushButton_7.clicked.connect(partial(self.component,'Mixer'))
-        self.pushButton_14.clicked.connect(partial(self.component,'Pump'))
+        self.pushButton_14.clicked.connect(partial(self.component,'CentrifugalPump'))
         self.pushButton_26.clicked.connect(partial(self.component,'DistillationColumn'))
         self.pushButton_18.clicked.connect(partial(self.component,'ShortcutColumn'))
         self.pushButton_11.clicked.connect(partial(self.component,'Heater'))

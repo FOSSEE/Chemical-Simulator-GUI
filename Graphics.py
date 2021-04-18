@@ -538,7 +538,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             input = [NodeSocket(QtCore.QRect(3.5, (self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in', x) for x in range(1,self.nin+1) ]
             output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
-        elif(self.type=="Pump"):
+        elif(self.type=="CentrifugalPump"):
             input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-7, 4,4), self, 'in', x) for x in range(1,self.nin+1) ]
             output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-1.5,4,4), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output

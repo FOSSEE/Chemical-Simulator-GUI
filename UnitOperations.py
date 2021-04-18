@@ -487,9 +487,7 @@ class Flash(UnitOperation):
         self.extra = ['Flash']
         self.for_naming = ['Flash']
         self.no_of_inputs = 1 
-        self.no_of_outputs = 2  
-        self.input_stms = []
-        self.output_stms = []
+        self.no_of_outputs = 2
         self.count = Flash.counter
         self.thermo_pack_req = True
         self.parameters = ['BTdef', 'Tdef', 'BPdef', 'Pdef']
@@ -523,13 +521,11 @@ class Flash(UnitOperation):
 
         return self.OM_data_eqn
 
-class Pump(UnitOperation):
-    def __init__(self,name='Pump'):
+class CentrifugalPump(UnitOperation):
+    def __init__(self,name='CentrifugalPump'):
         UnitOperation.__init__(self)
-        self.name = name + str(Pump.counter) 
-        self.type = 'Pump'
-        self.input_stms = None
-        self.output_stms = None
+        self.name = name + str(CentrifugalPump.counter)
+        self.type = 'CentrifugalPump'
         self.modes_list = ['Pdel', 'Pout', 'Q']     #"enFlo"
         self.parameters = ['Eff']
 
