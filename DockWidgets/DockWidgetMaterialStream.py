@@ -18,7 +18,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.type = comptype
         self.input_dict = {}
         self.x_pclist = []
-        self.modes()
+
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
 
         self.pushButton_2.clicked.connect(self.param)
@@ -31,7 +31,10 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         self.mTreeWidget.setHeaderItem(header)
         self.lTreeWidget.setHeaderItem(header)
         self.vTreeWidget.setHeaderItem(header)
-
+        lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+        for j in lines:
+            self.cbTP.addItem(str(j))
+        self.modes()
     # input data tab
     def modes(self):
         modes_list = self.obj.modes_list
@@ -79,6 +82,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         lay.setSizeConstraint(QLayout.SetFixedSize)
                     gp.setLayout(lay)
                     self.formLayout.addRow(gp)
+                elif i == "Thermo Package":
+                    self.cbTP.setCurrentText(self.input_dict[i])
                 else:
                     print("elseloop")
                     l = QLineEdit()
@@ -95,10 +100,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l
 
-            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
-            for j in self.lines:
-                self.cbTP.addItem(str(j))
-            self.input_dict['Thermo Package'] = self.cbTP
+
+
 
         except Exception as e:
             print(e)
@@ -129,7 +132,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         self.x_pclist[c].setText(mf[-1])
                     self.dict[i] = ",".join(mf)
                 elif (i == "Thermo Package"):
-                    self.dict[i] = self.input_dict[i].currentText()
+                    self.dict[i] = self.cbTP.currentText()
                 else:
                     if (self.input_dict[i].text()):
                         self.dict[i] = self.input_dict[i].text()

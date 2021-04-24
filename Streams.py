@@ -90,29 +90,34 @@ class MaterialStream():
             self.mode2 = 'T'
             
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value']}
+                    "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value'],
+                    "Thermo Package": self.thermo_package}
             print('dictionary is :' + str(dict))
 
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['H_p[1]']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+                    "Thermo Package": self.thermo_package}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+                    "Thermo Package": self.thermo_package}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
             dict = {self.mode1:self.variables['T']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+                    "Thermo Package": self.thermo_package}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
             dict = {self.mode1:self.variables['P']['value'], self.mode2: self.variables['S_p[1]']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value']}
+                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+                    "Thermo Package": self.thermo_package}
         
         return dict
 
