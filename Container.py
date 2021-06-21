@@ -98,6 +98,9 @@ class Container():
     def add_compounds(self,comp):
         self.compounds = comp
 
+    def update_compounds(self):
+        self.graphics.update_compounds()
+
     def add_thermo_package(self,thermo):
         self.thermo_package = thermo
 

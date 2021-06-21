@@ -148,10 +148,9 @@ class ComponentSelector(QDialog,ui_dialog):
 
     def remove_items(self):
         try:
-            item = self.tableWidget.item(self.tableWidget.currentRow(),1).text()
+            item = self.tableWidget.item(self.tableWidget.currentRow(),1).text() + '(chemsep)'
             self.tableWidget.removeRow(self.tableWidget.currentRow())
-            
-            compound_selected.remove(item)    
+            compound_selected.remove(item)
         except Exception as e:
             print(e)
 

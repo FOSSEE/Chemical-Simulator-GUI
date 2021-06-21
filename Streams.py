@@ -1,6 +1,7 @@
 import json
 import sys
 from PyQt5.QtCore import *
+from ComponentSelector import compound_selected
 
 class MaterialStream():
     counter = 1
@@ -56,6 +57,9 @@ class MaterialStream():
         }
         self.init_variables()
 
+    def update_compounds(self):
+        self.compound_names = compound_selected
+
     def init_variables(self):
         Nc = len(self.compound_names)
         for i, val in enumerate(self.compound_names):
@@ -82,7 +86,10 @@ class MaterialStream():
 
         temp = []
         for i, val in enumerate(self.compound_names):
-            temp.append(self.variables['x_pc[1,' + str(i+1) + ']']['value'])
+            try:
+                temp.append(self.variables['x_pc[1,' + str(i+1) + ']']['value'])
+            except:
+                pass
         self.variables['x_pc']['value'] = temp
 
         if(mode=="PT"):
