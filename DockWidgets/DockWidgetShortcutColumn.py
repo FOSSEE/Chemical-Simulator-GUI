@@ -70,7 +70,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
         except Exception as e:
             print(e)
-            
+
     def update_compounds(self):
         self.cb1.clear()
         self.cb2.clear()
