@@ -43,6 +43,7 @@ class MainApp(QMainWindow,ui):
         # Creating instances of classes for the main app
         self.container = Container(self.textBrowser, self.graphicsView)        
         self.comp = ComponentSelector(self)
+        self.comp.accepted.connect(self.update_compounds)
 
         # Setting up interactive canvas        
         self.scene = self.container.graphics.get_scene()
@@ -138,6 +139,13 @@ class MainApp(QMainWindow,ui):
     '''
     def select_compounds(self):
         self.comp.show()
+
+    '''
+        Updates compounds after compound selected modified during simulation creation
+    '''
+    def update_compounds(self):
+        self.container.update_compounds()
+
 
     '''
         Returns current time in a required particular format

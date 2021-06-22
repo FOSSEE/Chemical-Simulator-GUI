@@ -117,6 +117,16 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
         except Exception as e:
             print(e)
 
+    def update_compounds(self):
+        self.cb2.clear()
+        self.cb4.clear()
+        for j in self.obj.compounds:
+            self.cb2.addItem(str(j))
+        self.cb2.setCurrentText(self.obj.variables['C_Spec']['comp'])
+        for j in self.obj.compounds:
+            self.cb4.addItem(str(j))
+        self.cb4.setCurrentText(self.obj.variables['R_Spec']['comp'])
+
     def fun2(self):
         if self.cb1.currentText() == 'Compound Molar Fraction' or self.cb1.currentText() == 'Compound Molar Flow    (mol/s)':
             self.cb2.setDisabled(False)

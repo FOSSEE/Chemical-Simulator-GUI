@@ -70,6 +70,9 @@ class UnitOperation():
     def set_pos(self,pos):
         self.pos = pos
 
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def OM_Flowsheet_Initialize(self):
         self.OM_data_init = ''
 
@@ -204,7 +207,10 @@ class ShortcutColumn(UnitOperation):
             'Qr'    :           {'name':'Reboiler Duty',                'value': None,      'unit':'W'},
 
         } 
-      
+
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self,params):
         print("param_setter ", params)
         self.variables['HKey']['value'] = self.compounds.index(params[0]) + 1
@@ -270,7 +276,10 @@ class DistillationColumn(UnitOperation):
             'Stages.T':         {'name':'Stagewise Temperature', 'value':[], 'unit':'K'},
             'Stages.x_pc':      {'name': 'Stagewise Component Mole Fraction', 'value':[],'unit':''}
         }
-       
+
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self,params):
         print("param_setter ", params)
         temp = 0
@@ -427,6 +436,9 @@ class CompoundSeparator(UnitOperation):
             'SepFact_c'   : {'name':'Separaction Factor',     'value':['']*len(self.compounds),             'unit':''},
         }
 
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self,params):
         print("param_setter CompSep ", params)
       
@@ -501,6 +513,9 @@ class Flash(UnitOperation):
             'Pdef'  :           {'name':'Separation Pressure',              'value':101325,     'unit':'Pa'}
         }
 
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self,params):
         print("param_setter ", params)
         self.variables['thermo_package']['value'] = params[0]
@@ -571,6 +586,9 @@ class Splitter(UnitOperation):
         specval = self.variables['SpecVal_s']['value'] 
         self.specval = json.dumps(specval).replace('[','{').replace(']','}')
 
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self,params):
         print("param_setter ", params)
         self.variables['No']['value'] = int(params[0])
@@ -599,7 +617,10 @@ class Mixer(UnitOperation):
             'NI'        : {'name':'Number of Input', 'value':6,                 'unit':''},
             'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
-        
+
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
     def param_setter(self, params):
         self.variables['NI']['value'] = int(params[0])
         self.variables['outPress']['value'] = params[1]
@@ -674,6 +695,9 @@ class AdiabaticCompressor(UnitOperation):
             'Eff'   : {'name':'Efficiency',             'value':1,       'unit':''}
         }
 
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]
+
 class AdiabaticExpander(UnitOperation):
 
     def __init__(self, name='AdiabaticExpander'):
@@ -698,4 +722,5 @@ class AdiabaticExpander(UnitOperation):
             'Eff'   : {'name':'Efficiency',             'value':1,       'unit':''}
         }
 
-        
+    def update_compounds(self):
+        self.compounds = [c[:c.index('(')] for c in compound_selected]

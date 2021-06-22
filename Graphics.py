@@ -36,6 +36,11 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
 
     def create_node_item(self,unit_operation, container):
         return NodeItem(unit_operation, container, self.graphicsView)
+
+    def update_compounds(self):
+        for i in self.scene.items():
+            if isinstance(i, NodeItem):
+                i.update_compounds()
     
     def load_canvas(self, obj, container):
         stm = ['MaterialStream','EngStm']
@@ -580,6 +585,13 @@ class NodeItem(QtWidgets.QGraphicsItem):
             if j is not None:
                 default_tooltip = default_tooltip + f"   {i} : {j}\n"
         self.setToolTip(default_tooltip)
+
+    def update_compounds(self):
+        try:
+            self.obj.update_compounds()
+            self.dock_widget.update_compounds()
+        except AttributeError:
+            pass
 
         
 def findMainWindow(self):

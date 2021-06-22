@@ -35,6 +35,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
         for j in lines:
             self.cbTP.addItem(str(j))
         self.modes()
+
     # input data tab
     def modes(self):
         modes_list = self.obj.modes_list
@@ -67,10 +68,13 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     print(noc)
                     self.x_pclist.clear()
 
-                    gp = QGroupBox("Mole Fractions")
+                    self.comp_gb = QGroupBox("Mole Fractions")
                     lay = QGridLayout()
                     for j in range(noc):
-                        l = QLineEdit(str(self.obj.variables['x_pc']['value'][j]))
+                        try:
+                            l = QLineEdit(str(self.obj.variables['x_pc']['value'][j]))
+                        except:
+                            l = QLineEdit()
                         # if self.input_dict[i] != '':
                         #     l.setText(str(self.obj.variables['x_pc']['value'][j]))
                         #     print('l = ', str(self.obj.variables['x_pc']['value'][j]))
@@ -80,8 +84,8 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         lay.addWidget(l,j,1, alignment=Qt.AlignCenter)
                         self.x_pclist.append(l)
                         lay.setSizeConstraint(QLayout.SetFixedSize)
-                    gp.setLayout(lay)
-                    self.formLayout.addRow(gp)
+                    self.comp_gb.setLayout(lay)
+                    self.formLayout.addRow(self.comp_gb)
                 elif i == "Thermo Package":
                     self.cbTP.setCurrentText(self.input_dict[i])
                 else:
@@ -101,13 +105,31 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     self.input_dict[i] = l
 
 
-
-
         except Exception as e:
             print(e)
 
     def show_error(self):
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
+
+    def update_compounds(self):
+        try:
+            noc = len(compound_selected)
+            print(noc)
+            self.x_pclist.clear()
+
+            lay = QGridLayout()
+            for j in range(noc):
+                l = QLineEdit()
+                lay.addWidget(QLabel(str(compound_selected[j]) + ":"), j, 0, alignment=Qt.AlignLeft)
+                lay.addWidget(l, j, 1, alignment=Qt.AlignCenter)
+                self.x_pclist.append(l)
+                lay.setSizeConstraint(QLayout.SetFixedSize)
+            self.comp_gb.setLayout(lay)
+            indexx = self.comboBox.currentIndex()
+            self.comboBox.setCurrentIndex(1)
+            self.comboBox.setCurrentIndex(indexx)
+        except Exception as e:
+            print(e)
 
     def param(self):
         try:
