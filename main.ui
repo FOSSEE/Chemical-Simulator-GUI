@@ -108,7 +108,7 @@
     <item row="1" column="0">
      <widget class="QDockWidget" name="dockWidget_2">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -134,7 +134,11 @@
       <widget class="QWidget" name="dockWidgetContents_2">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QTextEdit" name="textBrowser"/>
+         <widget class="QTextEdit" name="textBrowser">
+          <property name="readOnly">
+            <bool>true</bool>
+          </property>
+        </widget>
         </item>
        </layout>
       </widget>
@@ -311,7 +315,7 @@
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Streams</string>
@@ -818,7 +822,7 @@
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Mixer/Splitter</string>
@@ -1367,7 +1371,7 @@
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Exchangers</string>
@@ -1513,7 +1517,7 @@
             <enum>Qt::LeftToRight</enum>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Separator</string>
@@ -1644,7 +1648,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Pressure Changers</string>
@@ -1870,7 +1874,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">color:rgb(73,36,73,255)</string>
+            <string notr="true">color:rgba(73,36,73,255)</string>
            </property>
            <property name="text">
             <string>Columns</string>

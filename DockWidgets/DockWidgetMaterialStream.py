@@ -65,7 +65,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             for c,i in enumerate(self.input_dict):
                 if(i=="x_pc"):
                     noc = len(compound_selected)
-                    print(noc)
+                    #print(noc)
                     self.x_pclist.clear()
 
                     self.comp_gb = QGroupBox("Mole Fractions")
@@ -89,7 +89,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                 elif i == "Thermo Package":
                     self.cbTP.setCurrentText(self.input_dict[i])
                 else:
-                    print("elseloop")
+                    #print("elseloop")
                     l = QLineEdit()
                     if self.input_dict[i] != None:
                         l.setText(str(self.input_dict[i]))
@@ -114,7 +114,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
     def update_compounds(self):
         try:
             noc = len(compound_selected)
-            print(noc)
+            #print(noc)
             self.x_pclist.clear()
 
             lay = QGridLayout()
@@ -134,9 +134,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict={}
-            print("param.input_dict ", self.input_dict)
+            #print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
-                print(i)
+                #print(i)
                 if(i =="x_pc"):
                     l=[]
                     mf = []
@@ -159,11 +159,11 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     if (self.input_dict[i].text()):
                         self.dict[i] = self.input_dict[i].text()
                     else:
-                        print(self.input_dict[i])
+                        #print(self.input_dict[i])
                         self.show_error()
                         break
 
-            print("param ", self.dict)
+            #print("param ", self.dict)
 
             self.obj.param_setter(self.dict)
             self.hide()
@@ -190,7 +190,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
     # result data tab
     def results_category(self,name):
         try:
-            print("Under result category name ", name)
+            #print("Under result category name ", name)
             result=self.container.result
             obj = self.container.fetch_object(name)
 
@@ -207,15 +207,15 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                 ll = []  # list for basis names
                 for basis in d:
                     propertyname = name + '.' + d[basis]
-                    print("basis ", basis, propertyname)
+                    #print("basis ", basis, propertyname)
                     for i in result[0]:
                         if (propertyname in i):
                             ll.append(i)
-                print(ll)
+                #print(ll)
               
                 j = 0
                 namee = 'none'
-                print("namee ", namee)
+                #print("namee ", namee)
                 #initialization for treewidgets
                 lroot = 1
                 mroot = 1
@@ -224,11 +224,11 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
                 for i,k in enumerate(ll):
                     ind = result[0].index(k)
-                    print("index ", ind)
-                    print("str ", k)
+                    #print("index ", ind)
+                    #print("str ", k)
                     resultval = str(result[-1][ind])
-                    print("######Resultsfetch####",resultval)
-                    print(k[k.find(".")+1:k.find("[")])
+                    #print("######Resultsfetch####",resultval)
+                    #print(k[k.find(".")+1:k.find("[")])
                     obj.variables[k.split('.')[1]]['value'] = resultval
 
                     if namee not in k:
@@ -258,14 +258,14 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                 phaseResLst = []
                 for phase in p:
                     propertyname = name + '.' + p[phase]
-                    print("phase ", phase, propertyname)
+                    #print("phase ", phase, propertyname)
                     for i in result[0]:
                         if i.find('['):
                             if (propertyname == i[0:i.find('[')]):
                                 phaseResLst.append(i)
                         if propertyname == i:
                             phaseResLst.append(i)
-                print(phaseResLst)
+                #print(phaseResLst)
                 
                 self.mTableWidget.setRowCount(0)
                 self.lTableWidget.setRowCount(0)
@@ -274,14 +274,14 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                 for i,val in enumerate(phaseResLst):
                     ind = result[0].index(val)
                     resultval = str(result[-1][ind])
-                    print(resultval, i, val)
+                    #print(resultval, i, val)
                     obj.variables[val.split('.')[1]]['value'] = resultval
                     if '[' in val:
-                        print(val)
+                        #print(val)
                         temp = val[val.find('.')+1:val.find('[')]
-                        print(temp)
+                        #print(temp)
                         if '1' in val.split('.')[1]:
-                            print(obj.variables[val.split('.')[1]]['name'])
+                            #print(obj.variables[val.split('.')[1]]['name'])
                             mrowPosition = self.mTableWidget.rowCount()
                             self.mTableWidget.insertRow(mrowPosition)
                             self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
@@ -304,7 +304,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             self.vTableWidget.setItem(vrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.vTableWidget.resizeColumnsToContents()                                
                     if not '[' in val:
-                        print(obj.variables[val.split('.')[1]]['name'])
+                        #print(obj.variables[val.split('.')[1]]['name'])
                         mrowPosition = self.mTableWidget.rowCount()
                         self.mTableWidget.insertRow(mrowPosition)
                         self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
@@ -314,15 +314,15 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
 
             # updating the input data from fetched results from simulation
-            print(self.comboBox.currentText())
+            #print(self.comboBox.currentText())
        
             self.input_dict = {}
             self.input_dict = self.obj.param_getter(self.comboBox.currentText())
             # print("before", self.input_dict)
-            # self.input_dict.pop("x_pc")
+            #self.input_dict.pop("x_pc")
             # temp = self.input_dict.pop('thermo_package')
             for i in range(len(compound_selected)):
-                print(i)
+                #print(i)
                 self.input_dict['x_pc[1,' + str(i+1) + ']'] = self.obj.variables['x_pc[1,' + str(i+1) +']']['value']
             # self.input_dict['thermo_package'] = temp
             # print("after", self.input_dict)
