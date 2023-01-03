@@ -145,12 +145,16 @@ class Container():
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
-            self.msg_browser()
             self.result=self.flowsheet.result_data
-            print("under Eqn mode simulation")
 
-        DockWidget.show_result(NodeItem.get_dock_widget())
-
+            if(len(self.result)== 4):
+                self.msg_browser()
+            else:
+                self.msg.append("<span style=\"color:red\">["+str(self.current_time())+"] Simulation <b>Failed</b></span>")
+            #print("under Eqn mode simulation")
+        
+        if(len(self.result)== 4):
+            DockWidget.show_result(NodeItem.get_dock_widget())
 
         # for i in self.graphics.scene.items():
         #     if (isinstance(i, NodeItem)):
