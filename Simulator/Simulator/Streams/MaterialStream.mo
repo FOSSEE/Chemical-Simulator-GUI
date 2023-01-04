@@ -33,7 +33,7 @@ model MaterialStream "Model representing Material Stream"
   Simulator.Files.Interfaces.matConn Out(Nc = Nc) annotation(
     Placement(visible = true, transformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
 
-  extends GuessModels.InitialGuess;
+  extends GuessModels.InitialGuess(Nc = Nc);
 
 equation
 //Connector equations

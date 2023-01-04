@@ -47,8 +47,8 @@ class Flowsheet():
     def send_for_simulation_Eqn(self):
         self.result_data = []
         self.omc_path = self.get_omc_path()
-        print(self.omc_path)
-
+        #print(self.omc_path)
+        
         if self.sim_method == 'Eqn':
             simpath = self.eqn_mos_path
             os.chdir(self.sim_dir_path)
@@ -68,7 +68,6 @@ class Flowsheet():
                         self.result_data.append(row)
 
     def send_for_simulation_SM(self,unitop):
-
         self.result_data = []
         self.omc_path = self.get_omc_path()
         os.chdir(self.sim_dir_path)
@@ -145,14 +144,14 @@ class Flowsheet():
             for d in self.data:
                 txtfile.write(str(d))
             txtfile.write('end Flowsheet;\n')
-
+        #print(self.eqn_mos_path)
         with open(self.eqn_mos_path, 'w') as mosFile:
             mosFile.write('loadModel(Modelica);\n')
             mosFile.write('loadFile(\"Simulator/package.mo\");\n')
             mosFile.write('loadFile(\"database.mo\");\n')
             mosFile.write('loadFile(\"Flowsheet.mo\");\n')
             mosFile.write('simulate(Flowsheet, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n')
-
+        
         print('Initiating Simulation in Equation Oriented Mode')
 
         self.send_for_simulation_Eqn()

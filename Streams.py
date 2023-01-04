@@ -99,7 +99,7 @@ class MaterialStream():
             dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
                     "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
-            print('dictionary is :' + str(dict))
+            #print('dictionary is :' + str(dict))
 
         elif(mode=="PH"):
             self.mode1 = 'P'
@@ -130,7 +130,7 @@ class MaterialStream():
 
     def param_setter(self,dict):
         self.variables['x_pc']['value'] = dict['x_pc'].split(",")
-        print('xpc is :' + str(self.variables['x_pc']['value']))
+        #print('xpc is :' + str(self.variables['x_pc']['value']))
         self.thermo_package = dict['Thermo Package']
         self.variables['F_p[1]']['value'] = dict['MolFlow']
         self.variables[self.mode1]['value'] = dict[self.mode1]

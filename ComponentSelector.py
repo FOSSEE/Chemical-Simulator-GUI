@@ -27,7 +27,7 @@ class ComponentSelector(QDialog,ui_dialog):
             x=i.get_comp_name_list()
             self.dict1[i]=x
             self.lines+=x
-        print(self.lines)
+        #print(self.lines)
             
             
         #self.DB1_list=self.DB1.get_comp_name_list()
@@ -107,7 +107,7 @@ class ComponentSelector(QDialog,ui_dialog):
             self.final_mo()
             
             self.lineEdit.clear()
-            print(compound_selected)
+            #print(compound_selected)
             
             self.CAS=self.obj.get_value(self.comp,'CAS')
             self.name=self.comp
@@ -117,7 +117,7 @@ class ComponentSelector(QDialog,ui_dialog):
             dict={'CAS':self.CAS,'Name':self.name,'Molecular Formula':self.molecular_formula,'Molecular Weight':self.molecular_weight}
             #converted everything to a dictionary which will be passes to addtable 
             #function as a parameter.
-            print(dict)
+            #print(dict)
             self.add_to_table(dict)
         else:
             self.show_error()
@@ -139,7 +139,7 @@ class ComponentSelector(QDialog,ui_dialog):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
+            #print(exc_type, fname, exc_tb.tb_lineno)
 
     def add_compounds_to_list(self,comp):       # which list?
         self.item = QListWidgetItem()

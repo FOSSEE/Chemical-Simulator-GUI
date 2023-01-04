@@ -126,12 +126,12 @@ class Container():
                 except AttributeError:
                     pass
 
-        print("SIMULATE")
-        print(mode)
+        #print("SIMULATE")
+        #print(mode)
         self.compounds = compound_selected
         self.flowsheet = Flowsheet()
         self.flowsheet.add_compound_list([c[:c.index('(')] for c in self.compounds])
-        print("######## connection master#########\n",self.conn)
+        #print("######## connection master#########\n",self.conn)
         for i in self.unit_operations :
             self.flowsheet.add_unit_operations(i)
             
@@ -145,12 +145,17 @@ class Container():
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
-            self.msg_browser()
             self.result=self.flowsheet.result_data
-            print("under Eqn mode simulation")
 
-        DockWidget.show_result(NodeItem.get_dock_widget())
-
+            if(len(self.result)== 4):
+                #self.msg_browser()
+                self.msg.append("<span style=\"color:green\">["+str(self.current_time())+"] Simulation <b>Successful.</b></span>")
+            else:
+                self.msg.append("<span style=\"color:red\">["+str(self.current_time())+"] Simulation <b>Failed.</b></span>")
+            #print("under Eqn mode simulation")
+        
+        if(len(self.result)== 4):
+            DockWidget.show_result(NodeItem.get_dock_widget())
 
         # for i in self.graphics.scene.items():
         #     if (isinstance(i, NodeItem)):
