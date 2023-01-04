@@ -125,6 +125,9 @@
         <height>150</height>
        </size>
       </property>
+      <property name="features">
+       <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+      </property>
       <property name="allowedAreas">
        <set>Qt::BottomDockWidgetArea</set>
       </property>
@@ -136,9 +139,9 @@
         <item>
          <widget class="QTextEdit" name="textBrowser">
           <property name="readOnly">
-            <bool>true</bool>
+           <bool>true</bool>
           </property>
-        </widget>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -152,7 +155,7 @@
      <x>0</x>
      <y>0</y>
      <width>1068</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -174,6 +177,8 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionViewComponentSelector"/>
+    <addaction name="actionViewMessageBrowser"/>
     <addaction name="actionZoomIn"/>
     <addaction name="actionZoomOut"/>
     <addaction name="actionResetZoom"/>
@@ -214,6 +219,9 @@
    <addaction name="menuUtility"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -238,6 +246,18 @@
      <weight>75</weight>
      <bold>true</bold>
     </font>
+   </property>
+   <property name="tabletTracking">
+    <bool>false</bool>
+   </property>
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
     <string>Component Selector</string>
@@ -278,8 +298,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>225</width>
-          <height>914</height>
+          <width>221</width>
+          <height>956</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -2103,6 +2123,28 @@
   <action name="actionRedo">
    <property name="text">
     <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionViewComponentSelector">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Component Selector</string>
+   </property>
+  </action>
+  <action name="actionViewMessageBrowser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Message Browser</string>
    </property>
   </action>
  </widget>

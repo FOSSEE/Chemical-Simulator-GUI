@@ -93,7 +93,9 @@ class MainApp(QMainWindow,ui):
         self.actionTerminate.triggered.connect(self.terminate)
         self.actionTerminate.setShortcut('Ctrl+T')
         self.actionBinaryPhaseEnvelope.triggered.connect(self.bin_phase_env)
-
+        self.actionViewMessageBrowser.triggered.connect(self.toggle_message_browser_view)
+        self.actionViewComponentSelector.triggered.connect(self.toggle_component_selector_view)
+        
     '''
         Handles all the buttons of different components.
     '''
@@ -352,6 +354,25 @@ class MainApp(QMainWindow,ui):
         except Exception as e:
             print(e)
 
+    '''
+        Function for toggling the display of Component Selector 
+    '''
+    def toggle_component_selector_view(self):
+        if(self.actionViewComponentSelector.isChecked()):
+            self.dockWidget.show()
+        else:
+            self.dockWidget.hide()
+
+    '''
+        Function for toggling the display of Message Browser 
+    '''
+    def toggle_message_browser_view(self):
+        if(self.actionViewMessageBrowser.isChecked()):
+            self.dockWidget_2.show()
+        else:
+            self.dockWidget_2.hide()
+    
+    
 def main():
 
     clean_file('Undo')
@@ -361,6 +382,7 @@ def main():
     window = MainApp()
     window.showMaximized()
     app.exec()
+    
 
 if __name__ == '__main__':
     main()
