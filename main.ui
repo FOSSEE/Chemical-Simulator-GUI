@@ -2064,6 +2064,9 @@
    </property>
   </action>
   <action name="actionSequentialMode">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>Icons/sq.png</normaloff>Icons/sq.png</iconset>
