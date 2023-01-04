@@ -114,12 +114,15 @@ class BinPhaseEnv(QWidget,ui_dialog):
 
         self.comp1 = self.comboBox.currentText()
         self.comp2 = self.comboBox_2.currentText()
+        self.comp_1 = self.comboBox.currentText().split('(')[0]
+        self.comp_2 = self.comboBox_2.currentText().split('(')[0]
+
         self.thermoPack = self.comboBox_3.currentText()
 
         self.data.append("model Graph\n")
-        self.data.append("import data = Simulator.Files.Chemsep_Database;\n")
-        self.data.append("parameter data."+self.comp1+" comp1;\n")
-        self.data.append("parameter data."+self.comp2+" comp2;\n")
+        self.data.append("import data = Simulator.Files.ChemsepDatabase;\n")
+        self.data.append("parameter data."+self.comp_1+" comp1;\n")
+        self.data.append("parameter data."+self.comp_2+" comp2;\n")
         self.data.append("extends BinaryEnvelopes."+self.thermoPack+"(Nc = 2, data_points = "+str(data_points)+ ", comp = { comp1, comp2 }, "+self.type+" = fill( "+str(val)+", "+str(data_points)+"));\n")
         self.data.append("end Graph;")
 
