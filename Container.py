@@ -148,9 +148,10 @@ class Container():
             self.result=self.flowsheet.result_data
 
             if(len(self.result)== 4):
-                self.msg_browser()
+                #self.msg_browser()
+                self.msg.append("<span style=\"color:green\">["+str(self.current_time())+"] Simulation <b>Successful.</b></span>")
             else:
-                self.msg.append("<span style=\"color:red\">["+str(self.current_time())+"] Simulation <b>Failed</b></span>")
+                self.msg.append("<span style=\"color:red\">["+str(self.current_time())+"] Simulation <b>Failed.</b></span>")
             #print("under Eqn mode simulation")
         
         if(len(self.result)== 4):
