@@ -285,8 +285,8 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def paint(self, painter, option, widget):
         painter.setBrush(self.brush)
         painter.setPen(self.pen)
-        painter.drawEllipse(self.rect)
-
+        painter.drawEllipse(self.rect.x()-4,self.rect.y()-4,12,12)
+        
     def mousePressEvent(self, event):
         cursor = QCursor( Qt.PointingHandCursor )
         QApplication.instance().setOverrideCursor(cursor)
@@ -385,7 +385,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         return center
 
     def hoverEnterEvent(self, event):
-        cursor = QCursor( Qt.CrossCursor )
+        cursor = QCursor( Qt.PointingHandCursor)
         QApplication.instance().setOverrideCursor(cursor)
     
     def hoverLeaveEvent(self, event):
@@ -532,28 +532,28 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def initialize_sockets(self,type):
         if(self.type=="Flash" or self.type=="CompoundSeparator"):
-            input = [NodeSocket(QtCore.QRect(5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-9,(self.rect.height()*x*1/(self.nop+1)),4,4), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(5,(self.rect.height()*x/(self.nin+1)-2),12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-9,(self.rect.height()*x*1/(self.nop+1)),12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="AdiabaticCompressor" or self.type=="AdiabaticExpander"  or self.type =="Mixer" or self.type =="Splitter" or self.type =="Valve" ):
-            input = [NodeSocket(QtCore.QRect(-2.5, (self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5, (self.rect.height()*x/(self.nin+1))-2,12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nop+1))-2,12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="Cooler" or self.type=="Heater"):
-            input = [NodeSocket(QtCore.QRect(3.5, (self.rect.height()*x/(self.nin+1))-2,4,4), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-2,4,4), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(3.5, (self.rect.height()*x/(self.nin+1))-2,12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-8.0,(self.rect.height()*x/(self.nop+1))-2,12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="CentrifugalPump"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-7, 4,4), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-1.5,4,4), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1))-7, 12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,-1.5,12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="DistillationColumn" or self.type=="ShortcutColumn"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)),5,5), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-55,5,5), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)),12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-5.5,(self.rect.height()*1.44*x/(self.nop+1))-55,12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="MaterialStream"):
-            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-2.5,(self.rect.height()*x/(self.nin+1)-2),4,4), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-2.5,(self.rect.height()*x/(self.nin+1)-2),12,12), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()+1,(self.rect.height()*x/(self.nin+1)-2),12,12), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
 
     def mouseMoveEvent(self, event):
