@@ -346,3 +346,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
 
         except Exception as e:
             print(e)
+    def closeEvent(self,event):
+        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
+        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
