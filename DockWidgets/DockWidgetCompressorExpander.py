@@ -100,6 +100,14 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                         break
             
             self.obj.param_setter(self.dict)
+
+            for i in self.container.graphics.graphicsView.items():
+                try: 
+                    if(i.name == self.name):
+                        i.update_tooltip()
+                except:
+                    pass
+                
             self.hide()
             
         except Exception as e:
