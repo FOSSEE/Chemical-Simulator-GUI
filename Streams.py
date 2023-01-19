@@ -81,6 +81,56 @@ class MaterialStream():
         for i in self.compound_names:
             self.variables[i] = {'value':''}
 
+    def param_getter_tooltip(self,mode):
+        dict = {}
+
+        temp = []
+        for i, val in enumerate(self.compound_names):
+            try:
+                temp.append(self.variables['x_pc[1,' + str(i+1) + ']']['value'])
+            except:
+                pass
+        self.variables['x_pc']['value'] = temp
+        if(mode=="PT"):            
+            self.mode1 = self.variables['P']['name']
+            self.mode2 = self.variables['T']['name']
+            
+            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+                    self.mode2:str(self.variables['T']['value'])+' '+self.variables['T']['unit']}
+
+        elif(mode=="PH"):
+            self.mode1 = self.variables['P']['name']
+            self.mode2 = self.variables['H_p[1]']['name']
+            print(self.mode2)
+            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+                    self.mode2:str(self.variables['H_p[1]']['value'])+' '+self.variables['H_p[1]']['unit']}
+        
+        elif(mode=="PVF"):
+            self.mode1 = self.variables['P']['name']
+            self.mode2 = self.variables['xvap']['name']
+    
+            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+                    self.mode2:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
+        
+        elif(mode=="TVF"):
+            self.mode1 = self.variables['T']['name']
+            self.mode2 = self.variables['xvap']['name']
+
+            dict = {self.mode1:str(self.variables['T']['value'])+' '+self.variables['T']['unit'], 
+                    self.mode2:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
+        
+        elif(mode=="PS"):
+            self.mode1 = self.variables['P']['name']
+            self.mode2 = self.variables['S_p[1]']['name']
+
+            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+                    self.mode2:str(self.variables['S_p[1]']['value'])+' '+self.variables['S_p[1]']['unit']}
+            
+        dict['Mole Flow'] = str(self.variables['F_p[1]']['value'])+' '+self.variables['F_p[1]']['unit']
+        dict[self.variables['x_pc']['name']] = str(self.variables['x_pc']['value'])+' '+self.variables['x_pc']['unit']
+        dict['Thermo Package'] = self.thermo_package
+        return dict
+
     def param_getter(self,mode):
         dict = {}
 
