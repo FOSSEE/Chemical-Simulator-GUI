@@ -30,6 +30,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         self.graphicsView = graphicsView
         self.pos = None
         self.unit_operations = unit_operations
+        self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
 
     def get_scene(self):
         return self.scene
@@ -286,7 +287,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         painter.setBrush(self.brush)
         painter.setPen(self.pen)
         painter.drawEllipse(self.rect)
-
+        
     def mousePressEvent(self, event):
         cursor = QCursor( Qt.PointingHandCursor )
         QApplication.instance().setOverrideCursor(cursor)
@@ -385,8 +386,8 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         return center
 
     def hoverEnterEvent(self, event):
-        cursor = QCursor( Qt.CrossCursor )
-        QApplication.instance().setOverrideCursor(cursor)
+        cursor = QCursor( Qt.PointingHandCursor)
+        QApplication.instance().setOverrideCursor(cursor)     
     
     def hoverLeaveEvent(self, event):
         cursor = QCursor( Qt.ArrowCursor )
@@ -558,19 +559,23 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)
-        for op in self.output:
-            for line in op.out_lines:
-                line.pointA = line.source.get_center()
-                line.pointB = line.target.get_center()
-        for ip in self.input:
-            for line in ip.in_lines:
-                line.pointA = line.source.get_center()
-                line.pointB = line.target.get_center()
+        items = self.graphicsView.items()
+        for i in items:
+            if(type(i) == NodeItem):
+                for op in i.output:
+                    for line in op.out_lines:
+                        line.pointA = line.source.get_center()
+                        line.pointB = line.target.get_center()
+                for ip in i.input:
+                    for line in ip.in_lines:
+                        line.pointA = line.source.get_center()
+                        line.pointB = line.target.get_center()
         self.pos = event.scenePos()
         self.obj.set_pos(self.pos)
                 
     def mouseDoubleClickEvent(self, event):
 
+        self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
         self.graphicsView.setInteractive(False)
         if len(stack):
             stack[-1].hide()
@@ -592,8 +597,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.dock_widget.update_compounds()
         except AttributeError:
             pass
-
-        
+         
+         
 def findMainWindow(self):
     '''
         Global function to find the (open) QMainWindow in application
