@@ -424,7 +424,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         if (self.obj.modes_list):
             default_tooltip = f"{self.name}\n\n"
-            default_tooltip_dict = self.obj.param_getter(self.obj.mode)
+            default_tooltip_dict = self.obj.param_getter_tooltip(self.obj.mode)
             for i, j in default_tooltip_dict.items():
                 if j is not None:
                     default_tooltip = default_tooltip + f"   {i} : {j}\n"
@@ -585,7 +585,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def update_tooltip(self):
         default_tooltip = f"{self.name}\n\n"
-        default_tooltip_dict = self.obj.param_getter(self.obj.modes_list[0])
+        default_tooltip_dict = self.obj.param_getter_tooltip(self.obj.mode)
         for i, j in default_tooltip_dict.items():
             if j is not None:
                 default_tooltip = default_tooltip + f"   {i} : {j}\n"

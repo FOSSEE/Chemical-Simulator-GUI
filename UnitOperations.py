@@ -43,6 +43,18 @@ class UnitOperation():
             params[i] = self.variables[i]['value']
         
         return params
+    
+    def param_getter_tooltip(self,mode=None):
+        params = {}
+        if mode == None and self.modes_list:
+            self.mode = self.modes_list[0]
+        else:
+            self.mode = mode
+            params[self.mode] = None
+        for i in self.parameters:
+            params[self.variables[i]['name']] = str(self.variables[i]['value'])+' '+self.variables[i]['unit']
+        
+        return params
         
     def param_setter(self,params):
         print("param_setter ", params)
