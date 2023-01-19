@@ -559,14 +559,17 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)
-        for op in self.output:
-            for line in op.out_lines:
-                line.pointA = line.source.get_center()
-                line.pointB = line.target.get_center()
-        for ip in self.input:
-            for line in ip.in_lines:
-                line.pointA = line.source.get_center()
-                line.pointB = line.target.get_center()
+        items = self.graphicsView.items()
+        for i in items:
+            if(type(i) == NodeItem):
+                for op in i.output:
+                    for line in op.out_lines:
+                        line.pointA = line.source.get_center()
+                        line.pointB = line.target.get_center()
+                for ip in i.input:
+                    for line in ip.in_lines:
+                        line.pointA = line.source.get_center()
+                        line.pointB = line.target.get_center()
         self.pos = event.scenePos()
         self.obj.set_pos(self.pos)
                 
