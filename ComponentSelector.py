@@ -174,3 +174,7 @@ class ComponentSelector(QDialog,ui_dialog):
         self.f_mo.write('\nend database;')
         self.f_mo.close()
         
+    def accept(self):
+        #self.parent().container.update_compounds()
+        return super().accept()
+        

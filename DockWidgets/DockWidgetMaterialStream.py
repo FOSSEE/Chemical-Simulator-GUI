@@ -128,6 +128,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+            self.obj.init_variables()
         except Exception as e:
             print(e)
 
