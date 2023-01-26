@@ -447,7 +447,13 @@ class CompoundSeparator(UnitOperation):
             'SepVal_c'    : {'name':'Separation Value',       'value':['']*len(self.compounds),             'unit':''},
             'SepFact_c'   : {'name':'Separaction Factor',     'value':['']*len(self.compounds),             'unit':''},
         }
-
+        
+    def init_variables(self):
+        self.variables = {
+            'SepStrm'   : {'name':'Separation Stream',      'value':1,              'unit':''}, 
+            'SepVal_c'    : {'name':'Separation Value',       'value':['']*len(self.compounds),             'unit':''},
+            'SepFact_c'   : {'name':'Separaction Factor',     'value':['']*len(self.compounds),             'unit':''},
+        }
     def update_compounds(self):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 

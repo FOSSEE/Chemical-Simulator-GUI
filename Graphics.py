@@ -39,7 +39,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         return NodeItem(unit_operation, container, self.graphicsView)
 
     def update_compounds(self):
-        for i in self.scene.items():
+        for i in self.graphicsView.items():
             if isinstance(i, NodeItem):
                 i.update_compounds()
     

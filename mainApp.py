@@ -310,9 +310,8 @@ class MainApp(QMainWindow,ui):
         for i in self.container.unit_operations:
             data.append(i)
             i.saved = True
-            print(i.pos)
         data.append(compound_selected)
-        print(data)
+        data.append(self.container.result)
 
         file_format = 'sim'
         initial_path = QDir.currentPath() + 'untitled.' + file_format
@@ -341,14 +340,16 @@ class MainApp(QMainWindow,ui):
 
             with open(file_name, 'rb') as f:
                 obj = pickle.load(f)
-            print(obj)
+            temp_result = obj[-1]
+            obj.pop()
             compound_selected = obj[-1]
             obj.pop()
-            print(compound_selected)
             self.comp.set_compounds(compound_selected)
             for i in compound_selected:
                 self.comp.compound_selection(self.comp, i)
             self.container.graphics.load_canvas(obj, self.container)
+            self.container.result = temp_result
+            DockWidget.show_result(dock_widget_lst)
 
 
         except Exception as e:

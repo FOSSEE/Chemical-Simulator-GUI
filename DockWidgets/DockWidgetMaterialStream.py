@@ -128,6 +128,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+            self.obj.init_variables()
         except Exception as e:
             print(e)
 
@@ -166,6 +167,14 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             #print("param ", self.dict)
 
             self.obj.param_setter(self.dict)
+
+            for i in self.container.graphics.graphicsView.items():
+                try: 
+                    if(i.name == self.name):
+                        i.update_tooltip()
+                except:
+                    pass
+                
             self.hide()
             
         except Exception as e:

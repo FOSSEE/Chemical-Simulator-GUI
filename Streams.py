@@ -93,34 +93,44 @@ class MaterialStream():
         self.variables['x_pc']['value'] = temp
 
         if(mode=="PT"):
-            self.mode1 = self.variables['P']['name']
-            self.mode2 = self.variables['T']['name']
-            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
-					self.mode2:str(self.variables['T']['value'])+' '+self.variables['T']['unit']}
+            self.mode1 = 'P'
+            self.mode2 = 'T'
+            mode1_n = self.variables['P']['name']
+            mode2_n = self.variables['T']['name']
+            dict = {mode1_n:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+					mode2_n:str(self.variables['T']['value'])+' '+self.variables['T']['unit']}
         elif(mode=="PH"):
-            self.mode1 = self.variables['P']['name']
-            self.mode2 = self.variables['H_p[1]']['name']
+            self.mode1 = 'P'
+            self.mode2 = 'H_p[1]'
+            mode1_n = self.variables['P']['name']
+            mode2_n = self.variables['H_p[1]']['name']
 				
-            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
-		    		self.mode2:str(self.variables['H_p[1]']['value'])+' '+self.variables['H_p[1]']['unit']}
+            dict = {mode1_n:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+		    		mode2_n:str(self.variables['H_p[1]']['value'])+' '+self.variables['H_p[1]']['unit']}
         elif(mode=="PVF"):
-            self.mode1 = self.variables['P']['name']
-            self.mode2 = self.variables['xvap']['name']
+            self.mode1 = 'P'
+            self.mode2 = 'xvap'
+            mode1_n = self.variables['P']['name']
+            mode2_n = self.variables['xvap']['name']
 		
-            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
-					self.mode2:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
+            dict = {mode1_n:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+					mode2_n:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
         elif(mode=="TVF"):
-            self.mode1 = self.variables['T']['name']
-            self.mode2 = self.variables['xvap']['name']
-            dict = {self.mode1:str(self.variables['T']['value'])+' '+self.variables['T']['unit'], 
-					self.mode2:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
+            self.mode1 = 'T'
+            self.mode2 = 'xvap'
+            mode1_n = self.variables['T']['name']
+            mode2_n = self.variables['xvap']['name']
+            dict = {mode1_n:str(self.variables['T']['value'])+' '+self.variables['T']['unit'], 
+					mode2_n:str(self.variables['xvap']['value'])+' '+self.variables['xvap']['unit']}
 			
         elif(mode=="PS"):
-            self.mode1 = self.variables['P']['name']
-            self.mode2 = self.variables['S_p[1]']['name']
+            self.mode1 = 'P'
+            self.mode2 = 'S_p[1]'
+            mode1_n = self.variables['P']['name']
+            mode2_n = self.variables['S_p[1]']['name']
 
-            dict = {self.mode1:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
-					self.mode2:str(self.variables['S_p[1]']['value'])+' '+self.variables['S_p[1]']['unit']}
+            dict = {mode1_n:str(self.variables['P']['value'])+' '+self.variables['P']['unit'], 
+					mode2_n:str(self.variables['S_p[1]']['value'])+' '+self.variables['S_p[1]']['unit']}
 				
         dict['Mole Flow'] = str(self.variables['F_p[1]']['value'])+' '+self.variables['F_p[1]']['unit']
         dict[self.variables['x_pc']['name']] = str(self.variables['x_pc']['value'])+' '+self.variables['x_pc']['unit']
