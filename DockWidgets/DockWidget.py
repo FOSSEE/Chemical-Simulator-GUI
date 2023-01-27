@@ -155,4 +155,4 @@ class DockWidget(QDockWidget,ui_dialog):
     def closeEvent(self,event):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
