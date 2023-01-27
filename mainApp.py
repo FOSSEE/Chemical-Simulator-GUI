@@ -335,21 +335,21 @@ class MainApp(QMainWindow,ui):
             file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
                                                       initial_path, "%s Files (*.%s);; All Files (*)" %
                                                       (file_format.upper(), file_format))
+            if file_name:
+                self.undo_redo_helper()
 
-            self.undo_redo_helper()
-
-            with open(file_name, 'rb') as f:
-                obj = pickle.load(f)
-            temp_result = obj[-1]
-            obj.pop()
-            compound_selected = obj[-1]
-            obj.pop()
-            self.comp.set_compounds(compound_selected)
-            for i in compound_selected:
-                self.comp.compound_selection(self.comp, i)
-            self.container.graphics.load_canvas(obj, self.container)
-            self.container.result = temp_result
-            DockWidget.show_result(dock_widget_lst)
+                with open(file_name, 'rb') as f:
+                    obj = pickle.load(f)
+                temp_result = obj[-1]
+                obj.pop()
+                compound_selected = obj[-1]
+                obj.pop()
+                self.comp.set_compounds(compound_selected)
+                for i in compound_selected:
+                    self.comp.compound_selection(self.comp, i)
+                self.container.graphics.load_canvas(obj, self.container)
+                self.container.result = temp_result
+                DockWidget.show_result(dock_widget_lst)
 
 
         except Exception as e:
