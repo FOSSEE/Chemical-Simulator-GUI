@@ -136,6 +136,31 @@ class MaterialStream():
         dict[self.variables['x_pc']['name']] = str(self.variables['x_pc']['value'])+' '+self.variables['x_pc']['unit']
         dict['Thermo Package'] = self.thermo_package
         return dict
+    
+    def param_getter_tooltip_selectedVar(self):
+        dict = {}
+
+        var1_name = self.variables['P']['name']
+        var1_val = self.variables['P']['value']
+        var1_unit =  self.variables['P']['unit']
+        var2_name = self.variables['T']['name']
+        var2_val = self.variables['T']['value']
+        var2_unit =  self.variables['T']['unit']
+        var3_name = self.variables['H_p[1]']['name']
+        var3_val = self.variables['H_p[1]']['value']
+        var3_unit =  self.variables['H_p[1]']['unit']
+        var4_name = self.variables['S_p[1]']['name']
+        var4_val = self.variables['S_p[1]']['value']
+        var4_unit =  self.variables['S_p[1]']['unit']
+        var5_name = self.variables['xvap']['name']
+        var5_val = self.variables['xvap']['value']
+        var5_unit =  self.variables['xvap']['unit']
+        dict = {var1_name:str(var1_val)+' '+var1_unit, 
+                var2_name:str(var2_val)+' '+var2_unit,
+				var3_name:str(var3_val)+' '+var3_unit,
+                var4_name:str(var4_val)+' '+var4_unit,
+                var5_name:str(var5_val)+' '+var5_unit,	}
+        return dict
 
     def param_getter(self,mode):
         dict = {}

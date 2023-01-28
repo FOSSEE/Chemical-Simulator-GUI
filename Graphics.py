@@ -591,6 +591,14 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 default_tooltip = default_tooltip + f"   {i} : {j}\n"
         self.setToolTip(default_tooltip)
 
+    def update_tooltip_selectedVar(self):
+        default_tooltip = f"{self.name}\n\n"
+        default_tooltip_dict = self.obj.param_getter_tooltip_selectedVar()
+        for i, j in default_tooltip_dict.items():
+            if j is not None:
+                default_tooltip = default_tooltip + f"   {i} : {j}\n"
+        self.setToolTip(default_tooltip)
+
     def update_compounds(self):
         try:
             self.obj.update_compounds()

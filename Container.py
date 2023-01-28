@@ -157,9 +157,9 @@ class Container():
         if(len(self.result)== 4):
             DockWidget.show_result(NodeItem.get_dock_widget())
 
-        # for i in self.graphics.scene.items():
-        #     if (isinstance(i, NodeItem)):
-        #         i.update_tooltip()
+        for i in self.graphics.scene.items():
+            if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
+                i.update_tooltip_selectedVar()
 
 def flat_list(lst):
     flat_lst=[]
