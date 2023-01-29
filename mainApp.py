@@ -351,6 +351,9 @@ class MainApp(QMainWindow,ui):
                 self.container.result = temp_result
                 DockWidget.show_result(dock_widget_lst)
 
+                for i in dock_widget_lst:
+                    i.param()
+
 
         except Exception as e:
             print(e)
