@@ -107,7 +107,9 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                         i.update_tooltip()
                 except:
                     pass
-                
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:

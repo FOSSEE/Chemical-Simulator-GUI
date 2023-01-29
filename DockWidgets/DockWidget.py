@@ -90,7 +90,7 @@ class DockWidget(QDockWidget,ui_dialog):
                         self.show_error()
                         break
             
-            print("param ", self.dict)
+            #print("param ", self.dict)
             self.obj.param_setter(self.dict)
             for i in self.container.graphics.graphicsView.items():
                 try: 
@@ -98,7 +98,9 @@ class DockWidget(QDockWidget,ui_dialog):
                         i.update_tooltip()
                 except:
                     pass
-                
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:

@@ -179,6 +179,9 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:

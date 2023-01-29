@@ -65,6 +65,9 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.dict={}
             self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
             self.obj.param_setter(self.dict)
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
         except Exception as e:
             print(e)
