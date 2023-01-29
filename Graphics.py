@@ -263,14 +263,10 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         self.other_line=None
     
         # Brush
-        self.brush = QtGui.QBrush()
-        self.brush.setStyle(QtCore.Qt.SolidPattern)
-        self.brush.setColor(QtGui.QColor(220,220,220,220)) 
+        self.brush = QtGui.QBrush(Qt.transparent)
         # Pen
-        self.pen = QtGui.QPen()
-        self.pen.setStyle(QtCore.Qt.SolidLine)
-        self.pen.setWidth(1)
-        self.pen.setColor(QtGui.QColor(0,70,70,255))  
+        self.pen = QtGui.QPen(Qt.NoPen)
+
         # Lines
         self.out_lines = []
         self.in_lines = []
@@ -284,19 +280,11 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         return QtCore.QRectF(self.rect)
  
     def paint(self, painter, option, widget):
-        painter.setBrush(self.brush)
+        
         painter.setPen(self.pen)
         painter.drawEllipse(self.rect.x()-4,self.rect.y()-4,self.rect.height(),self.rect.width())
-        painter.setBrush(QBrush(Qt.cyan,Qt.SolidPattern))
+        painter.setBrush(self.brush)
         painter.drawEllipse(self.rect.x()-2,self.rect.y()-2,(self.rect.height()/3)*2,(self.rect.width()/3)*2)
-        # painter.drawEllipse(self.rect.x(),self.rect.y(),self.rect.height()/3,self.rect.width()/3)
-        
-        
-        # grip_path = QPainterPath()
-        # #grip_path.addEllipse(self.rect.x(),self.rect.y(),self.rect.height()/3,self.rect.width()/3)
-        # grip_path.addEllipse(self.rect.x()-2,self.rect.y()-2,(self.rect.height()/3)*2,(self.rect.width()/3)*2)
-        # grip_path.addEllipse(self.rect.x()-4,self.rect.y()-4,self.rect.height(),self.rect.width())
-        # painter.strokePath(grip_path.simplified(),QPen(Qt.black,1))
         
     def mousePressEvent(self, event):
         cursor = QCursor( Qt.PointingHandCursor )
@@ -402,7 +390,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def hoverLeaveEvent(self, event):
         cursor = QCursor( Qt.ArrowCursor )
         QApplication.instance().setOverrideCursor(cursor)
-    
+
+    def show(self):
+        # set pen to show
+        self.pen = QPen(Qt.black, 1, Qt.SolidLine)
+        self.brush = QBrush(Qt.cyan)
+
+    def hide(self):
+        # set pen to transparent
+        self.pen = QPen(Qt.NoPen)
+        self.brush = QBrush(Qt.transparent)
+
 # all created node items will be put inside this list 
 # it is used for recreating the node lines by returning the node item object based on unit operation object's name 
 lst = []
@@ -428,7 +426,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.obj = unit_operation
         self.container = container
         self.graphicsView = graphicsView
-
+        self.setAcceptHoverEvents(True)
         self.name = self.obj.name
         self.type = self.obj.type
 
@@ -615,8 +613,25 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.dock_widget.update_compounds()
         except AttributeError:
             pass
-         
-         
+
+    def hoverEnterEvent(self, event):
+        super(NodeItem,self).hoverEnterEvent(event)
+        for i in self.graphicsView.items():
+            if(isinstance(i,NodeItem)):
+                for ip in i.input:
+                    ip.show()
+                for op in i.output:
+                    op.show()
+
+    def hoverLeaveEvent(self, event):
+        super(NodeItem,self).hoverLeaveEvent(event)
+        for i in self.graphicsView.items():
+            if(isinstance(i,NodeItem)):
+                for ip in i.input:
+                    ip.hide()
+                for op in i.output:
+                    op.hide()
+
 def findMainWindow(self):
     '''
         Global function to find the (open) QMainWindow in application
