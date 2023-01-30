@@ -155,8 +155,17 @@ class MaterialStream():
         var5_name = self.variables['xvap']['name']
         var5_val = self.variables['xvap']['value']
         var5_unit =  self.variables['xvap']['unit']
+        var6_name = self.variables['F_pc']['name']
+        var6_val = self.variables['F_pc']['value']
+        var6_unit =  self.variables['F_pc']['unit']
+        var7_name = self.variables['Fm_pc']['name']
+        var7_val = self.variables['Fm_pc']['value']
+        var7_unit =  self.variables['Fm_pc']['unit']
+        
         dict = {var1_name:str(var1_val)+' '+var1_unit, 
                 var2_name:str(var2_val)+' '+var2_unit,
+                var6_name:str(var6_val)+' '+var6_unit,
+                var7_name:str(var7_val)+' '+var7_unit,
 				var3_name:str(var3_val)+' '+var3_unit,
                 var4_name:str(var4_val)+' '+var4_unit,
                 var5_name:str(var5_val)+' '+var5_unit,	}
