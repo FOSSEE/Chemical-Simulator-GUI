@@ -211,7 +211,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             klst = list(d.values())
 
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap", "Phase Molar Enthalpy":"H_p", 
-            "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p"}
+            "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p"}
 
             # Amounts Tab
             if obj.type == 'MaterialStream':

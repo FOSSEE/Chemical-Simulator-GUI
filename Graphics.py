@@ -51,14 +51,15 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
             else:
                 self.unit_operations.append(i)
                 type(i).counter += 1
-            print(self.unit_operations)
+            #print(self.unit_operations)
             new_box = self.create_node_item(i, container)
             new_box.setPos(i.pos.toPoint().x(), i.pos.toPoint().y())
             self.scene.addItem(new_box)
 
         for i in obj:
             if i.type == "MaterialStream":
-                print(eval(i.type))
+                pass
+                #print(eval(i.type))
             elif i.type not in stm:
                 ip = i.input_stms
                 op = i.output_stms
@@ -336,7 +337,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line.target = item
             item.in_lines.append(self.new_line)
             self.new_line.pointB = item.get_center()
-            print(type(self.new_line.source))
+            #print(type(self.new_line.source))
             if self.new_line.source.parent.obj.type not in stm:
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
@@ -347,7 +348,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line.target = self
             item.out_lines.append(self.new_line)
             self.new_line.pointA = item.get_center()
-            print(type(self.new_line.source))
+            #print(type(self.new_line.source))
             if self.new_line.source.parent.obj.type not in stm:
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
@@ -482,7 +483,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # updating input values
         if self.dock_widget.obj.type != 'MaterialStream':
-            print(self.dock_widget.obj.type)
+            pass
+            #print(self.dock_widget.obj.type)
             try:
                 self.dock_widget.obj.param_setter(self.dock_widget.obj.param_getter(self.dock_widget.obj.mode))
             except Exception as e:
