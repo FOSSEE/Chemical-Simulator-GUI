@@ -347,6 +347,7 @@ class MainApp(QMainWindow,ui):
                 self.comp.set_compounds(compound_selected)
                 for i in compound_selected:
                     self.comp.compound_selection(self.comp, i)
+                self.comp.hide()
                 self.container.graphics.load_canvas(obj, self.container)
                 self.container.result = temp_result
                 DockWidget.show_result(dock_widget_lst)
