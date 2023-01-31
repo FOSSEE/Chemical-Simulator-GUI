@@ -559,8 +559,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
             output = [NodeSocket(QtCore.QRect(self.rect.width()-6.5,-5.5,4*3,4*3), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="DistillationColumn" or self.type=="ShortcutColumn"):
-            input = [NodeSocket(QtCore.QRect(-6.5,(self.rect.height()*x/(self.nin+1)-4),5*3,5*3), self, 'in', x) for x in range(1,self.nin+1) ]
-            output = [NodeSocket(QtCore.QRect(self.rect.width()-9.5,(self.rect.height()*1.44*x/(self.nop+1))-59,5*2,5*2), self, 'op', x) for x in range(1,self.nop+1)]
+            input = [NodeSocket(QtCore.QRect(-6.5,(self.rect.height()*x/(self.nin+1)-4),4*3,4*3), self, 'in', x) for x in range(1,self.nin+1) ]
+            output = [NodeSocket(QtCore.QRect(self.rect.width()-9.5,(self.rect.height()*1.44*x/(self.nop+1))-59,4*3,4*3), self, 'op', x) for x in range(1,self.nop+1)]
             return input,output
         elif(self.type=="MaterialStream"):
             input = [NodeSocket(QtCore.QRect(-6.5,(self.rect.height()*x/(self.nin+1)-6),4*3,4*3), self, 'in', x) for x in range(1,self.nin+1) ]
