@@ -160,6 +160,23 @@ class Container():
         for i in self.graphics.scene.items():
             if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
                 i.update_tooltip_selectedVar()
+                no_input_lines = len(i.input[0].in_lines)
+                no_output_lines = len(i.output[0].out_lines)
+                if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
+                    #setting the value of input data tab in dock widget and disabling them
+                    i.dock_widget.comboBox.setDisabled(True)
+                    i.dock_widget.input_dict['P'].setText(str(i.obj.variables['P']['value']))
+                    i.dock_widget.input_dict['P'].setDisabled(True)
+                    i.dock_widget.input_dict['T'].setText(str(i.obj.variables['T']['value']))
+                    i.dock_widget.input_dict['T'].setDisabled(True)
+                    i.dock_widget.input_dict['MolFlow'].setText(str(i.obj.variables['F_p[1]']['value']))
+                    i.dock_widget.input_dict['MolFlow'].setDisabled(True)
+                    i.dock_widget.cbTP.setCurrentText(str(i.obj.thermo_package))
+                    i.dock_widget.cbTP.setDisabled(True)
+                    i.dock_widget.pushButton_2.setDisabled(True)
+                    for index,k in enumerate(i.dock_widget.x_pclist):
+                        k.setText(str(i.obj.variables['x_pc']['value'][index]))
+                        k.setDisabled(True)
 
 def flat_list(lst):
     flat_lst=[]
