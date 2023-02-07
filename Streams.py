@@ -427,3 +427,19 @@ class MaterialStream():
         for key,value in self.eqn_dict.items():
             self.OM_data_eqn = self.OM_data_eqn + self.name + '.'+ key + ' = ' + str(value) + ';\n'
         return self.OM_data_eqn
+    
+    def disableInputDataTab(self,dockwidget):
+        #setting the value of input data tab in dock widget and disabling them
+        dockwidget.comboBox.setDisabled(True)
+        dockwidget.input_dict['P'].setText(str(self.variables['P']['value']))
+        dockwidget.input_dict['P'].setDisabled(True)
+        dockwidget.input_dict['T'].setText(str(self.variables['T']['value']))
+        dockwidget.input_dict['T'].setDisabled(True)
+        dockwidget.input_dict['MolFlow'].setText(str(self.variables['F_p[1]']['value']))
+        dockwidget.input_dict['MolFlow'].setDisabled(True)
+        dockwidget.cbTP.setCurrentText(str(self.thermo_package))
+        dockwidget.cbTP.setDisabled(True)
+        dockwidget.pushButton_2.setDisabled(True)
+        for index,k in enumerate(dockwidget.x_pclist):
+            k.setText(str(self.variables['x_pc']['value'][index]))
+            k.setDisabled(True)

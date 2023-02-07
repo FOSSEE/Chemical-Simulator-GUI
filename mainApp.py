@@ -353,8 +353,17 @@ class MainApp(QMainWindow,ui):
                 DockWidget.show_result(dock_widget_lst)
 
                 for i in dock_widget_lst:
+                    #Submitting values 
                     i.param()
 
+                #Disbaling input data tab for output stream
+                for i in self.container.graphics.scene.items():
+                    if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
+                        i.update_tooltip_selectedVar()
+                        no_input_lines = len(i.input[0].in_lines)
+                        no_output_lines = len(i.output[0].out_lines)
+                        if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
+                            i.obj.disableInputDataTab(i.dock_widget)
 
         except Exception as e:
             print(e)
