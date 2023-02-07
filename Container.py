@@ -143,10 +143,20 @@ class Container():
             self.result=self.flowsheet.result_data
             
         elif mode=='EQN':
+            self.graphicsView.setInteractive(False)
+            c_pix = QPixmap('Icons/simulating.png')
+            cursor_scaled_pix = c_pix.scaled(QSize(30, 30), Qt.KeepAspectRatio)
+            s_cursor = QCursor(cursor_scaled_pix, -1, -1)
+            QApplication.instance().setOverrideCursor(s_cursor)
+
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
             self.result=self.flowsheet.result_data
 
+            self.graphicsView.setInteractive(True)
+            s_cursor = cursor = QCursor( Qt.ArrowCursor )
+            QApplication.instance().setOverrideCursor(s_cursor)
+            
             if(len(self.result)== 4):
                 #self.msg_browser()
                 self.msg.append("<span style=\"color:green\">["+str(self.current_time())+"] Simulation <b>Successful.</b></span>")
