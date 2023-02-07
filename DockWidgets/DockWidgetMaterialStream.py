@@ -174,7 +174,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         i.update_tooltip()
                 except:
                     pass
-                
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:
@@ -209,7 +211,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             klst = list(d.values())
 
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap", "Phase Molar Enthalpy":"H_p", 
-            "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p"}
+            "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p"}
 
             # Amounts Tab
             if obj.type == 'MaterialStream':
@@ -358,4 +360,5 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
     def closeEvent(self,event):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+    

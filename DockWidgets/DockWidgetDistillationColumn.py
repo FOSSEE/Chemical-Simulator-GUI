@@ -179,6 +179,9 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:
@@ -361,4 +364,4 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
     def closeEvent(self,event):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)

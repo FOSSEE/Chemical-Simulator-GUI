@@ -35,19 +35,20 @@ class MaterialStream():
         self.variables = {
             'P'     : {'name':'Pressure',         'value':101325,    'unit':'Pa'},         
             'T'     : {'name':'Temperature',      'value':300,       'unit':'K'},
+            
+            'xvap'   : {'name':'Vapour Mole Fraction',          'value':None,       'unit':''},
+            'H_p[1]'  : {'name':'Mixture Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[1]'  : {'name':'Mixture Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[1]'  : {'name':'Mixture Molar Flow',           'value':100,       'unit':'mol/s'},
+            'Fm_p[1]' : {'name':'Mixture Mass Flow',            'value':None,    'unit':'g/s'},
 
-            'xvap'   : {'name':'Vapour Phase Mole Fraction',          'value':None,       'unit':''},
-            'H_p[1]'  : {'name':'Mixture Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
-            'S_p[1]'  : {'name':'Mixture Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
-            'F_p[1]'  : {'name':'Mixture Molar Flow Rate',            'value':100,       'unit':'mol/s'},
+            'H_p[2]'  : {'name':'Liquid Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[2]'  : {'name':'Liquid Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[2]'  : {'name':'Liquid Molar Flow',            'value':None,       'unit':'mol/s'},
 
-            'H_p[2]'  : {'name':'Liquid Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
-            'S_p[2]'  : {'name':'Liquid Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
-            'F_p[2]'  : {'name':'Liquid Molar Flow Rate',            'value':None,       'unit':'mol/s'},
-
-            'H_p[3]'  : {'name':'Vapour Phase Molar Entalpy',        'value':None,       'unit':'J/mol'},
-            'S_p[3]'  : {'name':'Vapour Phase Molar Entropy',        'value':None,       'unit':'J/mol.K'},
-            'F_p[3]'  : {'name':'Vapour Molar Flow Rate',            'value':None,       'unit':'mol/s'},
+            'H_p[3]'  : {'name':'Vapour Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'S_p[3]'  : {'name':'Vapour Molar Entropy',        'value':None,       'unit':'J/mol.K'},
+            'F_p[3]'  : {'name':'Vapour Molar Flow',            'value':None,       'unit':'mol/s'},
 
             'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':''},
             'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':''},
@@ -135,6 +136,40 @@ class MaterialStream():
         dict['Mole Flow'] = str(self.variables['F_p[1]']['value'])+' '+self.variables['F_p[1]']['unit']
         dict[self.variables['x_pc']['name']] = str(self.variables['x_pc']['value'])+' '+self.variables['x_pc']['unit']
         dict['Thermo Package'] = self.thermo_package
+        return dict
+    
+    def param_getter_tooltip_selectedVar(self):
+        dict = {}
+
+        pressure_name = self.variables['P']['name']
+        pressure_val = self.variables['P']['value']
+        pressure_unit =  self.variables['P']['unit']
+        temp_name = self.variables['T']['name']
+        temp_val = self.variables['T']['value']
+        temp_unit =  self.variables['T']['unit']
+        mixMolEntal_name = self.variables['H_p[1]']['name']
+        mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),2)
+        mixMolEntal_unit =  self.variables['H_p[1]']['unit']
+        mixMolEntro_name = self.variables['S_p[1]']['name']
+        mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),2)
+        mixMolEntro_unit =  self.variables['S_p[1]']['unit']
+        vapMolFrac_name = self.variables['xvap']['name']
+        vapMolFrac_val = self.variables['xvap']['value']
+        vapMolFrac_unit =  self.variables['xvap']['unit']
+        mixMolFlo_name = self.variables['F_pc']['name']
+        mixMolFlo_val = self.variables['F_pc']['value']
+        mixMolFlo_unit =  self.variables['F_pc']['unit']
+        mixMassFlo_name = self.variables['Fm_p[1]']['name']
+        mixMassFlo_val = self.variables['Fm_p[1]']['value']
+        mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
+        
+        dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 
+                temp_name:str(temp_val)+' '+temp_unit,
+                vapMolFrac_name:str(vapMolFrac_val)+' '+vapMolFrac_unit,
+				mixMolEntal_name:str(mixMolEntal_val)+' '+mixMolEntal_unit,
+                mixMolEntro_name:str(mixMolEntro_val)+' '+mixMolEntro_unit,
+                mixMolFlo_name:str(mixMolFlo_val)+' '+mixMolFlo_unit,
+                mixMassFlo_name:str(mixMassFlo_val)+' '+mixMassFlo_unit}
         return dict
 
     def param_getter(self,mode):

@@ -152,7 +152,7 @@ class Flowsheet():
             mosFile.write('loadFile(\"Flowsheet.mo\");\n')
             mosFile.write('simulate(Flowsheet, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n')
         
-        print('Initiating Simulation in Equation Oriented Mode')
+        #print('Initiating Simulation in Equation Oriented Mode')
 
         self.send_for_simulation_Eqn()
 

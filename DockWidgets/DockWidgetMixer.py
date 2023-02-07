@@ -46,6 +46,9 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
             self.dict={}
             self.dict = [int(self.input_dict[0].text()), self.input_dict[1].currentText()]
             self.obj.param_setter(self.dict)
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:
@@ -53,4 +56,4 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
     def closeEvent(self,event):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)

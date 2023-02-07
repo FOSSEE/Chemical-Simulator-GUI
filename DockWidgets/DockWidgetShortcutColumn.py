@@ -90,6 +90,9 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
                         self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),
                         self.input_dict[8].currentText()]            
             self.obj.param_setter(self.dict)
+            if(self.isVisible()):
+                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
+                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
             self.hide()
             
         except Exception as e:
@@ -135,4 +138,4 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
     def closeEvent(self,event):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue((scrollHVal+currentVal)/2)
+        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
