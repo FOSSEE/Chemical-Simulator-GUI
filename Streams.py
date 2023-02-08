@@ -441,5 +441,5 @@ class MaterialStream():
         dockwidget.cbTP.setDisabled(True)
         dockwidget.pushButton_2.setDisabled(True)
         for index,k in enumerate(dockwidget.x_pclist):
-            k.setText(str(self.variables['x_pc']['value'][index]))
+            k.setText(str(self.variables['x_pc[1,'+ str(index+1)+']']['value']))
             k.setDisabled(True)

@@ -156,7 +156,7 @@ class Container():
             self.graphicsView.setInteractive(True)
             s_cursor = cursor = QCursor( Qt.ArrowCursor )
             QApplication.instance().setOverrideCursor(s_cursor)
-            
+
             if(len(self.result)== 4):
                 #self.msg_browser()
                 self.msg.append("<span style=\"color:green\">["+str(self.current_time())+"] Simulation <b>Successful.</b></span>")

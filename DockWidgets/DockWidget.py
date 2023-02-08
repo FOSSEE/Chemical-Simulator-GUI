@@ -129,7 +129,7 @@ class DockWidget(QDockWidget,ui_dialog):
             #print(variKeys)
             for i, val in enumerate(variKeys):
                 propertyname = name + '.' + val
-                print(i,val, propertyname)
+                #print(i,val, propertyname)
                 if propertyname in result[0]:
                     ind = result[0].index(propertyname)
                     resultval = str(result[-1][ind])
