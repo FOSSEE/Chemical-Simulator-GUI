@@ -288,7 +288,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         painter.drawEllipse(self.rect.x()+2,self.rect.y()+2,(self.rect.height()/3)*2,(self.rect.width()/3)*2)
         
     def mousePressEvent(self, event):
-        cursor = QCursor( Qt.PointingHandCursor )
+        cursor = QCursor( Qt.ArrowCursor )
         QApplication.instance().setOverrideCursor(cursor)
 
         if self.type == 'op':
@@ -313,6 +313,12 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def mouseMoveEvent(self, event):
 
         if self.type == 'op':
+            item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
+            if(isinstance(item,NodeSocket)):
+                QApplication.instance().setOverrideCursor(QCursor( Qt.PointingHandCursor))
+            else:
+                QApplication.instance().restoreOverrideCursor()
+                QApplication.instance().setOverrideCursor(QCursor( Qt.ArrowCursor))
             pointB = self.mapToScene(event.pos())
             self.new_line.pointB = pointB
             if self.other_line:
