@@ -348,6 +348,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
                 self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj) # Input stream if flag is 1
+            
+            sc = self.new_line.source.parent
+            tg = self.new_line.target.parent
+            if(sc.obj.type == 'MaterialStream'):
+                sc_no_input_lines = len(sc.input[0].in_lines)
+                if(sc_no_input_lines > 0):
+                    sc.obj.disableInputDataTab(sc.dock_widget)
+            if(tg.obj.type == 'MaterialStream'):
+                tg_no_input_lines = len(tg.input[0].in_lines)
+                if(tg_no_input_lines > 0):
+                    tg.obj.disableInputDataTab(tg.dock_widget)
 
         elif (self.type =='in') and (item.type == 'op'):
             self.new_line.source = item
@@ -359,7 +370,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
                 self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
-
+            
+            sc = self.new_line.source.parent
+            tg = self.new_line.target.parent
+            if(sc.obj.type == 'MaterialStream'):
+                sc_no_input_lines = len(sc.input[0].in_lines)
+                if(sc_no_input_lines > 0):
+                    sc.obj.disableInputDataTab(sc.dock_widget)
+            if(tg.obj.type == 'MaterialStream'):
+                tg_no_input_lines = len(tg.input[0].in_lines)
+                if(tg_no_input_lines > 0):
+                    tg.obj.disableInputDataTab(tg.dock_widget)
 
         else:
             self.scene().removeItem(self.new_line)
