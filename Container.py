@@ -118,6 +118,11 @@ class Container():
             self.msg.append("<span style=\"color:red\">"+stdout+"</span>")
     
     def simulate(self,mode):
+        self.graphicsView.parent().parent().menubar.setProperty('enabled',False)
+        self.graphicsView.parent().parent().toolBar.setProperty('enabled',False)
+        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',False)
+        self.graphicsView.setInteractive(False)
+        QApplication.instance().setOverrideCursor(QCursor(Qt.WaitCursor))
 
         for i in self.graphics.scene.items():
             if (isinstance(i, NodeItem)):
@@ -143,16 +148,9 @@ class Container():
             self.result=self.flowsheet.result_data
             
         elif mode=='EQN':
-            self.graphicsView.setInteractive(False)
-            QApplication.instance().setOverrideCursor(QCursor(Qt.WaitCursor))
-
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
             self.flowsheet.simulate_EQN()
             self.result=self.flowsheet.result_data
-
-            self.graphicsView.setInteractive(True)
-            QApplication.instance().restoreOverrideCursor()
-            QApplication.instance().setOverrideCursor(QCursor(Qt.ArrowCursor))
 
             if(len(self.result)== 4):
                 #self.msg_browser()
@@ -172,6 +170,12 @@ class Container():
                 if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
                     i.obj.disableInputDataTab(i.dock_widget)
 
+        self.graphicsView.parent().parent().menubar.setProperty('enabled',True)
+        self.graphicsView.parent().parent().toolBar.setProperty('enabled',True)
+        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',True)
+        self.graphicsView.setInteractive(True)
+        QApplication.instance().restoreOverrideCursor()
+        QApplication.instance().setOverrideCursor(QCursor(Qt.ArrowCursor))
 def flat_list(lst):
     flat_lst=[]
     for sublist in lst:
