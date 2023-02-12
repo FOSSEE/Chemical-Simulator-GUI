@@ -422,7 +422,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def show(self):
         # set pen to show
         self.pen = QPen(QtGui.QColor(0,70,70,220), 1, Qt.SolidLine)
-        self.brush = QBrush(QtGui.QColor(33,225,162,255))
+        self.brush = QBrush(QtGui.QColor(140,199,198,255))
 
     def hide(self):
         # set pen to transparent
