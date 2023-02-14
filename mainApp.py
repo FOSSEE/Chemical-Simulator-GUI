@@ -314,13 +314,15 @@ class MainApp(QMainWindow,ui):
         data.append(self.container.result)
 
         file_format = 'sim'
-        initial_path = QDir.currentPath() + 'untitled.' + file_format
+        initial_path = QDir.currentPath() + ' untitled.' + file_format
         file_name, _ = QFileDialog.getSaveFileName(self, "Save As",
                                                   initial_path, "%s Files (*.%s);; All Files (*)" %
                                                   (file_format.upper(), file_format))
         try:
             with open(file_name, 'wb') as f: 
                 pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+            fileName = file_name.split('/')[-1].split('.')[0]
+            self.setWindowTitle(fileName+' - Chemical Simularot GUI')
         except Exception as e:
             pass
 
@@ -336,6 +338,9 @@ class MainApp(QMainWindow,ui):
                                                       initial_path, "%s Files (*.%s);; All Files (*)" %
                                                       (file_format.upper(), file_format))
             if file_name:
+                fileName = file_name.split('/')[-1].split('.')[0]
+                self.setWindowTitle(fileName+' - Chemical Simularot GUI')
+
                 self.undo_redo_helper()
 
                 with open(file_name, 'rb') as f:
