@@ -322,7 +322,7 @@ class MainApp(QMainWindow,ui):
             with open(file_name, 'wb') as f: 
                 pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
             fileName = file_name.split('/')[-1].split('.')[0]
-            self.setWindowTitle(fileName+' - Chemical Simularot GUI')
+            self.setWindowTitle(fileName+' - Chemical Simulator GUI')
         except Exception as e:
             pass
 
@@ -339,7 +339,7 @@ class MainApp(QMainWindow,ui):
                                                       (file_format.upper(), file_format))
             if file_name:
                 fileName = file_name.split('/')[-1].split('.')[0]
-                self.setWindowTitle(fileName+' - Chemical Simularot GUI')
+                self.setWindowTitle(fileName+' - Chemical Simulator GUI')
 
                 self.undo_redo_helper()
 

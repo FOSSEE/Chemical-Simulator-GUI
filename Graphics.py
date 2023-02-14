@@ -470,11 +470,19 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip = default_tooltip + f"   {i} : {j}\n"
             self.setToolTip(default_tooltip)
 
+        dlg = QMessageBox()
+        dlg.setWindowTitle("Error")
+        dlg.setIcon(QMessageBox.Critical)
+        dlg.setText('Enter valid input value!')
 
         if self.obj.type == 'Mixer' and not self.obj.saved:
-            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if self.ok and text:
+            while self.ok and (int(text)< 2 or int(text) > 4):
+                dlg.exec_()
+                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
+                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
@@ -485,9 +493,13 @@ class NodeItem(QtWidgets.QGraphicsItem):
         #         self.obj.no_of_outputs = self.nop
         #         self.obj.variables['No']['value'] = self.nop
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
-            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if self.ok and text:
+            while self.ok and (int(text)< 1 or int(text) > 8):
+                dlg.exec_()
+                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
+                                        echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['Ni']['value'] = self.nin
