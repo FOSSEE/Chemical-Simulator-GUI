@@ -34,17 +34,18 @@ class Container():
         self.obj = obj
         self.scene = self.graphics.get_scene()
         box  = self.graphics.create_node_item(self.obj, self)
-        self.scene.addItem(box)
-        box.setPos(2500-30, 2500-30)
+        if box is not None:
+            self.scene.addItem(box)
+            box.setPos(2500-30, 2500-30)
 
-        if(obj in self.unit_operations):
-            pass
-        else:
-            self.unit_operations.append(obj)
-            data = self.unit_operations[:]
-            data.append(compound_selected)
-            push('Undo', data)
-            self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
+            if(obj in self.unit_operations):
+                pass
+            else:
+                self.unit_operations.append(obj)
+                data = self.unit_operations[:]
+                data.append(compound_selected)
+                push('Undo', data)
+                self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
 
     '''
         Deletes the selected item from the canvas and also the objects created for that type.

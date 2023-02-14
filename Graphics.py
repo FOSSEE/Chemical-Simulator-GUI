@@ -36,7 +36,11 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         return self.scene
 
     def create_node_item(self,unit_operation, container):
-        return NodeItem(unit_operation, container, self.graphicsView)
+        tempItem = NodeItem(unit_operation, container, self.graphicsView)
+        if tempItem.ok:
+            return tempItem
+        else:
+            return None
 
     def update_compounds(self):
         for i in self.graphicsView.items():
@@ -457,7 +461,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.name = self.obj.name
         self.type = self.obj.type
-
+        self.ok = True
         if (self.obj.modes_list):
             default_tooltip = f"{self.name}\n\n"
             default_tooltip_dict = self.obj.param_getter_tooltip(self.obj.mode)
@@ -468,9 +472,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
 
         if self.obj.type == 'Mixer' and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if ok and text:
+            if self.ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
@@ -481,9 +485,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
         #         self.obj.no_of_outputs = self.nop
         #         self.obj.variables['No']['value'] = self.nop
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if ok and text:
+            if self.ok and text:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['Ni']['value'] = self.nin
