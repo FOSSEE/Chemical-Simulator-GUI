@@ -549,6 +549,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         
         self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsMovable)
         self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsSelectable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
     
         # Brush
         self.brush = QtGui.QBrush()
@@ -677,6 +678,16 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 for op in i.output:
                     op.hide()
 
+    def itemChange(self, change, value):
+        newPos = value
+        if change == self.ItemPositionChange and self.scene():
+            rect = self.container.graphicsView.sceneRect()
+            if not rect.__contains__(newPos):
+                newPos.setX(min(rect.right()-100, max(newPos.x(), rect.left())))
+                newPos.setY(min(rect.bottom()-35, max(newPos.y(), rect.top())))
+                self.obj.set_pos(newPos)
+        return super(NodeItem,self).itemChange(change, newPos)
+        
 def findMainWindow(self):
     '''
         Global function to find the (open) QMainWindow in application
