@@ -2024,7 +2024,6 @@
    <addaction name="separator"/>
    <addaction name="actionEquationOriented"/>
    <addaction name="actionSequentialMode"/>
-   <addaction name="separator"/>
    <addaction name="actionTerminate"/>
    <addaction name="separator"/>
    <addaction name="actionSelectCompounds"/>
