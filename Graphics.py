@@ -682,9 +682,13 @@ class NodeItem(QtWidgets.QGraphicsItem):
         newPos = value
         if change == self.ItemPositionChange and self.scene():
             rect = self.container.graphicsView.sceneRect()
-            if not rect.__contains__(newPos):
-                newPos.setX(min(rect.right()-100, max(newPos.x(), rect.left())))
-                newPos.setY(min(rect.bottom()-35, max(newPos.y(), rect.top())))
+            width = self.boundingRect().width()
+            height = self.boundingRect().height()
+            eWH1 = QPointF(newPos.x()+width,newPos.y()+height)
+            eWH2 = QPointF(newPos.x()-width,newPos.y()-height)
+            if not rect.__contains__(eWH1) or not rect.__contains__(eWH2) :
+                newPos.setX(min(rect.right()-width-40, max(newPos.x(), rect.left())))
+                newPos.setY(min(rect.bottom()-height-35, max(newPos.y(), rect.top())))
                 self.obj.set_pos(newPos)
         return super(NodeItem,self).itemChange(change, newPos)
         
