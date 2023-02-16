@@ -119,12 +119,9 @@ class Container():
             self.msg.append("<span style=\"color:red\">"+stdout+"</span>")
     
     def simulate(self,mode):
-        self.graphicsView.parent().parent().menubar.setProperty('enabled',False)
-        self.graphicsView.parent().parent().toolBar.setProperty('enabled',False)
-        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',False)
-        self.graphicsView.setInteractive(False)
-        QApplication.instance().setOverrideCursor(QCursor(Qt.WaitCursor))
 
+        self.disableInterfaceforSimulation(True)
+        
         for i in self.graphics.scene.items():
             if (isinstance(i, NodeItem)):
                 try:
@@ -170,13 +167,29 @@ class Container():
                 no_output_lines = len(i.output[0].out_lines)
                 if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
                     i.obj.disableInputDataTab(i.dock_widget)
+                    
+        self.disableInterfaceforSimulation(False)
 
-        self.graphicsView.parent().parent().menubar.setProperty('enabled',True)
-        self.graphicsView.parent().parent().toolBar.setProperty('enabled',True)
-        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',True)
-        self.graphicsView.setInteractive(True)
-        QApplication.instance().restoreOverrideCursor()
-        QApplication.instance().setOverrideCursor(QCursor(Qt.ArrowCursor))
+    def enableToolbar(self,status):
+        self.graphicsView.parent().parent().actionNew.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionZoomIn.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionZoomOut.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionResetZoom.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionEquationOriented.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionTerminate.setProperty('enabled',not status)
+        self.graphicsView.parent().parent().actionSelectCompounds.setProperty('enabled',status)
+
+    def disableInterfaceforSimulation(self,status):
+        self.graphicsView.parent().parent().menubar.setProperty('enabled',not status)
+        self.enableToolbar(not status)
+        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',not status)
+        self.graphicsView.setInteractive(not status)
+        if status:
+            QApplication.instance().setOverrideCursor(QCursor(Qt.WaitCursor))
+        else:
+            QApplication.instance().restoreOverrideCursor()
+            QApplication.instance().setOverrideCursor(QCursor(Qt.ArrowCursor))
+
 def flat_list(lst):
     flat_lst=[]
     for sublist in lst:

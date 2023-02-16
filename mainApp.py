@@ -173,16 +173,17 @@ class MainApp(QMainWindow,ui):
         os.chdir(self.container.flowsheet.root_dir)
         if self.thrd:
             thread_id = self.thrd.ident
-            print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
-            print('____________________Going to terminate the new process created for omc____________________')
+            # print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
+            # print('____________________Going to terminate the new process created for omc____________________')
             self.container.flowsheet.process.terminate()
             print('____________________New process created for omc is terminated.____________________')
             res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
-            self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b> Terminating the simulation </b></span>")
-            print('____________________Simulation thread terminated____________________')
+            self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b>Simulation Terminated.</b></span>")
+            self.container.disableInterfaceforSimulation(False)
+            # print('____________________Simulation thread terminated____________________')
             if res > 1: 
                 ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0) 
-                print('Exception raise (Thread termination) failure')
+                # print('Exception raise (Thread termination) failure')
 
     '''
         Resets the zoom level to default scaling

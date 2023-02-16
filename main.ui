@@ -115,7 +115,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>89</width>
         <height>150</height>
        </size>
       </property>
@@ -2025,6 +2025,8 @@
    <addaction name="actionEquationOriented"/>
    <addaction name="actionSequentialMode"/>
    <addaction name="separator"/>
+   <addaction name="actionTerminate"/>
+   <addaction name="separator"/>
    <addaction name="actionSelectCompounds"/>
   </widget>
   <action name="actionZoomIn">
@@ -2075,6 +2077,18 @@
     <string>Sequential mode</string>
    </property>
   </action>
+  <action name="actionTerminate">
+  <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>Icons/stop.png</normaloff>Icons/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop Simulation</string>
+   </property>
+  </action>
   <action name="actionSelectCompounds">
    <property name="icon">
     <iconset>
@@ -2115,7 +2129,7 @@
   </action>
   <action name="actionTerminate">
    <property name="text">
-    <string>Terminate</string>
+    <string>Stop Simulation</string>
    </property>
   </action>
   <action name="actionUndo">
