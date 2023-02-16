@@ -231,6 +231,7 @@ class MainApp(QMainWindow,ui):
         New is used to delete all the existing work.
     '''        
     def new(self):
+        self.setWindowTitle('Untitled - Chemical Simulator GUI')
         self.undo_redo_helper()
         self.comp = ComponentSelector(self)
         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>New</b> flowsheet is created ... </span>")

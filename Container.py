@@ -147,7 +147,7 @@ class Container():
             
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
-            self.flowsheet.simulate_EQN()
+            self.flowsheet.simulate_EQN(self.msg)
             self.result=self.flowsheet.result_data
 
             if(len(self.result)== 4):
