@@ -160,7 +160,7 @@ class MaterialStream():
         mixMolFlo_val = self.variables['F_p[1]']['value']
         mixMolFlo_unit =  self.variables['F_p[1]']['unit']
         mixMassFlo_name = self.variables['Fm_p[1]']['name']
-        mixMassFlo_val = self.variables['Fm_p[1]']['value']
+        mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),2)
         mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
         
         dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 
@@ -431,15 +431,15 @@ class MaterialStream():
     def disableInputDataTab(self,dockwidget):
         #setting the value of input data tab in dock widget and disabling them
         dockwidget.comboBox.setDisabled(True)
-        dockwidget.input_dict['P'].setText(str(self.variables['P']['value']))
+        dockwidget.input_dict['P'].setText(str(round(float(self.variables['P']['value']),2)))
         dockwidget.input_dict['P'].setDisabled(True)
-        dockwidget.input_dict['T'].setText(str(self.variables['T']['value']))
+        dockwidget.input_dict['T'].setText(str(round(float(self.variables['T']['value']),2)))
         dockwidget.input_dict['T'].setDisabled(True)
-        dockwidget.input_dict['MolFlow'].setText(str(self.variables['F_p[1]']['value']))
+        dockwidget.input_dict['MolFlow'].setText(str(round(float(self.variables['F_p[1]']['value']),2)))
         dockwidget.input_dict['MolFlow'].setDisabled(True)
         dockwidget.cbTP.setCurrentText(str(self.thermo_package))
         dockwidget.cbTP.setDisabled(True)
         dockwidget.pushButton_2.setDisabled(True)
         for index,k in enumerate(dockwidget.x_pclist):
-            k.setText(str(self.variables['x_pc[1,'+ str(index+1)+']']['value']))
+            k.setText(str(round(float(self.variables['x_pc[1,'+ str(index+1)+']']['value']),2)))
             k.setDisabled(True)
