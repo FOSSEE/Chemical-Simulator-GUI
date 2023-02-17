@@ -95,7 +95,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         l.setText(str(self.input_dict[i]))
 
                     lay = QGridLayout()
-                    lay.addWidget(QLabel(i+":"),0,0, alignment=Qt.AlignLeft)
+                    lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
                     lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
                     if(i != 'MolFlow'):
                         lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
