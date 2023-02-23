@@ -1,0 +1,6 @@
+assert            | debug   | Flowsheet_functions.c:290: Invalid root: (1.#INF)^(2)
+assert            | debug   | Flowsheet_functions.c:290: Invalid root: (1.#INF)^(2)
+assert            | debug   | Flowsheet_functions.c:290: Invalid root: (1.#INF)^(2)
+assert            | debug   | Flowsheet_functions.c:290: Invalid root: (1.#INF)^(2)
+stdout            | info    | The initialization finished successfully without homotopy method.
+stdout            | info    | The simulation finished successfully.
