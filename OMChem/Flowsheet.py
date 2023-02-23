@@ -21,7 +21,7 @@ class Flowsheet():
         self.stdout=None
         self.stderr=None
     
-    def get_omc_path(self):
+    def get_omc_path(self,msg):
         try:
             self.omhome = os.environ.get('OPENMODELICAHOME')
             if self.omhome is None:
@@ -32,6 +32,8 @@ class Flowsheet():
                 self.omhome = '/usr'
             return os.path.join(self.omhome, 'bin', 'omc')
         except BaseException:
+            msg.parent().parent().parent().container.disableInterfaceforSimulation(False)
+            msg.append("<span style=\"color:red\"><b>Installation Error : </b>The OpenModelica compiler is missing in the System path please install it.</span>")
             print("The OpenModelica compiler is missing in the System path please install it" )
             raise
 
@@ -44,9 +46,9 @@ class Flowsheet():
     def add_compound_list(self,C):
         self.compounds = C
     
-    def send_for_simulation_Eqn(self):
+    def send_for_simulation_Eqn(self,msg):
         self.result_data = []
-        self.omc_path = self.get_omc_path()
+        self.omc_path = self.get_omc_path(msg)
         #print(self.omc_path)
         
         if self.sim_method == 'Eqn':
@@ -94,7 +96,7 @@ class Flowsheet():
                         resultval = str(self.result_data[-1][ind])
                         unit[0].Prop[key] = resultval
              
-    def simulate_EQN(self):
+    def simulate_EQN(self,msg):
         self.data = []
         self.sim_method = 'Eqn'
         self.data.append("model Flowsheet\n")
@@ -154,7 +156,7 @@ class Flowsheet():
         
         #print('Initiating Simulation in Equation Oriented Mode')
 
-        self.send_for_simulation_Eqn()
+        self.send_for_simulation_Eqn(msg)
 
     def simulate_SM(self,ip,op):
         self.sim_method = 'SM'

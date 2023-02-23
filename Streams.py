@@ -156,11 +156,11 @@ class MaterialStream():
         vapMolFrac_name = self.variables['xvap']['name']
         vapMolFrac_val = self.variables['xvap']['value']
         vapMolFrac_unit =  self.variables['xvap']['unit']
-        mixMolFlo_name = self.variables['F_pc']['name']
-        mixMolFlo_val = self.variables['F_pc']['value']
-        mixMolFlo_unit =  self.variables['F_pc']['unit']
+        mixMolFlo_name = self.variables['F_p[1]']['name']
+        mixMolFlo_val = self.variables['F_p[1]']['value']
+        mixMolFlo_unit =  self.variables['F_p[1]']['unit']
         mixMassFlo_name = self.variables['Fm_p[1]']['name']
-        mixMassFlo_val = self.variables['Fm_p[1]']['value']
+        mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),2)
         mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
         
         dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 
@@ -427,3 +427,19 @@ class MaterialStream():
         for key,value in self.eqn_dict.items():
             self.OM_data_eqn = self.OM_data_eqn + self.name + '.'+ key + ' = ' + str(value) + ';\n'
         return self.OM_data_eqn
+    
+    def disableInputDataTab(self,dockwidget):
+        #setting the value of input data tab in dock widget and disabling them
+        dockwidget.comboBox.setDisabled(True)
+        dockwidget.input_dict['P'].setText(str(round(float(self.variables['P']['value']),2)))
+        dockwidget.input_dict['P'].setDisabled(True)
+        dockwidget.input_dict['T'].setText(str(round(float(self.variables['T']['value']),2)))
+        dockwidget.input_dict['T'].setDisabled(True)
+        dockwidget.input_dict['MolFlow'].setText(str(round(float(self.variables['F_p[1]']['value']),2)))
+        dockwidget.input_dict['MolFlow'].setDisabled(True)
+        dockwidget.cbTP.setCurrentText(str(self.thermo_package))
+        dockwidget.cbTP.setDisabled(True)
+        dockwidget.pushButton_2.setDisabled(True)
+        for index,k in enumerate(dockwidget.x_pclist):
+            k.setText(str(round(float(self.variables['x_pc[1,'+ str(index+1)+']']['value']),2)))
+            k.setDisabled(True)

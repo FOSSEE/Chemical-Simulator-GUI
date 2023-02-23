@@ -173,16 +173,17 @@ class MainApp(QMainWindow,ui):
         os.chdir(self.container.flowsheet.root_dir)
         if self.thrd:
             thread_id = self.thrd.ident
-            print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
-            print('____________________Going to terminate the new process created for omc____________________')
+            # print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
+            # print('____________________Going to terminate the new process created for omc____________________')
             self.container.flowsheet.process.terminate()
             print('____________________New process created for omc is terminated.____________________')
             res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
-            self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b> Terminating the simulation </b></span>")
-            print('____________________Simulation thread terminated____________________')
+            self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b>Simulation Terminated.</b></span>")
+            self.container.disableInterfaceforSimulation(False)
+            # print('____________________Simulation thread terminated____________________')
             if res > 1: 
                 ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0) 
-                print('Exception raise (Thread termination) failure')
+                # print('Exception raise (Thread termination) failure')
 
     '''
         Resets the zoom level to default scaling
@@ -230,6 +231,7 @@ class MainApp(QMainWindow,ui):
         New is used to delete all the existing work.
     '''        
     def new(self):
+        self.setWindowTitle('Untitled - Chemical Simulator GUI')
         self.undo_redo_helper()
         self.comp = ComponentSelector(self)
         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>New</b> flowsheet is created ... </span>")
@@ -314,13 +316,15 @@ class MainApp(QMainWindow,ui):
         data.append(self.container.result)
 
         file_format = 'sim'
-        initial_path = QDir.currentPath() + 'untitled.' + file_format
+        initial_path = QDir.currentPath() + ' untitled.' + file_format
         file_name, _ = QFileDialog.getSaveFileName(self, "Save As",
                                                   initial_path, "%s Files (*.%s);; All Files (*)" %
                                                   (file_format.upper(), file_format))
         try:
             with open(file_name, 'wb') as f: 
                 pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+            fileName = file_name.split('/')[-1].split('.')[0]
+            self.setWindowTitle(fileName+' - Chemical Simulator GUI')
         except Exception as e:
             pass
 
@@ -336,6 +340,9 @@ class MainApp(QMainWindow,ui):
                                                       initial_path, "%s Files (*.%s);; All Files (*)" %
                                                       (file_format.upper(), file_format))
             if file_name:
+                fileName = file_name.split('/')[-1].split('.')[0]
+                self.setWindowTitle(fileName+' - Chemical Simulator GUI')
+
                 self.undo_redo_helper()
 
                 with open(file_name, 'rb') as f:
@@ -353,8 +360,17 @@ class MainApp(QMainWindow,ui):
                 DockWidget.show_result(dock_widget_lst)
 
                 for i in dock_widget_lst:
+                    #Submitting values 
                     i.param()
 
+                #Disbaling input data tab for output stream
+                for i in self.container.graphics.scene.items():
+                    if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
+                        i.update_tooltip_selectedVar()
+                        no_input_lines = len(i.input[0].in_lines)
+                        no_output_lines = len(i.output[0].out_lines)
+                        if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
+                            i.obj.disableInputDataTab(i.dock_widget)
 
         except Exception as e:
             print(e)

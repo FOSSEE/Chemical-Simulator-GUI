@@ -34,17 +34,18 @@ class Container():
         self.obj = obj
         self.scene = self.graphics.get_scene()
         box  = self.graphics.create_node_item(self.obj, self)
-        self.scene.addItem(box)
-        box.setPos(2500-30, 2500-30)
+        if box is not None:
+            self.scene.addItem(box)
+            box.setPos(2500-30, 2500-30)
 
-        if(obj in self.unit_operations):
-            pass
-        else:
-            self.unit_operations.append(obj)
-            data = self.unit_operations[:]
-            data.append(compound_selected)
-            push('Undo', data)
-            self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
+            if(obj in self.unit_operations):
+                pass
+            else:
+                self.unit_operations.append(obj)
+                data = self.unit_operations[:]
+                data.append(compound_selected)
+                push('Undo', data)
+                self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
 
     '''
         Deletes the selected item from the canvas and also the objects created for that type.
@@ -119,6 +120,8 @@ class Container():
     
     def simulate(self,mode):
 
+        self.disableInterfaceforSimulation(True)
+        
         for i in self.graphics.scene.items():
             if (isinstance(i, NodeItem)):
                 try:
@@ -144,7 +147,7 @@ class Container():
             
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
-            self.flowsheet.simulate_EQN()
+            self.flowsheet.simulate_EQN(self.msg)
             self.result=self.flowsheet.result_data
 
             if(len(self.result)== 4):
@@ -160,6 +163,32 @@ class Container():
         for i in self.graphics.scene.items():
             if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
                 i.update_tooltip_selectedVar()
+                no_input_lines = len(i.input[0].in_lines)
+                no_output_lines = len(i.output[0].out_lines)
+                if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
+                    i.obj.disableInputDataTab(i.dock_widget)
+                    
+        self.disableInterfaceforSimulation(False)
+
+    def enableToolbar(self,status):
+        self.graphicsView.parent().parent().actionNew.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionZoomIn.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionZoomOut.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionResetZoom.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionEquationOriented.setProperty('enabled',status)
+        self.graphicsView.parent().parent().actionTerminate.setProperty('enabled',not status)
+        self.graphicsView.parent().parent().actionSelectCompounds.setProperty('enabled',status)
+
+    def disableInterfaceforSimulation(self,status):
+        self.graphicsView.parent().parent().menubar.setProperty('enabled',not status)
+        self.enableToolbar(not status)
+        self.graphicsView.parent().parent().dockWidget.setProperty('enabled',not status)
+        self.graphicsView.setInteractive(not status)
+        if status:
+            QApplication.instance().setOverrideCursor(QCursor(Qt.WaitCursor))
+        else:
+            QApplication.instance().restoreOverrideCursor()
+            QApplication.instance().setOverrideCursor(QCursor(Qt.ArrowCursor))
 
 def flat_list(lst):
     flat_lst=[]

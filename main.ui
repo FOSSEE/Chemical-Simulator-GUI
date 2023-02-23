@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Untitled - Chemical Simulator GUI</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -115,7 +115,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>89</width>
         <height>150</height>
        </size>
       </property>
@@ -2024,6 +2024,7 @@
    <addaction name="separator"/>
    <addaction name="actionEquationOriented"/>
    <addaction name="actionSequentialMode"/>
+   <addaction name="actionTerminate"/>
    <addaction name="separator"/>
    <addaction name="actionSelectCompounds"/>
   </widget>
@@ -2075,6 +2076,18 @@
     <string>Sequential mode</string>
    </property>
   </action>
+  <action name="actionTerminate">
+  <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>Icons/stop.png</normaloff>Icons/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Stop Simulation</string>
+   </property>
+  </action>
   <action name="actionSelectCompounds">
    <property name="icon">
     <iconset>
@@ -2094,36 +2107,66 @@
    </property>
   </action>
   <action name="actionHelp">
+    <property name="icon">
+      <iconset>
+      <normaloff>Icons/help.png</normaloff>Icons/help.png</iconset>
+    </property>
    <property name="text">
     <string>Help</string>
    </property>
   </action>
   <action name="actionSave">
+    <property name="icon">
+    <iconset>
+     <normaloff>Icons/save.png</normaloff>Icons/save.png</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
   </action>
   <action name="actionOpen">
+    <property name="icon">
+      <iconset>
+      <normaloff>Icons/open.png</normaloff>Icons/open.png</iconset>
+    </property>
    <property name="text">
     <string>Open</string>
    </property>
   </action>
   <action name="actionBinaryPhaseEnvelope">
+    <property name="icon">
+      <iconset>
+      <normaloff>Icons/bpe.png</normaloff>Icons/bpe.png</iconset>
+    </property>
    <property name="text">
     <string>Binary Phase Envelope</string>
    </property>
   </action>
   <action name="actionTerminate">
    <property name="text">
-    <string>Terminate</string>
+    <string>Stop Simulation</string>
    </property>
   </action>
   <action name="actionUndo">
+    <property name="enabled">
+      <bool>false</bool>
+    </property>
+    <property name="icon">
+      <iconset>
+      <normaloff>Icons/undo.png</normaloff>Icons/undo.png</iconset>
+    </property>
    <property name="text">
     <string>Undo</string>
    </property>
   </action>
   <action name="actionRedo">
+    <property name="enabled">
+      <bool>false</bool>
+    </property>
+    <property name="icon">
+      <iconset>
+      <normaloff>Icons/redo.png</normaloff>Icons/redo.png</iconset>
+    </property>
    <property name="text">
     <string>Redo</string>
    </property>

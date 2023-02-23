@@ -36,7 +36,11 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         return self.scene
 
     def create_node_item(self,unit_operation, container):
-        return NodeItem(unit_operation, container, self.graphicsView)
+        tempItem = NodeItem(unit_operation, container, self.graphicsView)
+        if tempItem.ok:
+            return tempItem
+        else:
+            return None
 
     def update_compounds(self):
         for i in self.graphicsView.items():
@@ -288,7 +292,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         painter.drawEllipse(self.rect.x()+2,self.rect.y()+2,(self.rect.height()/3)*2,(self.rect.width()/3)*2)
         
     def mousePressEvent(self, event):
-        cursor = QCursor( Qt.PointingHandCursor )
+        cursor = QCursor( Qt.ArrowCursor )
         QApplication.instance().setOverrideCursor(cursor)
 
         if self.type == 'op':
@@ -313,6 +317,12 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def mouseMoveEvent(self, event):
 
         if self.type == 'op':
+            item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
+            if(isinstance(item,NodeSocket)):
+                QApplication.instance().setOverrideCursor(QCursor( Qt.PointingHandCursor))
+            else:
+                QApplication.instance().restoreOverrideCursor()
+                QApplication.instance().setOverrideCursor(QCursor( Qt.ArrowCursor))
             pointB = self.mapToScene(event.pos())
             self.new_line.pointB = pointB
             if self.other_line:
@@ -342,6 +352,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
                 self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj) # Input stream if flag is 1
+            
+            sc = self.new_line.source.parent
+            tg = self.new_line.target.parent
+            if(sc.obj.type == 'MaterialStream'):
+                sc_no_input_lines = len(sc.input[0].in_lines)
+                if(sc_no_input_lines > 0):
+                    sc.obj.disableInputDataTab(sc.dock_widget)
+            if(tg.obj.type == 'MaterialStream'):
+                tg_no_input_lines = len(tg.input[0].in_lines)
+                if(tg_no_input_lines > 0):
+                    tg.obj.disableInputDataTab(tg.dock_widget)
 
         elif (self.type =='in') and (item.type == 'op'):
             self.new_line.source = item
@@ -353,7 +374,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
             if self.new_line.target.parent.obj.type not in stm:
                 self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
-
+            
+            sc = self.new_line.source.parent
+            tg = self.new_line.target.parent
+            if(sc.obj.type == 'MaterialStream'):
+                sc_no_input_lines = len(sc.input[0].in_lines)
+                if(sc_no_input_lines > 0):
+                    sc.obj.disableInputDataTab(sc.dock_widget)
+            if(tg.obj.type == 'MaterialStream'):
+                tg_no_input_lines = len(tg.input[0].in_lines)
+                if(tg_no_input_lines > 0):
+                    tg.obj.disableInputDataTab(tg.dock_widget)
 
         else:
             self.scene().removeItem(self.new_line)
@@ -395,7 +426,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
     def show(self):
         # set pen to show
         self.pen = QPen(QtGui.QColor(0,70,70,220), 1, Qt.SolidLine)
-        self.brush = QBrush(QtGui.QColor(33,225,162,255))
+        self.brush = QBrush(QtGui.QColor(140,199,198,255))
 
     def hide(self):
         # set pen to transparent
@@ -430,7 +461,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.name = self.obj.name
         self.type = self.obj.type
-
+        self.ok = True
         if (self.obj.modes_list):
             default_tooltip = f"{self.name}\n\n"
             default_tooltip_dict = self.obj.param_getter_tooltip(self.obj.mode)
@@ -439,11 +470,19 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip = default_tooltip + f"   {i} : {j}\n"
             self.setToolTip(default_tooltip)
 
+        dlg = QMessageBox()
+        dlg.setWindowTitle("Error")
+        dlg.setIcon(QMessageBox.Critical)
+        dlg.setText('Enter valid input value!')
 
         if self.obj.type == 'Mixer' and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if ok and text:
+            while self.ok and (int(text)< 2 or int(text) > 4):
+                dlg.exec_()
+                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
+                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
@@ -454,9 +493,13 @@ class NodeItem(QtWidgets.QGraphicsItem):
         #         self.obj.no_of_outputs = self.nop
         #         self.obj.variables['No']['value'] = self.nop
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
-            text, ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input:',
+            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            if ok and text:
+            while self.ok and (int(text)< 1 or int(text) > 8):
+                dlg.exec_()
+                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
+                                        echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['Ni']['value'] = self.nin
@@ -506,6 +549,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         
         self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsMovable)
         self.setFlag(QtWidgets.QGraphicsPixmapItem.ItemIsSelectable)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
     
         # Brush
         self.brush = QtGui.QBrush()
@@ -634,6 +678,20 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 for op in i.output:
                     op.hide()
 
+    def itemChange(self, change, value):
+        newPos = value
+        if change == self.ItemPositionChange and self.scene():
+            rect = self.container.graphicsView.sceneRect()
+            width = self.boundingRect().width()
+            height = self.boundingRect().height()
+            eWH1 = QPointF(newPos.x()+width,newPos.y()+height)
+            eWH2 = QPointF(newPos.x()-width,newPos.y()-height)
+            if not rect.__contains__(eWH1) or not rect.__contains__(eWH2) :
+                newPos.setX(min(rect.right()-width-40, max(newPos.x(), rect.left())))
+                newPos.setY(min(rect.bottom()-height-35, max(newPos.y(), rect.top())))
+                self.obj.set_pos(newPos)
+        return super(NodeItem,self).itemChange(change, newPos)
+        
 def findMainWindow(self):
     '''
         Global function to find the (open) QMainWindow in application
