@@ -301,7 +301,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         cursor = QCursor( Qt.ArrowCursor )
         QApplication.instance().setOverrideCursor(cursor)
 
-        if self.type == 'op':
+        if self.type == 'op'and len(self.out_lines) == 0:
             rect = self.boundingRect()
             pointA = QtCore.QPointF(rect.x() + rect.width()/(2), rect.y() + rect.height()/(2))
             pointA = self.mapToScene(pointA)
@@ -309,7 +309,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line = NodeLine(pointA, pointB ,'op')
             self.out_lines.append(self.new_line)
             self.scene().addItem(self.new_line)    
-        elif self.type == 'in':
+        elif self.type == 'in' and len(self.in_lines) == 0:
             rect = self.boundingRect()
             pointA = self.mapToScene(event.pos())
             pointB = QtCore.QPointF(rect.x() + rect.width()/(2), rect.y() + rect.height()/(2))
@@ -348,7 +348,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         item = self.scene().itemAt(event.scenePos().toPoint(),QtGui.QTransform())
         stm = ['MaterialStream','EngStm']
         item.other_line=self.new_line
-        if (self.type == 'op') and (item.type == 'in'):
+        if self.type == 'op' and item.type == 'in' and len(item.in_lines) == 0:
             self.new_line.source = self
             self.new_line.target = item
             item.in_lines.append(self.new_line)
@@ -370,7 +370,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 if(tg_no_input_lines > 0):
                     tg.obj.disableInputDataTab(tg.dock_widget)
 
-        elif (self.type =='in') and (item.type == 'op'):
+        elif self.type =='in' and item.type == 'op' and len(item.out_lines) == 0:
             self.new_line.source = item
             self.new_line.target = self
             item.out_lines.append(self.new_line)

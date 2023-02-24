@@ -13,3 +13,4 @@ src/main/Simulator/simulateEQN.mos
 src/main/Simulator/Undo.dat
 src/main/Simulator/Redo.dat
 
+*.pyc
