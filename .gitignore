@@ -10,7 +10,6 @@ src/main/Simulator/database.mo
 src/main/Simulator/PlotGraph.mos
 src/main/Simulator/simulateEQN.mos
 .idea/*
-
-
-
 src/main/Simulator/Undo.dat
+src/main/Simulator/Redo.dat
+
