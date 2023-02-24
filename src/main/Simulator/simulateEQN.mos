@@ -1,5 +1,0 @@
-loadModel(Modelica);
-loadFile("Simulator/package.mo");
-loadFile("database.mo");
-loadFile("Flowsheet.mo");
-simulate(Flowsheet, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);
