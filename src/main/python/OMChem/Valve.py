@@ -1,10 +1,8 @@
 class Valve():
     counter = 1
     def __init__(self,name='Valve'):
-        #self.PressDrop = PressureDrop
         self.mode = None
         self.modeVal = None
-        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
@@ -56,6 +54,5 @@ class Valve():
         
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' +  self.name + '.inlet' + ');\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')
-        print("asdfvfdasdsqdfdedfdfv12345678987654321234567898765")
         self.OM_data_eqn = self.OM_data_eqn + (self.name+'.'+self.mode+'='+ self.modeVal + ';\n')
         return self.OM_data_eqn

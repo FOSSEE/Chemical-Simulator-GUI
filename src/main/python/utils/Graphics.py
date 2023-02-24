@@ -492,12 +492,6 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
-        # elif self.obj.type == 'Splitter' and not self.obj.saved:
-        #     text, ok = QInputDialog.getText(self.container.graphicsView, 'Splitter', 'Enter number of output:')
-        #     if ok and text:
-        #         self.nop = int(text)
-        #         self.obj.no_of_outputs = self.nop
-        #         self.obj.variables['No']['value'] = self.nop
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
             text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
                                             echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
@@ -533,7 +527,6 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # updating input values
         if self.dock_widget.obj.type != 'MaterialStream':
             pass
-            #print(self.dock_widget.obj.type)
             try:
                 self.dock_widget.obj.param_setter(self.dock_widget.obj.param_getter(self.dock_widget.obj.mode))
             except Exception as e:

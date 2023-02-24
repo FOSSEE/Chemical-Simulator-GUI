@@ -8,7 +8,6 @@ class ShortcutColumn():
         self.HKey = HKey
         self.LKeyMolFrac = None
         self.HKeyMolFrac = None
-        #self.name = name[0]
         self.name = name + str(ShortcutColumn.counter) 
         self.OM_data_eqn = ''
         self.OM_data_init = ''
@@ -17,7 +16,6 @@ class ShortcutColumn():
        
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
-        #self.count = name[1]
         self.count = ShortcutColumn.counter
         self.condType=''
         self.actR = None

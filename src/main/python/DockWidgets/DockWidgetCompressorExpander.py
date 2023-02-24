@@ -51,18 +51,18 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
         self.input_dict= {}
         for i in reversed(range(self.formLayout.count())):
             self.formLayout.removeRow(i) 
-        print(self.comboBox.currentText())
+        #print(self.comboBox.currentText())
         for i in self.obj.variables:
             if self.obj.variables[i]['name'] == self.comboBox.currentText():
                 currentText = i
                 break
         self.input_dict = self.obj.param_getter(currentText)
-        print('mode selection ', self.input_dict)
+        #print('mode selection ', self.input_dict)
         self.input_params_list()
             
     def input_params_list(self):
         try:
-            print("input_params_list ", self.input_dict)
+            #print("input_params_list ", self.input_dict)
             for c,i in enumerate(self.input_dict):
                 if i == None:
                     continue
@@ -98,11 +98,11 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                 elif (i == "Thermo Package"):
                     self.dict[i] = self.input_dict[i].currentText()
                 else:
-                    print(self.input_dict[i], i, self.obj.type)
+                    #print(self.input_dict[i], i, self.obj.type)
                     if (self.input_dict[i].text()):
                         self.dict[i] = self.input_dict[i].text()
                     else:
-                        print(self.input_dict[i].text())
+                        #print(self.input_dict[i].text())
                         self.show_error()
                         break
             
@@ -137,19 +137,19 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
     def results_category(self,name):
         flag = True
         try:
-            print("Under result category name ", name)
+            #print("Under result category name ", name)
             result=self.container.result
             obj = self.container.fetch_object(name)
             self.tableWidget.setRowCount(0)
             variKeys = list(obj.variables.keys())
-            print(variKeys)
+            #print(variKeys)
             for i, val in enumerate(variKeys):
                 propertyname = name + '.' + val
-                print(i,val, propertyname)
+                #print(i,val, propertyname)
                 if propertyname in result[0]:
                     ind = result[0].index(propertyname)
                     resultval = str(result[-1][ind])
-                    print("######Resultsfetch####",val,resultval)
+                    #print("######Resultsfetch####",val,resultval)
                     rowPosition = self.tableWidget.rowCount()
                     self.tableWidget.insertRow(rowPosition)
                     self.tableWidget.setItem(rowPosition , 0, QTableWidgetItem(obj.variables[val]['name']))

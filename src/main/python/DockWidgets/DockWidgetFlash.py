@@ -68,9 +68,9 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict = []
-            print("param.input_dict ", self.input_dict)
+            #print("param.input_dict ", self.input_dict)
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].isChecked(), float(self.input_dict[2].text()), self.input_dict[3].isChecked(), float(self.input_dict[4].text())]
-            print("param ", self.dict)
+            #print("param ", self.dict)
             self.obj.param_setter(self.dict)
             if(self.isVisible()):
                 currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()

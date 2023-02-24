@@ -268,10 +268,8 @@ class DistillationColumn(UnitOperation):
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
         self.count = DistillationColumn.counter
         self.thermo_pack_req = True
-        # self.modes_list = ['RR', 'Nout', 'T']
         self.modes_list = []
         self.parameters = ['Nt', 'Ni', 'Ctype', 'Pcond', 'condmode', 'C_comp', 'C_Spec', 'Preb', 'rebmode', 'rebcomp', 'R_Spec']
-        #self.parameters = ['Nt', 'InT_s', 'In_s', 'thermo_package', 'Ctype', 'Pcond', 'Preb']
         self.result_parameters = ['Cduty.Q', 'Rduty.Q']
         self.Cspec_list = ['Reflux Ratio','Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
         self.Rspec_list = ['Product Molar Flow   (mol/s)', 'Temperature  (K)', 'Compound Molar Fraction',    'Compound Molar Flow    (mol/s)']
@@ -360,17 +358,10 @@ class DistillationColumn(UnitOperation):
                     + str(self.variables['Ni']['value']) + ",InT_s=" + "{" +
                     str(self.variables['InT_s']['value']).strip('[').strip(']') + "}" + ',Ctype ="' +
                     self.variables['Ctype']['value'] + '");\n')
-        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm1.name+';\n'
-        # self.OM_data_init = self.OM_data_init + 'Simulator.Streams.Energy_Stream '+self.EngStm2.name+';\n'
         return self.OM_data_init
 
     def OM_Flowsheet_Equation(self):
         self.OM_data_eqn = ''
-        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
-        # self.OM_data_eqn = self.OM_data_eqn + (
-        #             'connect(' + self.name + '.' + 'condensor_duty' + ',' + self.EngStm1.name + '.inlet);\n')
-           # self.OM_data_eqn = self.OM_data_eqn + (
-           #             'connect(' + self.name + '.reboiler_duty' + ', ' + self.EngStm2.name + '.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + (
                 'connect(' + self.name + '.Dist' + ", " + self.output_stms[1].name + '.In);\n')
         self.OM_data_eqn = self.OM_data_eqn + (
@@ -476,11 +467,6 @@ class CompoundSeparator(UnitOperation):
                 self.variables['SepVal_c']['value'][index//2] = float(params[i])
             else:
                 self.variables['SepFact_c']['value'][index//2] = params[i]
-        
-        # self.variables['SepFact_c']['value'] = json.dumps(self.variables['SepFact_c']['value']).replace('[','{').replace(']','}')
-        # self.variables['SepStrm']['value'] = str(self.variables['SepStrm']['value'])
-        # self.variables['SepVal_c']['value'] = json.dumps(self.variables['SepVal_c']['value']).replace('[','{').replace(']','}')
-
 
     def OM_Flowsheet_Initialize(self):
         SepStrm = str(self.variables['SepStrm']['value'])

@@ -162,30 +162,30 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                 temp = i + 1
                 print(temp)
 
-            print(temp)
-            print(self.input_dict[temp+1])
+            # print(temp)
+            # print(self.input_dict[temp+1])
             self.dict.append(self.input_dict[temp+1].currentText())
-            print(temp+1)
+            # print(temp+1)
             self.dict.append(int(self.input_dict[temp+2].text()))
-            print(temp+2)
+            #print(temp+2)
             self.dict.append(self.input_dict[temp+3].currentText())
-            print(temp+3)
+            #print(temp+3)
             self.dict.append(self.input_dict[temp+4].currentText())
-            print(temp+4)
+            #print(temp+4)
             self.dict.append(int(self.input_dict[temp+5].text()))
-            print(temp+5)
+            #print(temp+5)
             self.dict.append(int(self.input_dict[temp+6].text()))
-            print(temp+6)
+            #print(temp+6)
             self.dict.append(self.input_dict[temp+7].currentText())
-            print(temp+7)
+            #print(temp+7)
             self.dict.append(self.input_dict[temp+8].currentText())
-            print(temp+8)
+            #print(temp+8)
             self.dict.append(int(self.input_dict[temp+9].text()))
-            print(temp+9)
+            #print(temp+9)
             self.dict.append(self.input_dict[temp+10].currentText())
-            print(temp + 10)
+            #print(temp + 10)
 
-            print("param ", self.dict)
+            #print("param ", self.dict)
             self.obj.param_setter(self.dict)
             if(self.isVisible()):
                 currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
@@ -218,20 +218,20 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
     def results_category(self,name):
         flag = True
         try:
-            print("Under result category name ", name)
+            #print("Under result category name ", name)
             result = self.container.result
             obj = self.container.fetch_object(name)
             self.tableWidget.setRowCount(0)
             variKeys = obj.result_parameters
-            print(variKeys)
+            #print(variKeys)
             for i, val in enumerate(variKeys):
                 propertyname = name + '.' + val
-                print(i, val, propertyname)
+                #print(i, val, propertyname)
                 if propertyname in result[0]:
                     ind = result[0].index(propertyname)
                     resultval = str(result[-1][ind])
                     obj.variables[val]['value'] = result[-1][ind]
-                    print("######Resultsfetch####", val, resultval)
+                    #print("######Resultsfetch####", val, resultval)
                     rowPosition = self.tableWidget.rowCount()
                     self.tableWidget.insertRow(rowPosition)
                     self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(obj.variables[val]['name']))
@@ -269,7 +269,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                     #     else:
                     #         Stages_F_p[0][2] = result[-1][ind]
                     else:
-                        print(ind)
+                        #print(ind)
                         phase_no = int(result[0][ind][result[0][ind].index('[') + 1])
                         comp_no = int(result[0][ind][result[0][ind].index(']') - 1])
                         Stages_x_pc[0][comp_no - 1][phase_no - 1] = result[-1][ind]
@@ -294,8 +294,8 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                         #     else:
                         #         Stages_F_p[i][2] = result[-1][ind]
                         else:
-                            print(ind)
-                            print(result[0][ind])
+                            # print(ind)
+                            # print(result[0][ind])
                             phase_no = int(result[0][ind].split('.')[-1][result[0][ind].split('.')[-1].index('[') + 1])
                             comp_no = int(result[0][ind].split('.')[-1][result[0][ind].split('.')[-1].index(']') - 1])
                             Stages_x_pc[i][comp_no - 1][phase_no - 1] = result[-1][ind]

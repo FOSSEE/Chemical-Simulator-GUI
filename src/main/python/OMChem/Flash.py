@@ -1,13 +1,11 @@
 class Flash():
     counter = 1
     def __init__(self,name='Flash'):
-        #self.name = name[0]
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
         self.OutputStms = None
         self.type = 'flash'
-        #self.count = name[1]
         self.count = Flash.counter
         self.thermoPackage =None
 

@@ -51,13 +51,13 @@ class DockWidget(QDockWidget,ui_dialog):
         self.input_dict= {}
         for i in reversed(range(self.formLayout.count())):
             self.formLayout.removeRow(i) 
-        print(self.comboBox.currentText())
+        #print(self.comboBox.currentText())
         for i in self.obj.variables:
             if self.obj.variables[i]['name'] == self.comboBox.currentText():
                 currentText = i
                 break
         self.input_dict = self.obj.param_getter(currentText)
-        print('mode selection ', self.input_dict)
+        #print('mode selection ', self.input_dict)
         self.input_params_list()
             
     def input_params_list(self):

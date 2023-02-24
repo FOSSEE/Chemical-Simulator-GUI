@@ -24,7 +24,6 @@ class ComponentSelector(QDialog,ui_dialog):
         self.setupUi(self)
     
         self.dict1=dict()#empty dictionary which will store the obj and its compound
-        #self.DB1=#instance of Database class in Database.py module 
         self.instance=[ChemsepDatabase()]  #list of all the instances
         self.lines=[]
         
@@ -32,14 +31,7 @@ class ComponentSelector(QDialog,ui_dialog):
             x=i.get_comp_name_list()
             self.dict1[i]=x
             self.lines+=x
-        #print(self.lines)
-            
-            
-        #self.DB1_list=self.DB1.get_comp_name_list()
-		#storingchemsep
-        #database compound list in DB1_list
-        #self.dict1[self.DB1]=self.DB1_list #storing the list as a value and the db as key in dictionary
-        #self.lines=self.DB1_list #combined list of all the edited compounds        
+        #print(self.lines)   
        
         self.model = QStringListModel()
         self.model.setStringList(self.lines)

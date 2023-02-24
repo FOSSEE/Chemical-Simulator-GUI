@@ -5,7 +5,6 @@ class DistCol():
         self.numStage = numStage
         self.numFeeds=numFeeds
         self.feedStages=feedStages
-        #self.name = name[0]
         self.name = name + str(DistCol.counter) 
         self.OM_data_eqn = ''
         self.OM_data_init = ''
@@ -13,7 +12,6 @@ class DistCol():
         self.OutputStms = None
         self.EngStm1 = EngStm(name='EngStm1'+self.name)
         self.EngStm2 = EngStm(name='EngStm2'+self.name)
-        #self.count = name[1]
         self.count = DistCol.counter
         self.thermoPackage='Raoults_Law'
         self.type = 'DistCol'
@@ -87,7 +85,6 @@ class DistCol():
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
-        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
         self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.'+'condensor_duty'+','+ self.EngStm1.name+'.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.reboiler_duty'+', '+self.EngStm2.name+'.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.distillate'+", "+self.OutputStms[0].name+'.inlet);\n')

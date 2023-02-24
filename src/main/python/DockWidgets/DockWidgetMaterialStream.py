@@ -81,9 +81,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             l = QLineEdit(str(self.obj.variables['x_pc']['value'][j]))
                         except:
                             l = QLineEdit()
-                        # if self.input_dict[i] != '':
-                        #     l.setText(str(self.obj.variables['x_pc']['value'][j]))
-                        #     print('l = ', str(self.obj.variables['x_pc']['value'][j]))
 
                         self.input_dict[i] = "x_pc"
                         lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment= Qt.AlignLeft)
@@ -339,8 +336,6 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
             self.input_dict = {}
             self.input_dict = self.obj.param_getter(self.comboBox.currentText())
             # print("before", self.input_dict)
-            #self.input_dict.pop("x_pc")
-            # temp = self.input_dict.pop('thermo_package')
             for i in range(len(compound_selected)):
                 #print(i)
                 self.input_dict['x_pc[1,' + str(i+1) + ']'] = self.obj.variables['x_pc[1,' + str(i+1) +']']['value']

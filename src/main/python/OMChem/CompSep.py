@@ -6,7 +6,6 @@ class CompSep():
         self.SepFact = json.dumps(SepFact).replace('[','{').replace(']','}')
         self.SepStrm = str(SepStrm)
         self.SepFactValue = json.dumps(SepFactValue).replace('[','{').replace(']','}')
-        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = []

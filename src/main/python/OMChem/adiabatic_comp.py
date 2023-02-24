@@ -3,7 +3,6 @@ class AdiabaticCompressor():
     counter = 1
     def __init__(self,name='AdiabaticCompressor', eff = None):
         self.eff = eff
-        #self.name = name[0]
         self.name = name + str(AdiabaticCompressor.counter) 
 
         self.OM_data_eqn = ''
@@ -11,7 +10,6 @@ class AdiabaticCompressor():
         self.InputStms = None
         self.OutputStms = None
         self.EngStms = EngStm(name='EngStm'+self.name)
-        #self.count = name[1]
         self.count = AdiabaticCompressor.counter
         self.type = 'AdiabaticCompressor'
         self.thermoPackage ="RaoultsLaw"
@@ -59,7 +57,6 @@ class AdiabaticCompressor():
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
-        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' +  self.name + '.inlet' + ');\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.outlet,' + self.name + '.energy);\n')

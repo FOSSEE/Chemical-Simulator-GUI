@@ -23,6 +23,7 @@ parentPath = os.path.dirname(parent)
 sys.path.append(parentPath)
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/utils/Binary_Phase_Env.ui')
+pg.CONFIG_OPTIONS['crashWarning'] = False
 
 class BinPhaseEnv(QWidget,ui_dialog):
     def __init__(self,comp):
@@ -97,7 +98,7 @@ class BinPhaseEnv(QWidget,ui_dialog):
                 self.omhome = '/usr'    
             return os.path.join(self.omhome, 'bin', 'omc')
         except BaseException:
-            print("The OpenModelica compiler is missing in the System path please install it" )
+            #print("The OpenModelica compiler is missing in the System path please install it" )
             raise
 
     def plot(self):        

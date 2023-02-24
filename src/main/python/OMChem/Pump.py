@@ -3,12 +3,9 @@ class Pump():
     counter = 1
     def __init__(self,name='Pump',eff = None):
         self.eff = eff
-        #self.name = name
         self.OM_data_eqn = ''
         self.OM_data_init = ''
         self.InputStms = None
-        #self.heatAdd=heatAdd
-        #self.outT = outT
         self.OutputStms = None
         self.EngStms = EngStm(name='EngStm'+name)
         self.type = 'Pump'
@@ -54,7 +51,6 @@ class Pump():
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
-        # self.OM_data_eqn = self.name + '.pressDrop = ' + str(self.PressDrop) + ';\n'
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' +  self.name + '.inlet' + ');\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')
         self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.outlet,' + self.name + '.energy);\n')

@@ -51,7 +51,7 @@ class Splitter():
         self.OM_data_eqn = ''
         comp_count = len(addedcomp)
         strcount = 1
-        print("Output#########",self.OutputStms)
+        #print("Output#########",self.OutputStms)
         for strm in self.OutputStms:
             self.OM_data_eqn = self.OM_data_eqn + (
             'connect(' + strm.name + '.inlet,' + self.name + '.outlet[' + str(strcount) + ']);\n')

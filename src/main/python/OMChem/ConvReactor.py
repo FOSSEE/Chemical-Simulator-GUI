@@ -16,7 +16,7 @@ class ConvReactor():
         self.Tdef = str(Tdef)
       
         self.type = 'ConvReactor'
-        self.EngStms = EngStms(name="EngStm")
+        self.EngStms = EngStm(name="EngStm")
 
     def OM_Flowsheet_Init(self, addedcomp):
         self.OM_data_init = ''
