@@ -14,3 +14,4 @@ src/main/Simulator/Undo.dat
 src/main/Simulator/Redo.dat
 
 *.pyc
+src/main/python/utils/__pycache__/Graphics.cpython-37.pyc
