@@ -64,7 +64,7 @@ class UnitOperation():
         return params
         
     def param_setter(self,params):
-        print("param_setter ", params)
+        #print("param_setter ", params)
         try:
             self.mode = list(params.keys())[0]
         except Exception as e:
@@ -167,7 +167,7 @@ class UnitOperation():
                 self.OM_data_eqn += ('connect(' + strm.name + '.Out,' + self.name + '.In[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            print(self.input_stms)
+            #print(self.input_stms)
             self.OM_data_eqn += ('connect(' + self.name + '.In,' + self.input_stms[1].name + '.Out);\n')
 
         if len(self.output_stms)>1:
@@ -176,7 +176,7 @@ class UnitOperation():
                 self.OM_data_eqn += ('connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
                 strcount += 1
         else:
-            print("self.output_stms ", self.output_stms)
+            #print("self.output_stms ", self.output_stms)
             self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[1].name + '.In);\n')
         
         if self.mode:
@@ -231,7 +231,7 @@ class ShortcutColumn(UnitOperation):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 
     def param_setter(self,params):
-        print("param_setter ", params)
+        #print("param_setter ", params)
         self.variables['HKey']['value'] = self.compounds.index(params[0]) + 1
         self.variables['LKey']['value'] = self.compounds.index(params[1]) + 1
         self.variables['HKey_x_pc']['value'] = params[2]
@@ -298,7 +298,7 @@ class DistillationColumn(UnitOperation):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 
     def param_setter(self,params):
-        print("param_setter ", params)
+        #print("param_setter ", params)
         temp = 0
         self.variables['Nt']['value'] = params[0]
         for i in range(self.variables['Ni']['value']):
@@ -323,7 +323,7 @@ class DistillationColumn(UnitOperation):
             self.variables['R_Spec']['comp'] = params[temp+8]
         self.variables['R_Spec']['value'] = params[temp+9]
         self.variables['thermo_package']['value'] = params[temp+10]
-        print(self.variables)
+        #print(self.variables)
 
     def OM_Flowsheet_Initialize(self):
         self.OM_data_init = ''
@@ -456,7 +456,7 @@ class CompoundSeparator(UnitOperation):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 
     def param_setter(self,params):
-        print("param_setter CompSep ", params)
+        #print("param_setter CompSep ", params)
       
         if (params[0]):
             self.variables['SepStrm']['value'] = 1
@@ -528,7 +528,7 @@ class Flash(UnitOperation):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 
     def param_setter(self,params):
-        print("param_setter ", params)
+        #print("param_setter ", params)
         self.variables['thermo_package']['value'] = params[0]
         self.variables['BTdef']['value'] = params[1]
         self.variables['Tdef']['value'] = params[2]
@@ -601,7 +601,7 @@ class Splitter(UnitOperation):
         self.compounds = [c[:c.index('(')] for c in compound_selected]
 
     def param_setter(self,params):
-        print("param_setter ", params)
+        #print("param_setter ", params)
         self.variables['No']['value'] = int(params[0])
         self.variables['CalcType']['value'] = params[1]
         self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]

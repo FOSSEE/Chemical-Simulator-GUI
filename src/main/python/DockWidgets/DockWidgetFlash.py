@@ -31,7 +31,7 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
     def input_params_list(self):
         try:        
             self.l1.setText(self.obj.variables['thermo_package']['name']+":")
-            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            self.lines = [line.rstrip('\n') for line in open(parentPath+'/python/utils/thermopackage.txt')]
             for j in self.lines:
                 self.cb1.addItem(str(j))
             self.cb1.setCurrentText(self.obj.variables['thermo_package']['value'])
@@ -46,6 +46,10 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.u3.setText(self.obj.variables['Pdef']['unit'])
             self.check2.toggled.connect(self.fun)
             self.check2.setChecked(self.obj.variables['BPdef']['value'])
+
+            self.le2.setFixedWidth(80)
+            self.le3.setFixedWidth(80)
+            self.cb1.setFixedWidth(80)
 
             self.input_dict = [self.cb1, self.check1, self.le2, self.check2, self.le3]
  

@@ -47,6 +47,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             # tab 1
             
             l1 = QLineEdit()
+            l1.setFixedWidth(80)
             l1.setText(str(self.obj.variables['Nt']['value']))
             self.lay1.addWidget(QLabel(self.obj.variables['Nt']['name'] + " :"), 0 ,0, alignment=Qt.AlignLeft)
             self.lay1.addWidget(l1,0,1, alignment=Qt.AlignLeft)
@@ -55,6 +56,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             for i in range(self.obj.variables['Ni']['value']):
                 print(i)
                 l = QLineEdit()
+                l.setFixedWidth(80)
                 if len(self.obj.variables['InT_s']['value']) is not 0:
                     l.setText(str(self.obj.variables['InT_s']['value'][i]))
                 self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),2*(i+1),0, alignment=Qt.AlignLeft)
@@ -75,6 +77,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             self.cb5.addItem("Total")
             self.cb5.addItem("Partial")
             self.cb5.setCurrentText(self.obj.variables['Ctype']['value'])
+            
             for j in self.obj.Cspec_list:
                 self.cb1.addItem(str(j))
             self.cb1.setCurrentText(self.obj.variables['C_Spec']['type'])
@@ -84,6 +87,18 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             self.cb2.setDisabled(True)  
             self.cb1.currentIndexChanged.connect(self.fun2) 
+
+            self.le5.setFixedWidth(80)
+            self.le6.setFixedWidth(80)
+            self.le7.setFixedWidth(80)
+            self.le8.setFixedWidth(80)
+            self.cb1.setFixedWidth(180)
+            self.cb2.setFixedWidth(80)
+            self.cb3.setFixedWidth(180)
+            self.cb4.setFixedWidth(80)
+            self.cb5.setFixedWidth(80)
+            self.u2.setAlignment(Qt.AlignLeft)
+            self.u3.setAlignment(Qt.AlignLeft)
 
             self.input_dict.append(self.cb5)
             self.input_dict.append(self.le5)
@@ -113,7 +128,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             self.input_dict.append(self.cb4) 
             self.input_dict.append(self.le8)
 
-            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            self.lines = [line.rstrip('\n') for line in open(parentPath+'/python/utils/thermopackage.txt')]
             for j in self.lines:
                 self.cbTP.addItem(str(j))
             self.cbTP.setCurrentText(self.obj.variables['thermo_package']['value'])

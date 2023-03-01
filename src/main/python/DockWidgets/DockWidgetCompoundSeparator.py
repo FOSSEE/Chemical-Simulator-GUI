@@ -63,6 +63,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                     combo.setCurrentText(self.obj.variables['SepFact_c']['value'][k])
                     combo.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                     l = QLineEdit(str(self.obj.variables['SepVal_c']['value'][k]))
+                    l.setFixedWidth(80)
                     l.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
                     self.calculationLayout.addWidget(QLabel(val+" :"), k+1,0, alignment=Qt.AlignLeft)
                     self.calculationLayout.addWidget(combo, k+1, 1, alignment=Qt.AlignCenter)

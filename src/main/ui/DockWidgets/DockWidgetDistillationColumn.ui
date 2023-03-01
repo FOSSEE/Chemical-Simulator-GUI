@@ -31,9 +31,9 @@
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>30</y>
-     <width>381</width>
+     <width>351</width>
      <height>481</height>
     </rect>
    </property>
@@ -41,7 +41,7 @@
     <bool>true</bool>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -66,7 +66,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tab1">
            <attribute name="title">
@@ -264,9 +264,15 @@
          <rect>
           <x>12</x>
           <y>15</y>
-          <width>341</width>
+          <width>301</width>
           <height>151</height>
          </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
         <property name="columnCount">
          <number>3</number>
@@ -297,6 +303,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="stageResultsButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Stagewise Results</string>
        </property>

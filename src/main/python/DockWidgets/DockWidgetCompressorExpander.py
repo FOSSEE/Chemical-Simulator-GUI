@@ -70,15 +70,16 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                 l = QLineEdit()
                 if self.input_dict[i] != None:
                     l.setText(str(self.input_dict[i]))
+                l.setFixedWidth(80)
                 lay = QGridLayout()
                 lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft) 
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
-                lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
+                lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignLeft)
               
                 self.formLayout.addRow(lay)
                 self.input_dict[i] = l
             
-            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            self.lines = [line.rstrip('\n') for line in open(parentPath+'/python/utils/thermopackage.txt')]
             for j in self.lines:
                 self.cbTP.addItem(str(j))
             self.input_dict['Thermo Package'] = self.cbTP

@@ -27,7 +27,7 @@ class DockWidget(QDockWidget,ui_dialog):
         self.modes()
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
        
-        print("constructor ", self.input_dict)
+        #print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
 
         self.dict = {}          # a dictionary
@@ -62,16 +62,17 @@ class DockWidget(QDockWidget,ui_dialog):
             
     def input_params_list(self):
         try:
-            print("input_params_list ", self.input_dict)
+            #print("input_params_list ", self.input_dict)
             for c,i in enumerate(self.input_dict):
                 #print(i)
                 if i == None:
                     continue
                 l = QLineEdit(str(self.obj.variables[i]['value']))
+                l.setFixedWidth(80)
                 lay = QGridLayout()
                 lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
                 lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
-                lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
+                lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignLeft)
                 self.formLayout.addRow(lay)
                 self.input_dict[i] = l
         except Exception as e:

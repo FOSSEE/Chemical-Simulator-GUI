@@ -78,7 +78,7 @@ class Flowsheet():
         # print("############### StdOut ################")
         # print(stdout)
         self.result_data = []
-        print('Simulating '+unitop.name+'...')
+        #print('Simulating '+unitop.name+'...')
         csvpath = os.path.join(self.sim_dir_path,unitop.name+'_res.csv')
         with open(csvpath,'r') as resultFile:
             csvreader = csv.reader(resultFile,delimiter=',')
@@ -240,7 +240,7 @@ class Flowsheet():
                     mosFile.write("loadFile(\""+unitop.name.lower()+".mo\");\n")
                     mosFile.write("simulate("+unitop.name.lower()+", outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n")
 
-                print("Initiating simulation in Sequential Modular Mode")
+                #print("Initiating simulation in Sequential Modular Mode")
                 self.omc_path = self.get_omc_path()
                 os.chdir(self.sim_dir_path)
                 sim = os.path.join(self.sim_dir_path,unitop.name.lower()+'.mos')

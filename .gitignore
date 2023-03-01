@@ -15,3 +15,13 @@ src/main/Simulator/Redo.dat
 
 *.pyc
 src/main/python/utils/__pycache__/Graphics.cpython-37.pyc
+src/main/python/utils/__pycache__/Streams.cpython-37.pyc
+src/main/python/utils/__pycache__/Streams.cpython-37.pyc
+src/main/python/utils/__pycache__/UnitOperations.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidget.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetCompoundSeparator.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetCompressorExpander.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetDistillationColumn.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetFlash.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetMaterialStream.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetShortcutColumn.cpython-37.pyc

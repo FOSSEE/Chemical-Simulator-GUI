@@ -81,7 +81,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                             l = QLineEdit(str(self.obj.variables['x_pc']['value'][j]))
                         except:
                             l = QLineEdit()
-
+                        l.setFixedWidth(100)
                         self.input_dict[i] = "x_pc"
                         lay.addWidget(QLabel(str(compound_selected[j])+":"),j,0, alignment= Qt.AlignLeft)
                         lay.addWidget(l,j,1, alignment=Qt.AlignCenter)
@@ -96,7 +96,7 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                     l = QLineEdit()
                     if self.input_dict[i] != None:
                         l.setText(str(self.input_dict[i]))
-
+                    l.setFixedWidth(80)
                     lay = QGridLayout()
                     if i !='MolFlow':
                         lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
@@ -104,9 +104,9 @@ class DockWidgetMaterialStream(QDockWidget,ui_dialog):
                         lay.addWidget(QLabel(i+":"),0,0, alignment=Qt.AlignLeft)
                     lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
                     if(i != 'MolFlow'):
-                        lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignCenter)
+                        lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignLeft)
                     else:
-                        lay.addWidget(QLabel("mol/s"),0,2, alignment=Qt.AlignCenter)
+                        lay.addWidget(QLabel("mol/s"),0,2, alignment=Qt.AlignLeft)
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l
 

@@ -68,7 +68,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
             self.l9.setText("Thermo Package :")
 
-            self.lines = [line.rstrip('\n') for line in open('thermopackage.txt')]
+            self.lines = [line.rstrip('\n') for line in open(parentPath+'/python/utils/thermopackage.txt')]
             for j in self.lines:
                 self.cb6.addItem(str(j))
             self.cb6.setCurrentText(self.obj.variables['thermo_package']['value'])
