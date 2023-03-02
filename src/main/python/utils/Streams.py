@@ -43,16 +43,16 @@ class MaterialStream():
             'T'     : {'name':'Temperature',      'value':300,       'unit':'K'},
             
             'xvap'   : {'name':'Vapour Mole Fraction',          'value':None,       'unit':''},
-            'H_p[1]'  : {'name':'Mixture Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'H_p[1]'  : {'name':'Mixture Molar Enthalpy',        'value':None,       'unit':'J/mol'},
             'S_p[1]'  : {'name':'Mixture Molar Entropy',        'value':None,       'unit':'J/mol.K'},
             'F_p[1]'  : {'name':'Mixture Molar Flow',           'value':100,       'unit':'mol/s'},
             'Fm_p[1]' : {'name':'Mixture Mass Flow',            'value':None,    'unit':'g/s'},
 
-            'H_p[2]'  : {'name':'Liquid Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'H_p[2]'  : {'name':'Liquid Molar Enthalpy',        'value':None,       'unit':'J/mol'},
             'S_p[2]'  : {'name':'Liquid Molar Entropy',        'value':None,       'unit':'J/mol.K'},
             'F_p[2]'  : {'name':'Liquid Molar Flow',            'value':None,       'unit':'mol/s'},
 
-            'H_p[3]'  : {'name':'Vapour Molar Entalpy',        'value':None,       'unit':'J/mol'},
+            'H_p[3]'  : {'name':'Vapour Molar Enthalpy',        'value':None,       'unit':'J/mol'},
             'S_p[3]'  : {'name':'Vapour Molar Entropy',        'value':None,       'unit':'J/mol.K'},
             'F_p[3]'  : {'name':'Vapour Molar Flow',            'value':None,       'unit':'mol/s'},
 
@@ -193,34 +193,34 @@ class MaterialStream():
             self.mode1 = 'P'
             self.mode2 = 'T'
             
-            dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['T']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'],"x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:str(round(float(self.variables['P']['value']),4)), self.mode2:str(round(float(self.variables['T']['value']),4)),
+                    "MolFlow":str(round(float(self.variables['F_p[1]']['value']),4)),"x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
             #print('dictionary is :' + str(dict))
 
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
-            dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['H_p[1]']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:str(round(float(self.variables['P']['value']),4)), self.mode2:round(float(self.variables['H_p[1]']['value']),4),
+                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
-            dict = {self.mode1:self.variables['P']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:round(float(self.variables['P']['value']),4), self.mode2:round(float(self.variables['xvap']['value']),4),
+                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
-            dict = {self.mode1:self.variables['T']['value'], self.mode2:self.variables['xvap']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:round(float(self.variables['T']['value']),4), self.mode2:round(float(self.variables['xvap']['value']),4),
+                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
-            dict = {self.mode1:self.variables['P']['value'], self.mode2: self.variables['S_p[1]']['value'],
-                    "MolFlow":self.variables['F_p[1]']['value'], "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:round(float(self.variables['P']['value']),4), self.mode2: round(float(self.variables['S_p[1]']['value']),4),
+                    "MolFlow":round(float(self.variables['F_p[1]']['value']),2), "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         
         return dict

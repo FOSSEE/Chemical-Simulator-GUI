@@ -25,3 +25,12 @@ src/main/python/DockWidgets/__pycache__/DockWidgetDistillationColumn.cpython-37.
 src/main/python/DockWidgets/__pycache__/DockWidgetFlash.cpython-37.pyc
 src/main/python/DockWidgets/__pycache__/DockWidgetMaterialStream.cpython-37.pyc
 src/main/python/DockWidgets/__pycache__/DockWidgetShortcutColumn.cpython-37.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetSplitter.cpython-36.pyc
+src/main/python/OMChem/__pycache__/Flowsheet.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetShortcutColumn.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetMaterialStream.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetFlash.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetCompressorExpander.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetDistillationColumn.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidgetCompoundSeparator.cpython-36.pyc
+src/main/python/DockWidgets/__pycache__/DockWidget.cpython-36.pyc
