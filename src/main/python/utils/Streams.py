@@ -154,10 +154,10 @@ class MaterialStream():
         temp_val = self.variables['T']['value']
         temp_unit =  self.variables['T']['unit']
         mixMolEntal_name = self.variables['H_p[1]']['name']
-        mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),2)
+        mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
         mixMolEntal_unit =  self.variables['H_p[1]']['unit']
         mixMolEntro_name = self.variables['S_p[1]']['name']
-        mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),2)
+        mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
         mixMolEntro_unit =  self.variables['S_p[1]']['unit']
         vapMolFrac_name = self.variables['xvap']['name']
         vapMolFrac_val = self.variables['xvap']['value']
@@ -166,7 +166,7 @@ class MaterialStream():
         mixMolFlo_val = self.variables['F_p[1]']['value']
         mixMolFlo_unit =  self.variables['F_p[1]']['unit']
         mixMassFlo_name = self.variables['Fm_p[1]']['name']
-        mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),2)
+        mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),4)
         mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
         
         dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 
@@ -189,38 +189,57 @@ class MaterialStream():
                 pass
         self.variables['x_pc']['value'] = temp
 
+        pressure_val = self.variables['P']['value']
+        temp_val = self.variables['T']['value']
+        mixMolFlo_val = self.variables['F_p[1]']['value']
+        mixMolEntal_val = self.variables['H_p[1]']['value']
+        vapMolFrac_val = self.variables['xvap']['value']
+        mixMolEntro_val = self.variables['S_p[1]']['value']
+
+        if pressure_val != None:
+            pressure_val = round(float(self.variables['P']['value']),4)
+        if temp_val != None:
+            temp_val = round(float(self.variables['T']['value']),4)
+        if mixMolFlo_val != None:
+            mixMolFlo_val = round(float(self.variables['F_p[1]']['value']),4)
+        if mixMolEntal_val != None:
+            mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
+        if vapMolFrac_val != None:
+            vapMolFrac_val = round(float(self.variables['xvap']['value']),4)
+        if mixMolEntro_val != None:
+            mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
         if(mode=="PT"):
             self.mode1 = 'P'
             self.mode2 = 'T'
-            
-            dict = {self.mode1:str(round(float(self.variables['P']['value']),4)), self.mode2:str(round(float(self.variables['T']['value']),4)),
-                    "MolFlow":str(round(float(self.variables['F_p[1]']['value']),4)),"x_pc":self.variables['x_pc']['value'],
+
+            dict = {self.mode1:pressure_val, self.mode2:temp_val,
+                    "MolFlow":mixMolFlo_val,"x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
             #print('dictionary is :' + str(dict))
 
         elif(mode=="PH"):
             self.mode1 = 'P'
             self.mode2 = 'H_p[1]'
-            dict = {self.mode1:str(round(float(self.variables['P']['value']),4)), self.mode2:round(float(self.variables['H_p[1]']['value']),4),
-                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:pressure_val, self.mode2:mixMolEntal_val,
+                    "MolFlow":mixMolFlo_val, "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="PVF"):
             self.mode1 = 'P'
             self.mode2 = 'xvap'
-            dict = {self.mode1:round(float(self.variables['P']['value']),4), self.mode2:round(float(self.variables['xvap']['value']),4),
-                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:pressure_val, self.mode2:vapMolFrac_val,
+                    "MolFlow":mixMolFlo_val, "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="TVF"):
             self.mode1 = 'T'
             self.mode2 = 'xvap'
-            dict = {self.mode1:round(float(self.variables['T']['value']),4), self.mode2:round(float(self.variables['xvap']['value']),4),
-                    "MolFlow":round(float(self.variables['F_p[1]']['value']),4), "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:temp_val, self.mode2:vapMolFrac_val,
+                    "MolFlow":mixMolFlo_val, "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         elif(mode=="PS"):
             self.mode1 = 'P'
             self.mode2 = 'S_p[1]'
-            dict = {self.mode1:round(float(self.variables['P']['value']),4), self.mode2: round(float(self.variables['S_p[1]']['value']),4),
-                    "MolFlow":round(float(self.variables['F_p[1]']['value']),2), "x_pc":self.variables['x_pc']['value'],
+            dict = {self.mode1:pressure_val, self.mode2: mixMolEntro_val,
+                    "MolFlow":mixMolFlo_val, "x_pc":self.variables['x_pc']['value'],
                     "Thermo Package": self.thermo_package}
         
         return dict
@@ -437,15 +456,15 @@ class MaterialStream():
     def disableInputDataTab(self,dockwidget):
         #setting the value of input data tab in dock widget and disabling them
         dockwidget.comboBox.setDisabled(True)
-        dockwidget.input_dict['P'].setText(str(round(float(self.variables['P']['value']),2)))
+        dockwidget.input_dict['P'].setText(str(round(float(self.variables['P']['value']),4)))
         dockwidget.input_dict['P'].setDisabled(True)
-        dockwidget.input_dict['T'].setText(str(round(float(self.variables['T']['value']),2)))
+        dockwidget.input_dict['T'].setText(str(round(float(self.variables['T']['value']),4)))
         dockwidget.input_dict['T'].setDisabled(True)
-        dockwidget.input_dict['MolFlow'].setText(str(round(float(self.variables['F_p[1]']['value']),2)))
+        dockwidget.input_dict['MolFlow'].setText(str(round(float(self.variables['F_p[1]']['value']),4)))
         dockwidget.input_dict['MolFlow'].setDisabled(True)
         dockwidget.cbTP.setCurrentText(str(self.thermo_package))
         dockwidget.cbTP.setDisabled(True)
         dockwidget.pushButton_2.setDisabled(True)
         for index,k in enumerate(dockwidget.x_pclist):
-            k.setText(str(round(float(self.variables['x_pc[1,'+ str(index+1)+']']['value']),2)))
+            k.setText(str(round(float(self.variables['x_pc[1,'+ str(index+1)+']']['value']),4)))
             k.setDisabled(True)
