@@ -82,10 +82,10 @@ class MainApp(QMainWindow,ui):
         self.actionSequentialMode.setShortcut('Ctrl+M') 
         self.actionEquationOriented.triggered.connect(partial(self.simulate,'EQN'))
         self.actionEquationOriented.setShortcut('Ctrl+E')
-        self.actionUndo.triggered.connect(self.undo)
-        self.actionUndo.setShortcut('Ctrl+Z')
-        self.actionRedo.triggered.connect(self.redo)
-        self.actionRedo.setShortcut('Ctrl+Y')
+        #self.actionUndo.triggered.connect(self.undo)
+        # self.actionUndo.setShortcut('Ctrl+Z')
+        # #self.actionRedo.triggered.connect(self.redo)
+        # self.actionRedo.setShortcut('Ctrl+Y')
         self.actionSave.triggered.connect(self.save)
         self.actionSave.setShortcut('Ctrl+S')
         self.actionOpen.triggered.connect(self.open)
@@ -232,7 +232,7 @@ class MainApp(QMainWindow,ui):
     '''        
     def new(self):
         self.setWindowTitle('Untitled - Chemical Simulator GUI')
-        self.undo_redo_helper()
+        #self.undo_redo_helper()
         self.comp = ComponentSelector(self)
         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>New</b> flowsheet is created ... </span>")
         dock_widget_lst.clear()
@@ -248,61 +248,61 @@ class MainApp(QMainWindow,ui):
         except Exception as e:
             print(e)
 
-    '''
-        It helps by clearing screen and loading the objects by undo redo methods
-    '''
-    def undo_redo_helper(self):
-        for i in self.container.unit_operations:
-            type(i).counter = 1
-        self.container = None
-        for i in dock_widget_lst:
-            i.hide()
-            del i
-        lst.clear()
-        self.container = Container(self.textBrowser, self.graphicsView)
+    # '''
+    #     It helps by clearing screen and loading the objects by undo redo methods
+    # '''
+    # def undo_redo_helper(self):
+    #     for i in self.container.unit_operations:
+    #         type(i).counter = 1
+    #     self.container = None
+    #     for i in dock_widget_lst:
+    #         i.hide()
+    #         del i
+    #     lst.clear()
+    #     self.container = Container(self.textBrowser, self.graphicsView)
 
-        compound_selected.clear()
-        self.scene = self.container.graphics.get_scene()
-        self.graphicsView.setScene(self.scene)
-        self.graphicsView.setMouseTracking(True)
-        self.graphicsView.keyPressEvent=self.delete_call
+    #     compound_selected.clear()
+    #     self.scene = self.container.graphics.get_scene()
+    #     self.graphicsView.setScene(self.scene)
+    #     self.graphicsView.setMouseTracking(True)
+    #     self.graphicsView.keyPressEvent=self.delete_call
 
-    '''
-        Function for undo 
-    '''
-    def undo(self):
-        redo_data = pop('Undo')
-        if redo_data is not None:
-            push('Redo', redo_data)
-            undo_data = get_last_list('Undo')
-            messages = self.textBrowser.toPlainText()
-            try:
-                self.undo_redo_helper()
-                self.container.graphics.load_canvas(undo_data, self.container)
-                self.textBrowser.setText(messages)
-            except Exception as e:
-                print(e)
-                self.textBrowser.append(messages)
-        else:
-            messages = self.textBrowser.toPlainText()
-            self.textBrowser.setText(messages)
-            self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>No more undo can be done!</b>... </span>")
+    # '''
+    #     Function for undo 
+    # '''
+    # def undo(self):
+    #     redo_data = pop('Undo')
+    #     if redo_data is not None:
+    #         push('Redo', redo_data)
+    #         undo_data = get_last_list('Undo')
+    #         messages = self.textBrowser.toPlainText()
+    #         try:
+    #             self.undo_redo_helper()
+    #             self.container.graphics.load_canvas(undo_data, self.container)
+    #             self.textBrowser.setText(messages)
+    #         except Exception as e:
+    #             print(e)
+    #             self.textBrowser.append(messages)
+    #     else:
+    #         messages = self.textBrowser.toPlainText()
+    #         self.textBrowser.setText(messages)
+    #         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>No more undo can be done!</b>... </span>")
 
-    '''
-        Function for redo 
-    '''
-    def redo(self):
-        redo_data = pop('Redo')
-        if redo_data is not None:
-            push('Undo', redo_data)
-            messages = self.textBrowser.toPlainText()
-            self.undo_redo_helper()
-            self.container.graphics.load_canvas(redo_data, self.container)
-            self.textBrowser.setText(messages)
-        else:
-            messages = self.textBrowser.toPlainText()
-            self.textBrowser.setText(messages)
-            self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>No more redo can be done!</b>... </span>")
+    # '''
+    #     Function for redo 
+    # '''
+    # def redo(self):
+    #     redo_data = pop('Redo')
+    #     if redo_data is not None:
+    #         push('Undo', redo_data)
+    #         messages = self.textBrowser.toPlainText()
+    #         self.undo_redo_helper()
+    #         self.container.graphics.load_canvas(redo_data, self.container)
+    #         self.textBrowser.setText(messages)
+    #     else:
+    #         messages = self.textBrowser.toPlainText()
+    #         self.textBrowser.setText(messages)
+    #         self.textBrowser.append("<span>[" + str(self.current_time()) + "] <b>No more redo can be done!</b>... </span>")
 
     '''
         Function for saving the current canvas items and compound_selected
@@ -343,7 +343,7 @@ class MainApp(QMainWindow,ui):
                 fileName = file_name.split('/')[-1].split('.')[0]
                 self.setWindowTitle(fileName+' - Chemical Simulator GUI')
 
-                self.undo_redo_helper()
+                #self.undo_redo_helper()
 
                 with open(file_name, 'rb') as f:
                     obj = pickle.load(f)
@@ -396,8 +396,8 @@ class MainApp(QMainWindow,ui):
     
 def main():
 
-    clean_file('Undo')
-    clean_file('Redo')
+    # clean_file('Undo')
+    # clean_file('Redo')
 
     app = QApplication(sys.argv)
     window = MainApp()

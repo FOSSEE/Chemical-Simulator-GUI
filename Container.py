@@ -45,7 +45,7 @@ class Container():
                 self.unit_operations.append(obj)
                 data = self.unit_operations[:]
                 data.append(compound_selected)
-                push('Undo', data)
+                #push('Undo', data)
                 self.msg.append("<span style=\"color:blue\">["+str(self.current_time())+"]<b> "+obj.name+" </b>is instantiated .""</span>")
 
     '''
@@ -87,10 +87,10 @@ class Container():
                 del item.obj
             del item
 
-            clean_file('Redo')
+            #clean_file('Redo')
             data = self.unit_operations[:]
             data.append(compound_selected)
-            push('Undo', data)
+            #push('Undo', data)
 
     def fetch_object(self,name):
         for i in self.unit_operations:
