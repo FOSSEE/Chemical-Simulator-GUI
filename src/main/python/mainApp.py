@@ -5,6 +5,7 @@ import ctypes
 import sys
 import datetime
 from functools import partial
+import pyuac
 
 current = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(current)
@@ -410,4 +411,7 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+    if not pyuac.isUserAdmin():
+        pyuac.runAsAdmin()
+    else:
+        main()
