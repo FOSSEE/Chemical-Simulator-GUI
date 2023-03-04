@@ -396,19 +396,19 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             del self.new_line
             super(NodeSocket, self).mouseReleaseEvent(event)
 
-        # try:
-        #     data = get_last_list('Undo')
-        #     comp_selected = data[-1]
-        #     data.remove(comp_selected)
-        #     for i in range(len(data)):
-        #         if data[i].name == self.new_line.source.parent.obj.name:
-        #             data[i] = self.new_line.source.parent.obj
-        #         elif data[i].name == self.new_line.target.parent.obj.name:
-        #             data[i] = self.new_line.target.parent.obj
-        #     data.append(comp_selected)
-        #     push('Undo', data)
-        # except Exception as e:
-        #     print(e)
+        try:
+            data = get_last_list('Undo')
+            comp_selected = data[-1]
+            data.remove(comp_selected)
+            for i in range(len(data)):
+                if data[i].name == self.new_line.source.parent.obj.name:
+                    data[i] = self.new_line.source.parent.obj
+                elif data[i].name == self.new_line.target.parent.obj.name:
+                    data[i] = self.new_line.target.parent.obj
+            data.append(comp_selected)
+            push('Undo', data)
+        except Exception as e:
+            print(e)
             
     def get_center(self):
         rect = self.boundingRect()
