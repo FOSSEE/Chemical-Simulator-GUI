@@ -1,6 +1,6 @@
 import os
 import csv
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE,STARTUPINFO,STARTF_USESHOWWINDOW
 import pandas as pd
 
 class Flowsheet():
@@ -54,8 +54,9 @@ class Flowsheet():
         if self.sim_method == 'Eqn':
             simpath = self.eqn_mos_path
             os.chdir(self.sim_dir_path)
-            
-            self.process = Popen([self.omc_path, '-s',simpath], stdout=PIPE, stderr=PIPE)
+            startupinfo = STARTUPINFO
+            startupinfo.dwFlags |= STARTF_USESHOWWINDOW
+            self.process = Popen([self.omc_path, '-s',simpath], stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
             self.stdout, self.stderr = self.process.communicate()
            
             os.chdir(self.root_dir)
