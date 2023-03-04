@@ -1,0 +1,2 @@
+#build command dir=>src/main/python/
+pyinstaller --onefile -windowed --icon=..\resources\base\icons\logo.ico --name="Chemical Simulator GUI" --add-data="..\..\*;." --hidden-import=csv --hidden-import=pandas --hidden-import=PyQt5.uic --hidden-import=xml.dom --hidden-import=pyqtgraph mainApp.py
