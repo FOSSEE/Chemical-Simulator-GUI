@@ -127,13 +127,25 @@ class Container():
     def simulate(self,mode):
 
         self.disableInterfaceforSimulation(True)
-        
+        toAppend = ''
         for i in self.graphics.scene.items():
-            if (isinstance(i, NodeItem)):
+            showConnectionWarning = False
+            if isinstance(i, NodeItem):
                 try:
                     i.dock_widget.clear_results()
                 except AttributeError:
                     pass
+
+                for ip in i.input:
+                    if len(ip.in_lines) == 0:
+                        showConnectionWarning = True
+                for op in i.output:
+                    if len(op.out_lines) == 0:
+                        showConnectionWarning = True
+                if showConnectionWarning:
+                    if toAppend != '':
+                        toAppend+='<br>'
+                    toAppend+="<span style=\"color:#999900\">Warning: "+i.name+" - Missing Socket Connection(s).</span>"
 
         #print("SIMULATE")
         #print(mode)
@@ -147,12 +159,14 @@ class Container():
             
         if mode=='SM':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>Sequential</b> mode ... </span>")
+            self.msg.append(toAppend)
             self.flowsheet.simulate_SM(self.ip,self.op)
             self.msg_browser()
             self.result=self.flowsheet.result_data
             
         elif mode=='EQN':
             self.msg.append("<span>["+str(self.current_time())+"] Simulating in <b>equation</b> mode ... </span>")
+            self.msg.append(toAppend)
             self.flowsheet.simulate_EQN(self.msg)
             self.result=self.flowsheet.result_data
 

@@ -154,10 +154,14 @@ class MaterialStream():
         temp_val = self.variables['T']['value']
         temp_unit =  self.variables['T']['unit']
         mixMolEntal_name = self.variables['H_p[1]']['name']
-        mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
+        mixMolEntal_val = self.variables['H_p[1]']['value']
+        if mixMolEntal_val != None:
+            mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
         mixMolEntal_unit =  self.variables['H_p[1]']['unit']
         mixMolEntro_name = self.variables['S_p[1]']['name']
-        mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
+        mixMolEntro_val = self.variables['S_p[1]']['value']
+        if mixMolEntro_val != None:
+            mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
         mixMolEntro_unit =  self.variables['S_p[1]']['unit']
         vapMolFrac_name = self.variables['xvap']['name']
         vapMolFrac_val = self.variables['xvap']['value']
@@ -166,7 +170,9 @@ class MaterialStream():
         mixMolFlo_val = self.variables['F_p[1]']['value']
         mixMolFlo_unit =  self.variables['F_p[1]']['unit']
         mixMassFlo_name = self.variables['Fm_p[1]']['name']
-        mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),4)
+        mixMassFlo_val = self.variables['Fm_p[1]']['value']
+        if mixMassFlo_val != None:
+            mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),4)
         mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
         
         dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 

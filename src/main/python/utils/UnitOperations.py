@@ -177,8 +177,10 @@ class UnitOperation():
                 strcount += 1
         else:
             #print("self.output_stms ", self.output_stms)
-            self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[1].name + '.In);\n')
-        
+            try:
+                self.OM_data_eqn += ('connect(' + self.name + '.Out,' + self.output_stms[1].name + '.In);\n')
+            except:
+                pass
         if self.mode:
             self.OM_data_eqn += (self.name + '.' + self.mode + '=' + str(self.mode_val) + ';\n')
 
