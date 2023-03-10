@@ -476,29 +476,21 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip = default_tooltip + f"   {i} : {j}\n"
             self.setToolTip(default_tooltip)
 
-        dlg = QMessageBox()
-        dlg.setWindowTitle("Error")
-        dlg.setIcon(QMessageBox.Critical)
-        dlg.setText('Enter valid input value!')
-
         if self.obj.type == 'Mixer' and not self.obj.saved:
-            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
-                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            while self.ok and (int(text)< 2 or int(text) > 4):
-                dlg.exec_()
-                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'Mixer', 'Enter number of input(2-4):',
-                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            combob_values = map(str,list(range(2,5)))
+            text, self.ok = QInputDialog.getItem(self.container.graphicsView, 'Mixer', 'Select number of inputs:',
+                                            combob_values, False)
+            
             if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
                 self.obj.variables['NI']['value'] = self.nin
+
         elif self.obj.type == 'DistillationColumn'and not self.obj.saved:
-            text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
-                                            echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
-            while self.ok and (int(text)< 1 or int(text) > 8):
-                dlg.exec_()
-                text, self.ok = QInputDialog.getText(self.container.graphicsView, 'DistillationColumn', 'Enter number of input(1-8):',
-                                        echo=QLineEdit.Normal, text=str(self.obj.no_of_inputs))
+            combob_values = map(str,list(range(1,9)))
+            text, self.ok = QInputDialog.getItem(self.container.graphicsView, 'DistillationColumn', 'Select number of input(s):',
+                                            combob_values, False)
+
             if self.ok:
                 self.nin = int(text)
                 self.obj.no_of_inputs = self.nin
