@@ -1,0 +1,23 @@
+Steps to create .exe for Chemical Simulator GUI
+1. Go to dir=> src/main/python/
+2. Run the command=> pyinstaller --onefile -windowed --icon=..\resources\base\icons\logo.ico --name="Chemical Simulator GUI" --add-data="..\..\*;." --hidden-import=csv --hidden-import=pandas --hidden-import=PyQt5.uic --hidden-import=xml.dom --hidden-import=pyqtgraph mainApp.py
+3. Move the .exe in 'src/main/python/dist/' to 'src/main/python/'
+4. Delete the file and folders after moving the .exe
+	File to delete
+		1. src/main/python/Chemical Simulator GUI.spec
+	Folders to delete
+		1. src/main/python/dist
+		2. src/main/python/build
+Steps to create installer for Chemical Simulator GUI
+1. Go to dir=> Chemical-Simulator-GUI/
+2. Zip the contents in the folder
+3. Name the zipped folder 'Chemical-Simulator-GUI'
+4. Launch NSIS
+5. Click on the option 'Installer based on .ZIP file' in NSIS
+6. Select the zipped folder created in Step 2 and 3.
+7. Options in NSIS
+	i)	Installer Name - Chemical-Simulator-GUI
+	ii)	Interface - Modern
+	iii)	Default Folder - $PROGRAMFILES\Chemical-Simulator-GUI
+	iv)	Compression - LZMA
+8. Click Generate
