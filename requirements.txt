@@ -1,6 +1,6 @@
 pyqtgraph==0.10.0
 pandas==1.0.1
-numpy==1.17.3
+numpy==1.22.0
 PyQt5==5.15.1
 pyuac
 pywin32
