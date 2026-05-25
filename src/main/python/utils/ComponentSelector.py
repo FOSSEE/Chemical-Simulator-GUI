@@ -1,4 +1,4 @@
-﻿from PyQt5.QtCore import QThread, pyqtSignal, Qt, QStringListModel
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QStringListModel
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
@@ -63,6 +63,8 @@ class CompoundLoader(QThread):
 # Main Dialog
 # ----------------------------
 class ComponentSelector(QDialog, ui_dialog):
+    # will change the compound dynamically to the selected compounds box
+    compounds_changed = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -197,6 +199,7 @@ class ComponentSelector(QDialog, ui_dialog):
                 except ValueError:
                     pass
         self.update_added_compounds()
+        self.compounds_changed.emit()
 
     def update_added_compounds(self):
         text = ", ".join(self.selected_names_list)

@@ -1,9 +1,9 @@
-﻿import platform
-if platform.system() == "Windows":
-    import pyuac
+import platform
+if platform.system() == "Windows": import pyuac
 
 import sys
 import pyuac
+import math
 
 from mainApp import MainApp
 from About_page import AboutPage
@@ -11,20 +11,28 @@ from Intro_page import IntroPage
 
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFileDialog, QMessageBox, QGraphicsDropShadowEffect
 )
-from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPainter, QPen, QPainterPath
 from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtGui import QFont, QPalette, QColor, QLinearGradient, QBrush
-from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
-
+from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPointF, QRectF
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+from src.main.ui.utils.LandingPageUI import IconPanel, GlassButton
 
 class LandingPage(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Chemical Simulator GUI")
-        self.showFullScreen()
+        
+        # Window type instead of full screen (comment down if u want full screen)
+        self.resize(1280, 800)
+        qr = self.frameGeometry()
+        cp = QApplication.desktop().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
         # Save original window flags & geometry to restore later
         self._orig_window_flags = self.windowFlags()
@@ -36,83 +44,81 @@ class LandingPage(QWidget):
         # 🔥 Start background preload once the window is ready
         QTimer.singleShot(500, self.preload_main_window)
 
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+
+        # bg colour 
+        gradient = QLinearGradient(0, 0, self.width(), self.height())
+        gradient.setColorAt(0.0, QColor("#0f172a"))  # Slate 900
+        gradient.setColorAt(1.0, QColor("#1e293b"))  # Slate 800
+        painter.fillRect(self.rect(), QBrush(gradient))
+
+        # grid design
+        grid_pen = QPen(QColor(255, 255, 255, 10), 1, Qt.DashLine)
+        painter.setPen(grid_pen)
+        grid_size = 100
+        for x in range(0, self.width(), grid_size):
+            painter.drawLine(x, 0, x, self.height())
+        for y in range(0, self.height(), grid_size):
+            painter.drawLine(0, y, self.width(), y)
+
     def init_ui(self):
-        # 🌈 Gradient Background
-        palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.0, QColor("#1e3c72"))   # Deep blue
-        gradient.setColorAt(1.0, QColor("#2a5298"))   # Light blue
-        palette.setBrush(QPalette.Window, QBrush(gradient))
-        self.setAutoFillBackground(True)
-        self.setPalette(palette)
+        #         # 🌈 Gradient Background
+        # palette = QPalette()
+        # gradient = QLinearGradient(0, 0, 0, self.height())
+        # gradient.setColorAt(0.0, QColor("#1e3c72"))   # Deep blue
+        # gradient.setColorAt(1.0, QColor("#2a5298"))   # Light blue
+        # palette.setBrush(QPalette.Window, QBrush(gradient))
+        # self.setAutoFillBackground(True)
+        # self.setPalette(palette)
+
 
         # 🌟 Main Layout
         main_layout = QVBoxLayout()
         main_layout.setAlignment(Qt.AlignCenter)
+        # added margins and spacing
+        main_layout.setContentsMargins(50, 80, 50, 80)
+        main_layout.setSpacing(20)
         self.setLayout(main_layout)
 
         # ✨ Title
         title = QLabel("Chemical Simulator GUI")
         title.setFont(QFont("Segoe UI", 54, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("color: white; letter-spacing: 2px;")
+        title.setStyleSheet("color: white; letter-spacing: 2px; background: transparent;")
+        title_shadow = QGraphicsDropShadowEffect()
+        title_shadow.setBlurRadius(15)
+        title_shadow.setOffset(0, 4)
+        title_shadow.setColor(QColor(0, 0, 0, 180))
+        title.setGraphicsEffect(title_shadow)
         main_layout.addWidget(title)
 
         # 🌤 Subtitle
         subtitle = QLabel("Empowering learning and research in chemical processes")
-        subtitle.setFont(QFont("Segoe UI", 22))
+        subtitle.setFont(QFont("Segoe UI Light", 22))
         subtitle.setAlignment(Qt.AlignCenter)
-        subtitle.setStyleSheet("color: #e0e0e0; margin-bottom: 40px;")
+        subtitle.setStyleSheet("color: #cbd5e1; background: transparent; margin-bottom: 30px;")
         main_layout.addWidget(subtitle)
 
-        # 🚀 Buttons
+        # 🚀 Glassmorphic Buttons
         button_names = [
-            ("🚀  Start Simulation/Create New", self.start_simulation),
-            ("📂  Open Existing Project", self.open_existing_project),
-            ("ℹ️  About", self.show_about),
-            ("❌  Exit", self.close)
+            ("Start New Simulation", "flask", self.start_simulation),
+            ("Open Existing Project", "folder", self.open_existing_project),
+            ("About", "info", self.show_about),
+            ("Exit", "exit", self.close)
         ]
 
-        for name, action in button_names:
-            btn = QPushButton(name)
-            btn.setFixedHeight(60)
-            btn.setFixedWidth(500)
-            btn.setFont(QFont("Segoe UI Semibold", 16))
-            btn.setCursor(Qt.PointingHandCursor)
-
-            # 🧈 Button Style
-            btn.setStyleSheet("""
-                QPushButton {
-                    color: white;
-                    background-color: rgba(255, 255, 255, 0.15);
-                    border: 2px solid rgba(255, 255, 255, 0.25);
-                    border-radius: 12px;
-                    padding: 12px;
-                }
-                QPushButton:hover {
-                    background-color: rgba(255, 255, 255, 0.35);
-                    border: 2px solid white;
-                }
-                QPushButton:pressed {
-                    background-color: rgba(255, 255, 255, 0.5);
-                }
-            """)
-
-            # ☁️ Drop Shadow
-            shadow = QGraphicsDropShadowEffect()
-            shadow.setBlurRadius(25)
-            shadow.setOffset(0, 4)
-            shadow.setColor(QColor(0, 0, 0, 150))
-            btn.setGraphicsEffect(shadow)
-
+        for text, icon_type, action in button_names:
+            btn = GlassButton(text, icon_type, self)
             main_layout.addWidget(btn, alignment=Qt.AlignHCenter)
             btn.clicked.connect(action)
 
         # 🌿 Footer
         footer = QLabel("Open-source process simulator for education & research")
-        footer.setFont(QFont("Segoe UI", 14))
+        footer.setFont(QFont("Segoe UI", 12))
         footer.setAlignment(Qt.AlignCenter)
-        footer.setStyleSheet("color: #d0d0d0; margin-top: 40px;")
+        footer.setStyleSheet("color: #64748b; background: transparent; margin-top: 40px;")
         main_layout.addWidget(footer)
 
         # 🌸 Fade-in Animation
@@ -150,6 +156,16 @@ class LandingPage(QWidget):
         QTimer.singleShot(100, lambda: (self.launch_main_window(), self.reset_cursor()))
 
 
+    def _cleanup_main_window(self):
+        """Safely schedule the old main window for deletion."""
+        if self.main_window is not None:
+            try:
+                self.main_window.hide()
+                self.main_window.deleteLater()
+            except Exception:
+                pass
+            self.main_window = None
+
     def open_existing_project(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -165,6 +181,7 @@ class LandingPage(QWidget):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             print(f"[DEBUG] Opening existing project from Landing Page: {file_path}")
+            self._cleanup_main_window()
             self.main_window = MainApp()
 
             # Preserve original closeEvent
@@ -175,11 +192,9 @@ class LandingPage(QWidget):
                         orig_close(event)
                 except Exception:
                     pass
-                try:
-                    self.handle_main_close(event)
-                except Exception:
-                    event.accept()
-                    self.restore_landing_page()
+                if event.isAccepted():
+                    # Defer restoration so closeEvent finishes before we touch self.main_window
+                    QTimer.singleShot(0, self.restore_landing_page)
             self.main_window.closeEvent = _wrapped_close
 
             # Open project file
@@ -222,6 +237,7 @@ class LandingPage(QWidget):
     def launch_main_window(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
+            self._cleanup_main_window()
             self.main_window = MainApp()
             self.main_window.new_project()  # reset all components for new project
 
@@ -233,8 +249,9 @@ class LandingPage(QWidget):
                         orig_close(event)
                     except Exception:
                         pass
-                self.restore_landing_page()  # Restore landing page when MainApp closes
-                event.accept()
+                if event.isAccepted():
+                    # Defer restoration so closeEvent finishes before we touch self.main_window
+                    QTimer.singleShot(0, self.restore_landing_page)
             self.main_window.closeEvent = _wrapped_close
 
             # Show main window maximized
@@ -287,19 +304,20 @@ class LandingPage(QWidget):
             self.intro_page.close()
         if self.main_window:
             self.main_window.close()
-        self.restore_landing_page()
+        else:
+            self.restore_landing_page()
 
 
     def handle_main_close(self, event):
         """Triggered when MainApp window is closed."""
         event.accept()  # Close main window normally
-        self.restore_landing_page()
+        # Deferred — restore_landing_page will be called by the QTimer in closeEvent wrapper
 
     def fit_canvas(self):
         """Properly fit the canvas after MainApp is ready."""
         if self.main_window is None:
             return
-        gv = self.main_window.graphicsView  # gv define karo
+        gv = self.main_window.graphicsView
         gv.setDragMode(QGraphicsView.ScrollHandDrag)
         gv.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         gv.fitInView(self.main_window.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
@@ -307,27 +325,28 @@ class LandingPage(QWidget):
         self.reset_cursor()
 
     def restore_landing_page(self):
-        self.main_window = None
-
-        # Remove any custom flags that hide window decorations
-        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint)
+        # Safely clean up old main window using Qt event loop
+        self._cleanup_main_window()
 
         # Show landing page in full screen
-        self.showFullScreen()  
+        # self.showFullScreen()  
+
+        # Show landing page (windowed)
+        self.show()
 
         # Make sure it is active
         self.activateWindow()
         self.raise_()
-        QApplication.processEvents()
+        # QApplication.processEvents()
 
     def resizeEvent(self, event):
-        """Make sure gradient background fills screen on resize."""
-        palette = QPalette()
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.0, QColor("#1e3c72"))
-        gradient.setColorAt(1.0, QColor("#2a5298"))
-        palette.setBrush(QPalette.Window, QBrush(gradient))
-        self.setPalette(palette)
+        # """Make sure gradient background fills screen on resize."""
+        # palette = QPalette()
+        # gradient = QLinearGradient(0, 0, 0, self.height())
+        # gradient.setColorAt(0.0, QColor("#1e3c72"))
+        # gradient.setColorAt(1.0, QColor("#2a5298"))
+        # palette.setBrush(QPalette.Window, QBrush(gradient))
+        # self.setPalette(palette)
         super().resizeEvent(event)
 
     def show_about(self):

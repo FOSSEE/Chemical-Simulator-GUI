@@ -1,4 +1,4 @@
-﻿import pickle
+import pickle
 import threading
 import os
 import ctypes
@@ -68,12 +68,58 @@ class MainApp(QMainWindow,ui):
         self.container = Container(self.textBrowser, self.graphicsView)        
         self.comp = ComponentSelector(self)
         self.comp.accepted.connect(self.update_compounds)
+        self.comp.accepted.connect(self._refresh_selected_compounds)
+
+        # Connect real-time compound checkbox changes
+        self.comp.compounds_changed.connect(self._refresh_selected_compounds)
 
         # Setting up interactive canvas        
         self.scene = self.container.graphics.get_scene()
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
+
+        # box for selected compounds
+        self.selectedElementsDock = QDockWidget("Selected Compounds", self)
+        self.selectedElementsDock.setFeatures(
+            QDockWidget.DockWidgetFloatable |
+            QDockWidget.DockWidgetMovable |
+            QDockWidget.DockWidgetClosable
+        )
+        self.selectedElementsDock.setMinimumSize(180, 150)
+        self.selectedElementsDock.setMaximumWidth(250)
+
+        self.selectedElementsList = QListWidget()
+        self.selectedElementsList.setAlternatingRowColors(True)
+        self.selectedElementsList.setStyleSheet("""
+            QListWidget {
+                background-color: #f7f7f7;
+                border: none;
+                font: 10pt 'Microsoft JhengHei';
+                color: #333;
+            }
+            QListWidget::item {
+                padding: 4px 8px;
+            }
+            QListWidget::item:alternate {
+                background-color: #eaeaea;
+            }
+        """)
+
+        sel_dock_container = QWidget()
+        sel_dock_layout = QVBoxLayout(sel_dock_container)
+        sel_dock_layout.setContentsMargins(4, 4, 4, 4)
+
+        sel_label = QLabel("No compounds selected")
+        sel_label.setStyleSheet("color: #888; font: 9pt 'Microsoft JhengHei'; padding: 2px 4px;")
+        sel_label.setAlignment(Qt.AlignCenter)
+        self._sel_status_label = sel_label
+
+        sel_dock_layout.addWidget(sel_label)
+        sel_dock_layout.addWidget(self.selectedElementsList)
+        self.selectedElementsDock.setWidget(sel_dock_container)
+
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.selectedElementsDock)
 
         self.dockWidget.setFeatures(QDockWidget.DockWidgetFloatable |
                                     QDockWidget.DockWidgetMovable |
@@ -160,6 +206,14 @@ class MainApp(QMainWindow,ui):
         self.actionBinaryPhaseEnvelope.triggered.connect(self.bin_phase_env)
         self.actionViewMessageBrowser.triggered.connect(self.toggle_message_browser_view)
         self.actionViewComponentSelector.triggered.connect(self.toggle_component_selector_view)
+
+        # View : Selected Compounds 
+        self.actionViewSelectedElements = QAction("Selected Compounds", self)
+        self.actionViewSelectedElements.setCheckable(True)
+        self.actionViewSelectedElements.setChecked(True)
+        self.actionViewSelectedElements.triggered.connect(self.toggle_selected_elements_view)
+        self.menuView.addAction(self.actionViewSelectedElements)
+
         self.actionSequentialMode.setEnabled(True)
         self.actionEquationOriented.setEnabled(True)
 
@@ -499,6 +553,7 @@ class MainApp(QMainWindow,ui):
             self.container = Container(self.textBrowser, self.graphicsView)
             self.scene = self.container.graphics.get_scene()
             self.graphicsView.setScene(self.scene)
+            self._clear_selected_compounds_panel()
 
                         # ✅ Push initial empty snapshot for new project
             try:
@@ -562,6 +617,7 @@ class MainApp(QMainWindow,ui):
         compound_selected.clear()
         self.scene = self.container.graphics.get_scene()   
         self.graphicsView.setScene(self.scene)
+        self._clear_selected_compounds_panel()
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent = self.delete_call
 
@@ -725,6 +781,30 @@ class MainApp(QMainWindow,ui):
             self.dockWidget_2.show()
         else:
             self.dockWidget_2.hide()
+
+    # function is used to show the slected ones and hide the unchecked ones
+    def toggle_selected_elements_view(self):
+        if self.actionViewSelectedElements.isChecked():
+            self.selectedElementsDock.show()
+        else:
+            self.selectedElementsDock.hide()
+
+    # function to refresh the selected compounds box
+    def _refresh_selected_compounds(self):
+        self.selectedElementsList.clear()
+        compounds = list(self.comp.selected_names_list)
+        print(f"[DEBUG] _refresh_selected_compounds: {len(compounds)} compounds")
+
+        if compounds:
+            self._sel_status_label.setText(f"{len(compounds)} compound(s) selected")
+            for name in compounds:
+                self.selectedElementsList.addItem(name)
+        else:
+            self._sel_status_label.setText("No compounds selected")
+
+    def _clear_selected_compounds_panel(self):
+        self.selectedElementsList.clear()
+        self._sel_status_label.setText("No compounds selected")
 
 from python.utils.ComponentSelectorWindow import ComponentSelectorWindow
 

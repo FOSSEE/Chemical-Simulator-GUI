@@ -32,6 +32,10 @@ simulateEQN.mos
 FlowsheetSEQ.csv__pycache__/
 *.pyc
 
+graphify-out/
+src/main/graphify-out/
+.graphify*
+.agents*
 env/
 venv/
 
@@ -82,3 +86,4 @@ src/main/python/DockWidgets/__pycache__/DockWidgetCompoundSeparator.cpython-36.p
 src/main/python/DockWidgets/__pycache__/DockWidget.cpython-36.pyc
 Simulator/database.mo
 src/main/python/Chemical Simulator GUI.exe
+undo_redo/*.pkl
