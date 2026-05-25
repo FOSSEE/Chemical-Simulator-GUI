@@ -347,15 +347,16 @@ class LandingPage(QWidget):
         close_btn.setFixedHeight(50)
         close_btn.setFont(QFont("Segoe UI", 16))
         close_btn.setStyleSheet("""
-        QPushButton {
-            font-family: 'Segoe UI', 'Noto Color Emoji', 'DejaVu Sans';
-            color: white;
-            background-color: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            border-radius: 12px;
-            padding: 12px;
-        }
-    """)
+            QPushButton {
+                color: white;
+                background-color: #1e3c72;
+                border-radius: 10px;
+                padding: 10px 20px;
+            }
+            QPushButton:hover {
+                background-color: #2a5298;
+            }
+        """)
         close_btn.clicked.connect(self.about_window.close)
         layout.addWidget(close_btn, alignment=Qt.AlignCenter)
 
