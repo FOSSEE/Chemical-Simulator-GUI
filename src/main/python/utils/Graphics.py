@@ -674,7 +674,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.hide()
 
         # ✅ Graphics setup
-        self.pic = QtGui.QPixmap(parentPath + f"/resources/base/Icons/{self.type}.png")
+        self.pic = QtGui.QPixmap(parentPath + f"/resources/base/icons/{self.type}.png")
         self.rect = QtCore.QRect(0, 0, self.pic.width(), self.pic.height())
 
         self.text = QGraphicsTextItem(self)
