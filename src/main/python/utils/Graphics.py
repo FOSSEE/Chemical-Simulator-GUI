@@ -51,7 +51,7 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
         else:
             self.graphicsView = getattr(container, "graphicsView", None)
 
-        self.pos = None
+        self.current_pos = None
 
         if self.graphicsView is not None:
             try:
@@ -913,9 +913,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
                             line.pointB = line.target.get_center()
 
         # --- Update node position in model object (if linked) ---
-        self.pos = event.scenePos()
+        self.current_pos = event.scenePos()
         if hasattr(self, "obj") and self.obj is not None:
-            self.obj.set_pos(self.pos)
+            self.obj.set_pos(self.current_pos)
 
 
                 
@@ -983,6 +983,18 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 newPos.setY(min(rect.bottom()-height-35, max(newPos.y(), rect.top())))
                 self.obj.set_pos(newPos)
         return super(NodeItem,self).itemChange(change, newPos)
+
+    def contextMenuEvent(self, event):
+        menu = QMenu()
+        delete_action = menu.addAction("Delete")
+        action = menu.exec_(event.screenPos())
+        if action == delete_action:
+            if hasattr(self, "container") and self.container:
+                self.container.delete([self])
+            else:
+                main_window = findMainWindow(self)
+                if main_window and hasattr(main_window, "container"):
+                    main_window.container.delete([self])
         
 def findMainWindow(self):
     '''

@@ -1,30 +1,37 @@
-package Splitter1
+package Mixer1
 
   model ms
     extends Simulator.Streams.MaterialStream;
     extends Simulator.Files.ThermodynamicPackages.RaoultsLaw;
   end ms;
 
-  model Splitter1Simulation 
+  model Mixer1Simulation 
     import data = Simulator.Files.ChemsepDatabase;
-    parameter data.Bromine Bromine;
-    parameter data.Carbontetrachloride Carbontetrachloride;
-    parameter Integer Nc = 2;
-    parameter data.GeneralProperties C[Nc] = {Bromine, Carbontetrachloride};
-    ms MaterialStream1(Nc = 2, C = {Bromine, Carbontetrachloride});
-    Simulator.UnitOperations.Splitter Splitter1(Nc = 2,C = {Bromine, Carbontetrachloride}, No = 2, CalcType = "Split_Ratio", SpecVal_s = {0.5, 0.5});
+    parameter Integer Nc = 0;
+    parameter data.GeneralProperties C[Nc] = {};
+    Simulator.UnitOperations.Mixer Mixer1(Nc = 2,C = {Water, Ethanol}, NI = 2, outPress = "Inlet_Average");
 
-    Simulator.UnitOperations.Cooler Cooler1(Nc = 2,C = {Bromine, Carbontetrachloride}, Pdel = 0, Eff = 1);
+    ms MaterialStream1(Nc = 0, C = {});
+    ms MaterialStream2(Nc = 0, C = {});
+    ms MaterialStream3(Nc = 0, C = {});
+    Simulator.UnitOperations.Heater Heater1(Nc = 2,C = {Water, Ethanol}, Pdel = 0, Eff = 1);
 
 
   equation
+connect(MaterialStream1.Out, Mixer1.In[1]);
+connect(MaterialStream2.Out, Mixer1.In[2]);
+connect(Mixer1.Out, MaterialStream3.In);
 MaterialStream1.P = 101325;
 MaterialStream1.T = 300;
 MaterialStream1.F_p[1] = 100;
-connect(Splitter1.In, MaterialStream1.Out);
-connect(Splitter1.Out, Cooler1.In);
-connect(Cooler1.In, Splitter1.Out);
-connect(Cooler1.Out, MaterialStream1.In);
-Cooler1.Q = None;
-  end Splitter1Simulation;
-end Splitter1;
+MaterialStream2.P = 101325;
+MaterialStream2.T = 300;
+MaterialStream2.F_p[1] = 100;
+MaterialStream3.P = 101325;
+MaterialStream3.T = 300;
+MaterialStream3.F_p[1] = 100;
+// Warning: Heater1 has no input streams
+// Warning: Heater1 has no output streams
+Heater1.Q = None;
+  end Mixer1Simulation;
+end Mixer1;

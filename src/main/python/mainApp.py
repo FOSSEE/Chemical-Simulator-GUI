@@ -590,7 +590,7 @@ class MainApp(QMainWindow,ui):
     '''
     def delete_call(self,event):
         try:
-            if event.key() == QtCore.Qt.Key_Delete:
+            if event.key() == QtCore.Qt.Key_Delete or event.key() == QtCore.Qt.Key_Backspace:
                 l=self.scene.selectedItems()
                 self.container.delete(l)
         except Exception as e:

@@ -14,7 +14,7 @@ sys.path.append(parentPath)
 from python.OMChem.Flowsheet import Flowsheet
 from python.utils.undo_manager import *
 from python.utils.ComponentSelector import *
-from python.utils.Graphics import NodeItem, Graphics, dock_widget_lst
+from python.utils.Graphics import NodeItem, NodeLine, Graphics, dock_widget_lst, lst
 from python.DockWidgets.DockWidget import DockWidget
 
 # ----------------- Signals -----------------
@@ -122,10 +122,55 @@ class Container():
 
             # --- Now actually perform deletions ---
             items_to_delete = list(l)
+            
+            # 1. Collect all connected lines if we're deleting nodes
+            additional_lines = set()
+            for item in items_to_delete:
+                if isinstance(item, NodeItem):
+                    for socket in (item.input + item.output):
+                        for line in (socket.in_lines + socket.out_lines):
+                            if line not in items_to_delete:
+                                additional_lines.add(line)
+            items_to_delete.extend(list(additional_lines))
+
+            # 2. Process deletions
             for item in items_to_delete:
                 try:
-                    # (your deletion code here — unchanged)
-                    ...
+                    if isinstance(item, NodeLine):
+                        # Logical cleanup
+                        if item.source and item.source.parent and hasattr(item.source.parent.obj, "remove_connection"):
+                            item.source.parent.obj.remove_connection(0, item.source.id)
+                        if item.target and item.target.parent and hasattr(item.target.parent.obj, "remove_connection"):
+                            item.target.parent.obj.remove_connection(1, item.target.id)
+                        
+                        # Graphical cleanup
+                        if item.source and item in item.source.out_lines:
+                            item.source.out_lines.remove(item)
+                        if item.target and item in item.target.in_lines:
+                            item.target.in_lines.remove(item)
+                        
+                        if item.scene():
+                            item.scene().removeItem(item)
+
+                    elif isinstance(item, NodeItem):
+                        # Remove from model
+                        if item.obj in self.unit_operations:
+                            self.unit_operations.remove(item.obj)
+                        
+                        # Cleanup DockWidget
+                        if hasattr(item, "dock_widget") and item.dock_widget:
+                            item.dock_widget.hide()
+                            if item.dock_widget in dock_widget_lst:
+                                dock_widget_lst.remove(item.dock_widget)
+                        
+                        # Remove from global tracking
+                        if item in lst:
+                            lst.remove(item)
+                        
+                        # Remove from scene
+                        if item.scene():
+                            item.scene().removeItem(item)
+
                 except Exception as e:
                     print(f"[DEBUG] delete: error deleting item {getattr(item, 'name', None)}: {e}")
 
