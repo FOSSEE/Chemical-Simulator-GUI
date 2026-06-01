@@ -111,6 +111,13 @@ class MainApp(QMainWindow,ui):
         # Loading and setting up style sheet
         self.setupUi(self)
 
+        # Fix: Remove dockWidget_2 from the central widget grid layout
+        # and explicitly re-parent it to the main window. This allows it
+        # to act as a proper resizable dock widget and prevents double-free crashes.
+        if self.centralwidget.layout() is not None:
+            self.centralwidget.layout().removeWidget(self.dockWidget_2)
+            self.dockWidget_2.setParent(self)
+
         # Initializing attributes
         self.zoom_count = 0
         self.thrd = None
@@ -143,8 +150,8 @@ class MainApp(QMainWindow,ui):
             QDockWidget.DockWidgetMovable |
             QDockWidget.DockWidgetClosable
         )
-        self.selectedElementsDock.setMinimumSize(180, 150)
-        self.selectedElementsDock.setMaximumWidth(250)
+        self.selectedElementsDock.setMinimumSize(150, 120)
+        self.selectedElementsDock.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         self.selectedElementsList = QListWidget()
         self.selectedElementsList.setAlternatingRowColors(True)
@@ -186,7 +193,7 @@ class MainApp(QMainWindow,ui):
                                       QDockWidget.DockWidgetClosable)
 
         self.dockWidget.setMinimumSize(200, 200)
-        self.dockWidget_2.setMinimumSize(200, 200)
+        self.dockWidget_2.setMinimumSize(200, 100)
 
         self.dockWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.dockWidget_2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -205,6 +212,9 @@ class MainApp(QMainWindow,ui):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dockWidget_2)
+
+        # Set initial dock sizes after the window has been shown
+        QTimer.singleShot(0, self._apply_initial_layout)
 
         
         # Calling initialisation 
@@ -228,6 +238,20 @@ class MainApp(QMainWindow,ui):
 
         redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
         redo_shortcut.activated.connect(self.redo)
+
+    def _apply_initial_layout(self):
+        # Component Selector: ~300px wide, Selected Compounds: ~130px wide
+        self.resizeDocks(
+            [self.selectedElementsDock, self.dockWidget],
+            [130, 300],
+            Qt.Horizontal
+        )
+        # Message Browser: ~120px tall
+        self.resizeDocks(
+            [self.dockWidget_2],
+            [120],
+            Qt.Vertical
+        )
 
     '''
         MenuBar function handels all the all the operations of 

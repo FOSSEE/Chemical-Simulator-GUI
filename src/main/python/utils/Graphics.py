@@ -1,4 +1,4 @@
-﻿from PyQt5.QtCore import *
+from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import PyQt5.QtGui as QtGui
@@ -579,6 +579,60 @@ lst = []
 dock_widget_lst = []
 stack = []
 
+
+class ResizeHandle(QtWidgets.QGraphicsItem):
+    """Drag handle at the bottom-right corner of a NodeItem for resizing."""
+
+    def __init__(self, parent_node):
+        super().__init__(parent_node)
+        self.parent_node = parent_node
+        self.setAcceptHoverEvents(True)
+        self.setCursor(Qt.SizeFDiagCursor)
+        self._size = 12
+        self._dragging = False
+        self._start_pos = None
+        self._start_width = 0
+        self._start_height = 0
+
+    def boundingRect(self):
+        return QtCore.QRectF(0, 0, self._size, self._size)
+
+    def paint(self, painter, option, widget):
+        pen = QtGui.QPen(QtGui.QColor(100, 100, 100, 180), 1.5)
+        painter.setPen(pen)
+        s = self._size
+        for i in range(3):
+            offset = 3 + i * 3
+            painter.drawLine(int(s - offset), int(s), int(s), int(s - offset))
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._dragging = True
+            self._start_pos = event.scenePos()
+            self._start_width = self.parent_node.rect.width()
+            self._start_height = self.parent_node.rect.height()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._dragging:
+            delta = event.scenePos() - self._start_pos
+            new_w = max(40, self._start_width + delta.x())
+            new_h = max(40, self._start_height + delta.y())
+            self.parent_node.resize_node(new_w, new_h)
+            event.accept()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._dragging:
+            self._dragging = False
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+
 class NodeItem(QtWidgets.QGraphicsItem):
 
     @staticmethod
@@ -616,16 +670,11 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip += f"   {k} : {v}\n"
             self.setToolTip(default_tooltip)
 
-        # ✅ Mixer: ask number of inputs (only if not loaded from snapshot)
+        # ✅ Mixer: use default 2 inputs for new components (no prompt)
         if self.obj.type == 'Mixer' and not getattr(self.obj, "saved", False):
-            combo_values = list(map(str, range(2, 5)))
-            text, self.ok = QInputDialog.getItem(
-                self.container.graphicsView, 'Mixer', 'Select number of inputs:', combo_values, False
-            )
-            if self.ok:
-                self.nin = int(text)
-                self.obj.no_of_inputs = self.nin
-                self.obj.variables['NI']['value'] = self.nin
+            self.nin = 2
+            self.obj.no_of_inputs = self.nin
+            self.obj.variables['NI']['value'] = self.nin
 
         # ✅ Distillation Column: ask number of input(s)
         elif self.obj.type == 'DistillationColumn' and not getattr(self.obj, "saved", False):
@@ -657,9 +706,10 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         dock_widget_lst.append(self.dock_widget)
         self.main_window = findMainWindow(self)
-
-        self.dock_widget.setFixedWidth(360)
-        self.dock_widget.setFixedHeight(640)
+        # self.dock_widget.setFixedWidth(360)
+        # self.dock_widget.setFixedHeight(640)
+        self.dock_widget.setMinimumSize(280, 400)
+        self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.dock_widget.DockWidgetFeature(QDockWidget.AllDockWidgetFeatures)
         self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
 
@@ -705,6 +755,18 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # ✅ Initialize sockets (ports)
         self.input, self.output = self.initialize_sockets(self.type)
+
+        # Store original dimensions for resize support
+        self._orig_width = self.rect.width()
+        self._orig_height = self.rect.height()
+        self._orig_pic = self.pic.copy()
+        self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
+        self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
+
+        # Add resize handle at bottom-right corner
+        self._resize_handle = ResizeHandle(self)
+        self._resize_handle.setPos(self.rect.width() - 12, self.rect.height() - 12)
+        self._resize_handle.setZValue(1)
 
 
     def shape(self):
@@ -874,6 +936,68 @@ class NodeItem(QtWidgets.QGraphicsItem):
             ]
             return input, output
 
+    def resize_node(self, new_width, new_height):
+        """Resize the node to the given width and height."""
+        self.prepareGeometryChange()
+
+        # Update rect
+        self.rect = QtCore.QRect(0, 0, int(new_width), int(new_height))
+
+        # Scale pixmap from the original for best quality
+        self.pic = self._orig_pic.scaled(
+            int(new_width), int(new_height),
+            Qt.IgnoreAspectRatio, Qt.SmoothTransformation
+        )
+
+        # Reposition label below the node
+        self.text.setPos(self.rect.width() * 0.1, self.rect.height())
+
+        # Reposition sockets proportionally
+        self._reposition_sockets()
+
+        # Move resize handle to new bottom-right
+        self._resize_handle.setPos(self.rect.width() - 12, self.rect.height() - 12)
+
+        # Update all connected lines
+        self._update_connected_lines()
+
+        self.update()
+
+    def _reposition_sockets(self):
+        """Reposition sockets proportionally after a resize."""
+        scale_y = self.rect.height() / self._orig_height if self._orig_height else 1
+
+        for i, socket in enumerate(self.input):
+            if i < len(self._orig_input_rects):
+                orig = self._orig_input_rects[i]
+                socket.prepareGeometryChange()
+                socket.rect = QtCore.QRectF(
+                    orig.x(),
+                    orig.y() * scale_y,
+                    orig.width(), orig.height()
+                )
+                socket.update()
+
+        for i, socket in enumerate(self.output):
+            if i < len(self._orig_output_rects):
+                orig = self._orig_output_rects[i]
+                right_offset = self._orig_width - orig.x()
+                socket.prepareGeometryChange()
+                socket.rect = QtCore.QRectF(
+                    self.rect.width() - right_offset,
+                    orig.y() * scale_y,
+                    orig.width(), orig.height()
+                )
+                socket.update()
+
+    def _update_connected_lines(self):
+        """Update endpoints of all lines connected to this node."""
+        for inp in self.input:
+            for line in inp.in_lines:
+                line.pointB = inp.get_center()
+        for op in self.output:
+            for line in op.out_lines:
+                line.pointA = op.get_center()
 
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)

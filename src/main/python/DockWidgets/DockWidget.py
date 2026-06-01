@@ -20,6 +20,41 @@ class DockWidget(QDockWidget,ui_dialog):
         QDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
+
+        # --- Make dock content resizable ---
+        # The .ui file uses absolute positioning; wrap content in a layout
+        # so child widgets stretch when the dock is resized or floated.
+        content = self.widget()
+        if content is not None and content.layout() is None:
+            layout = QVBoxLayout(content)
+            layout.setContentsMargins(4, 4, 4, 4)
+            # Re-parent the tabWidget into the layout
+            if hasattr(self, 'tabWidget'):
+                self.tabWidget.setParent(None)  # detach from absolute position
+                layout.addWidget(self.tabWidget)
+            content.setLayout(layout)
+
+        # Fix Input Data tab: re-layout groupBox, groupBox_2, pushButton_2
+        # which also use absolute positioning in the .ui file
+        if hasattr(self, 'tab') and self.tab.layout() is None:
+            tab_layout = QVBoxLayout(self.tab)
+            tab_layout.setContentsMargins(6, 6, 6, 6)
+            tab_layout.setSpacing(8)
+            if hasattr(self, 'groupBox'):
+                self.groupBox.setParent(None)
+                tab_layout.addWidget(self.groupBox)
+            if hasattr(self, 'groupBox_2'):
+                self.groupBox_2.setParent(None)
+                tab_layout.addWidget(self.groupBox_2, 1)  # stretch factor
+            if hasattr(self, 'pushButton_2'):
+                self.pushButton_2.setParent(None)
+                tab_layout.addWidget(self.pushButton_2)
+            self.tab.setLayout(tab_layout)
+
+        # Allow free resizing when docked or floating
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMinimumSize(250, 200)
+
         self.name=name
         self.obj=obj
         self.type = comptype
