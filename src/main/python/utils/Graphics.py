@@ -670,16 +670,11 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     default_tooltip += f"   {k} : {v}\n"
             self.setToolTip(default_tooltip)
 
-        # ✅ Mixer: ask number of inputs (only if not loaded from snapshot)
+        # ✅ Mixer: use default 2 inputs for new components (no prompt)
         if self.obj.type == 'Mixer' and not getattr(self.obj, "saved", False):
-            combo_values = list(map(str, range(2, 5)))
-            text, self.ok = QInputDialog.getItem(
-                self.container.graphicsView, 'Mixer', 'Select number of inputs:', combo_values, False
-            )
-            if self.ok:
-                self.nin = int(text)
-                self.obj.no_of_inputs = self.nin
-                self.obj.variables['NI']['value'] = self.nin
+            self.nin = 2
+            self.obj.no_of_inputs = self.nin
+            self.obj.variables['NI']['value'] = self.nin
 
         # ✅ Distillation Column: ask number of input(s)
         elif self.obj.type == 'DistillationColumn' and not getattr(self.obj, "saved", False):

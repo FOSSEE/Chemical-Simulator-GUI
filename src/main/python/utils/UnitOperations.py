@@ -682,7 +682,7 @@ class Mixer(UnitOperation):
         type(self).counter += 1 
 
         self.variables = {
-            'NI'        : {'name':'Number of Input', 'value':6,                 'unit':''},
+            'NI'        : {'name':'Number of Input', 'value':2,                 'unit':''},
             'outPress'  : {'name':'Outlet Pressure', 'value':'Inlet_Average',   'unit':''},
         }
 

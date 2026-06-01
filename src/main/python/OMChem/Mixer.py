@@ -1,7 +1,7 @@
 class Mixer():
     counter = 1
 
-    def __init__(self, name='Mixer', NOI=5, Pcal='Inlet_Average'):
+    def __init__(self, name='Mixer', NOI=2, Pcal='Inlet_Average'):
         self.NOI = NOI
         self.Pcal = Pcal
         self.OM_data_eqn = ''
@@ -12,7 +12,7 @@ class Mixer():
 
         # Auto-increment name
         self.name = f"{name}{Mixer.counter}"
-        self.no_of_input = 4
+        self.no_of_input = 2
         self.no_of_output = 1
         Mixer.counter += 1
 
