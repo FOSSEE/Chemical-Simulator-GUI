@@ -86,6 +86,14 @@ class UnitOperation():
         else :
             self.output_stms[sourceId] = UnitOpr
 
+    def remove_connection(self, flag, sourceId):
+        if flag == 1:
+            if sourceId in self.input_stms:
+                del self.input_stms[sourceId]
+        else:
+            if sourceId in self.output_stms:
+                del self.output_stms[sourceId]
+
     def set_pos(self,pos):
         self.pos = pos
 

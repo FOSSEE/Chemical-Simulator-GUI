@@ -1,4 +1,4 @@
 loadModel(Modelica);
 loadFile("Simulator/package.mo");
 loadFile("Simulator/Flowsheet.mo");
-simulate(Splitter1.Splitter1Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);
+simulate(Mixer1.Mixer1Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);

@@ -33,6 +33,57 @@ from python.utils.Graphics import *
 
 ui,_ = loadUiType(parentPath+'/ui/utils/main.ui')
 
+class DragButtonFilter(QObject):
+    def __init__(self, parent, component_type):
+        super().__init__(parent)
+        self.component_type = component_type
+        self.startPos = None
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                self.startPos = event.pos()
+        elif event.type() == QEvent.MouseMove:
+            if event.buttons() & Qt.LeftButton and self.startPos:
+                if (event.pos() - self.startPos).manhattanLength() >= QApplication.startDragDistance():
+                    drag = QDrag(obj)
+                    mimeData = QMimeData()
+                    mimeData.setText(self.component_type)
+                    drag.setMimeData(mimeData)
+                    
+                    # Optional: Grab button appearance as drag pixmap
+                    pixmap = obj.grab()
+                    drag.setPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                    drag.setHotSpot(QPoint(32, 32))
+
+                    drag.exec_(Qt.CopyAction)
+                    self.startPos = None
+                    return True
+        return False
+
+class DropFilter(QObject):
+    def __init__(self, parent, main_app):
+        super().__init__(parent)
+        self.main_app = main_app
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.DragEnter:
+            if event.mimeData().hasText():
+                event.acceptProposedAction()
+                return True
+        elif event.type() == QEvent.DragMove:
+            if event.mimeData().hasText():
+                event.acceptProposedAction()
+                return True
+        elif event.type() == QEvent.Drop:
+            component_type = event.mimeData().text()
+            # map from viewport coordinates to scene coordinates
+            pos = self.main_app.graphicsView.mapToScene(event.pos())
+            self.main_app.component(component_type, pos=pos)
+            event.acceptProposedAction()
+            return True
+        return False
+
 '''
     MainApp class is responsible for all the main App Ui operations
 '''
@@ -78,6 +129,12 @@ class MainApp(QMainWindow,ui):
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
+
+        # ✅ Enable Drag-and-Drop on the canvas
+        self.graphicsView.setAcceptDrops(True)
+        self.graphicsView.viewport().setAcceptDrops(True)
+        self.drop_filter = DropFilter(self, self)
+        self.graphicsView.viewport().installEventFilter(self.drop_filter)
 
         # box for selected compounds
         self.selectedElementsDock = QDockWidget("Selected Compounds", self)
@@ -239,50 +296,47 @@ class MainApp(QMainWindow,ui):
         Handles all the buttons of different components.
     '''
     def button_handler(self):
-        # --- Streams ---
-        self.pushButton.clicked.connect(partial(self.component, 'MaterialStream'))
+        # --- Mapping of buttons to component types ---
+        button_to_type = {
+            self.pushButton: 'MaterialStream',
+            self.pushButton_7: 'Mixer',
+            self.pushButton_10: 'Splitter',
+            self.pushButton_11: 'Heater',
+            self.pushButton_12: 'Cooler',
+            self.pushButton_9: 'Flash',
+            self.pushButton_13: 'CompoundSeparator',
+            self.pushButton_25: 'Valve',
+            self.pushButton_14: 'CentrifugalPump',
+            self.pushButton_15: 'AdiabaticCompressor',
+            self.pushButton_16: 'AdiabaticExpander',
+            self.pushButton_26: 'DistillationColumn',
+            self.pushButton_18: 'ShortcutColumn'
+        }
+
+        # --- Tooltips ---
         self.pushButton.setToolTip("Represents a flow of material (mixture of compounds) between unit operations, carrying properties like temperature, pressure, and composition.")
-    
-        # --- Mixer/Splitter ---
-        self.pushButton_7.clicked.connect(partial(self.component, 'Mixer'))
         self.pushButton_7.setToolTip("Combines two or more input streams into a single output stream by mixing their compositions and energy.")
-
-        self.pushButton_10.clicked.connect(partial(self.component, 'Splitter'))
         self.pushButton_10.setToolTip("Divides one input stream into multiple output streams based on specified split ratios.")
-
-        # --- Exchangers ---
-        self.pushButton_11.clicked.connect(partial(self.component, 'Heater'))
         self.pushButton_11.setToolTip("Increases the temperature of a process stream by adding heat energy.")
-
-        self.pushButton_12.clicked.connect(partial(self.component, 'Cooler'))
         self.pushButton_12.setToolTip("Decreases the temperature of a process stream by removing heat energy.")
-
-        # --- Separator ---
-        self.pushButton_9.clicked.connect(partial(self.component, 'Flash'))
         self.pushButton_9.setToolTip("Separates a vapor–liquid mixture into vapor and liquid phases at a given temperature and pressure.")
-
-        self.pushButton_13.clicked.connect(partial(self.component, 'CompoundSeparator'))
         self.pushButton_13.setToolTip("Splits a mixture into components based on composition, typically an ideal separation.")
-
-        # --- Pressure Change ---
-        self.pushButton_25.clicked.connect(partial(self.component, 'Valve'))
         self.pushButton_25.setToolTip("Reduces the pressure of a fluid stream (throttling process) without performing work or heat exchange.")
-
-        self.pushButton_14.clicked.connect(partial(self.component, 'CentrifugalPump'))
         self.pushButton_14.setToolTip("Increases the pressure of a liquid stream using mechanical work (energy input).")
-
-        self.pushButton_15.clicked.connect(partial(self.component, 'AdiabaticCompressor'))
         self.pushButton_15.setToolTip("Compresses a gas stream without heat exchange; increases pressure and temperature.")
-
-        self.pushButton_16.clicked.connect(partial(self.component, 'AdiabaticExpander'))
         self.pushButton_16.setToolTip("Expands a gas stream to produce work output, lowering pressure and temperature.")
-
-        # --- Columns ---
-        self.pushButton_26.clicked.connect(partial(self.component, 'DistillationColumn'))
         self.pushButton_26.setToolTip("Separates mixtures into products based on volatility differences using vapor–liquid equilibrium.")
-
-        self.pushButton_18.clicked.connect(partial(self.component, 'ShortcutColumn'))
         self.pushButton_18.setToolTip("Performs approximate distillation using shortcut (simplified) column calculations.")
+
+        # --- Install Filters and Connect Clicks ---
+        for btn, comp_type in button_to_type.items():
+            # Support clicking
+            btn.clicked.connect(partial(self.component, comp_type))
+            
+            # Support dragging
+            drag_filter = DragButtonFilter(self, comp_type)
+            btn.installEventFilter(drag_filter)
+            setattr(btn, "_drag_filter", drag_filter) # Keep reference to prevent GC
         
     '''
         Displays help box
@@ -405,10 +459,10 @@ class MainApp(QMainWindow,ui):
     def zoom_reset(self):
         if(self.zoom_count>0):
             for i in range(self.zoom_count):
-                self.zoomout()
+                self.zoom_out()
         elif(self.zoom_count<0): 
             for i in range(abs(self.zoom_count)):
-                self.zoomin()
+                self.zoom_in()
 
     '''
         ZoomOut the canvas
@@ -432,8 +486,12 @@ class MainApp(QMainWindow,ui):
     from PyQt5.QtCore import QPointF, QTimer
     from PyQt5.QtWidgets import QMessageBox
 
-    def component(self, unit_operation_type):
-        print("[DEBUG] component() called with:", unit_operation_type)
+    def component(self, unit_operation_type, pos=None):
+        print("[DEBUG] component() called with:", unit_operation_type, "at pos:", pos)
+
+        # Fix: ignore the bool argument from clicked signal
+        if not isinstance(pos, QPointF):
+            pos = None
 
         # --- Step 1: Check compound selection ---
         if not self.comp.is_compound_selected():
@@ -458,34 +516,38 @@ class MainApp(QMainWindow,ui):
             return
 
         # --- Step 3: Manage component placement offsets (grid + center) ---
-        horizontal_gap = 180   # horizontal space between components
-        vertical_gap = 150     # vertical space between rows
-        items_per_row = 5      # how many components before wrapping to next row
+        if pos is None:
+            horizontal_gap = 180   # horizontal space between components
+            vertical_gap = 150     # vertical space between rows
+            items_per_row = 5      # how many components before wrapping to next row
 
-        # Initialize offset if missing or None
-        if not hasattr(self, "component_offset") or self.component_offset is None:
-            view_center = self.graphicsView.mapToScene(self.graphicsView.viewport().rect().center())
-            self.component_offset = QPointF(view_center.x(), view_center.y())
-            self._grid_count = 0
-            print("[DEBUG] Offset initialized to:", self.component_offset)
-        else:
-            # Safety check for grid counter
-            if not hasattr(self, "_grid_count"):
+            # Initialize offset if missing or None
+            if not hasattr(self, "component_offset") or self.component_offset is None:
+                view_center = self.graphicsView.mapToScene(self.graphicsView.viewport().rect().center())
+                self.component_offset = QPointF(view_center.x(), view_center.y())
                 self._grid_count = 0
-
-            # Move right or wrap to next row
-            x, y = self.component_offset.x(), self.component_offset.y()
-            self._grid_count += 1
-            if self._grid_count >= items_per_row:
-                self.component_offset = QPointF(
-                    self.component_offset.x() - horizontal_gap * (items_per_row - 1),
-                    y + vertical_gap
-                )
-                self._grid_count = 0
-                print("[DEBUG] Wrapped to next row:", self.component_offset)
+                print("[DEBUG] Offset initialized to:", self.component_offset)
             else:
-                self.component_offset = QPointF(x + horizontal_gap, y)
-                print("[DEBUG] Moved right to:", self.component_offset)
+                # Safety check for grid counter
+                if not hasattr(self, "_grid_count"):
+                    self._grid_count = 0
+
+                # Move right or wrap to next row
+                x, y = self.component_offset.x(), self.component_offset.y()
+                self._grid_count += 1
+                if self._grid_count >= items_per_row:
+                    self.component_offset = QPointF(
+                        self.component_offset.x() - horizontal_gap * (items_per_row - 1),
+                        y + vertical_gap
+                    )
+                    self._grid_count = 0
+                    print("[DEBUG] Wrapped to next row:", self.component_offset)
+                else:
+                    self.component_offset = QPointF(x + horizontal_gap, y)
+                    print("[DEBUG] Moved right to:", self.component_offset)
+            target_pos = self.component_offset
+        else:
+            target_pos = pos
 
         # --- Step 4: Add the new unit operation ---
         before_ids = {id(it) for it in self.scene.items()}  # Snapshot before adding
@@ -494,11 +556,12 @@ class MainApp(QMainWindow,ui):
 
         # --- Step 5: Direct placement if returned item ---
         if node_item is not None and hasattr(node_item, "setPos"):
-            node_item.setPos(self.component_offset)
-            print("[DEBUG] Set position on returned item:", self.component_offset)
+            node_item.setPos(target_pos)
+            print("[DEBUG] Set position on returned item:", target_pos)
 
-            self.graphicsView.centerOn(node_item)
-            print("[DEBUG] Centered view on new component.")
+            if pos is None: # Only center view for click-to-add
+                self.graphicsView.centerOn(node_item)
+                print("[DEBUG] Centered view on new component.")
             return
 
         # --- Step 6: Fallback — detect newly added graphics item ---
@@ -511,10 +574,11 @@ class MainApp(QMainWindow,ui):
             for it in new_items:
                 try:
                     if hasattr(it, "setPos"):
-                        it.setPos(self.component_offset)
-                        print("[DEBUG] Positioned new item:", it, "at", self.component_offset)
-                        self.graphicsView.centerOn(it)
-                        print("[DEBUG] Centered fallback component in viewport.")
+                        it.setPos(target_pos)
+                        print("[DEBUG] Positioned new item:", it, "at", target_pos)
+                        if pos is None:
+                            self.graphicsView.centerOn(it)
+                            print("[DEBUG] Centered fallback component in viewport.")
                         positioned = True
                         break
                 except Exception as e:
@@ -607,7 +671,7 @@ class MainApp(QMainWindow,ui):
     '''
     def delete_call(self,event):
         try:
-            if event.key() == QtCore.Qt.Key_Delete:
+            if event.key() == QtCore.Qt.Key_Delete or event.key() == QtCore.Qt.Key_Backspace:
                 l=self.scene.selectedItems()
                 self.container.delete(l)
         except Exception as e:
