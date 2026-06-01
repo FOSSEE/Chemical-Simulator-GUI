@@ -111,6 +111,13 @@ class MainApp(QMainWindow,ui):
         # Loading and setting up style sheet
         self.setupUi(self)
 
+        # Fix: Remove dockWidget_2 from the central widget grid layout
+        # and explicitly re-parent it to the main window. This allows it
+        # to act as a proper resizable dock widget and prevents double-free crashes.
+        if self.centralwidget.layout() is not None:
+            self.centralwidget.layout().removeWidget(self.dockWidget_2)
+            self.dockWidget_2.setParent(self)
+
         # Initializing attributes
         self.zoom_count = 0
         self.thrd = None
