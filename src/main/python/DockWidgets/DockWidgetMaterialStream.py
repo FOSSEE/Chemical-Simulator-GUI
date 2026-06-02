@@ -10,6 +10,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
+from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetMaterialStream.ui')
 
@@ -41,6 +42,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
         self.pushButton_2.clicked.connect(self.param)
+        log_signal_connection('DockWidgetMaterialStream', 'pushButton_2', 'param')
 
         self.btn_normalize = QPushButton("Normalize")
         self.btn_equalize = QPushButton("Equalize")
@@ -209,12 +211,15 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+            if hasattr(self.obj, 'update_compounds'):
+                self.obj.update_compounds()
             self.obj.init_variables()
         except Exception as e:
             print(e)
 
     def param(self):
         try:
+            log_submit_click('DockWidgetMaterialStream', self.name, self.obj.type)
             self.dict = {}
             for i in self.input_dict:
                 if i == "x_pc":
@@ -242,7 +247,10 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                         self.show_error()
                         break
 
+            log_input_data(self.name, self.dict)
+            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
+            log_param_setter_result(self.obj.name, True)
 
             for i in self.container.graphics.graphicsView.items():
                 try:
@@ -251,11 +259,16 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                 except:
                     pass
             if self.isVisible():
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                except Exception:
+                    pass
             self.hide()
 
         except Exception as e:
+            log_param_setter_result(self.name, False, error=str(e))
             print(e)
 
     def update_input_values(self):
@@ -432,9 +445,12 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         except Exception as e:
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass
 
     def equalize(self):
         try:

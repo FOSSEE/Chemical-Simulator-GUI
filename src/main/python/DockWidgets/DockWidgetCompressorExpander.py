@@ -11,6 +11,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
+from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetCompressorExpander.ui')
 
@@ -29,6 +30,7 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
        
         self.pushButton_2.clicked.connect(self.param)
+        log_signal_connection('DockWidgetCompressorExpander', 'pushButton_2', 'param')
         self.dict = {}
 
         self.name_type = None
@@ -92,6 +94,7 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
 
     def param(self):
         try:
+            log_submit_click('DockWidgetCompressorExpander', self.name, self.obj.type)
             self.dict={}
             for i in self.input_dict:
                 if (self.input_dict[i] == None):
@@ -107,7 +110,10 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                         self.show_error()
                         break
             
+            log_input_data(self.name, self.dict)
+            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
+            log_param_setter_result(self.obj.name, True)
 
             for i in self.container.graphics.graphicsView.items():
                 try: 
@@ -116,11 +122,16 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                 except:
                     pass
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            log_param_setter_result(self.name, False, error=str(e))
             print(e)
 
     @staticmethod
@@ -162,6 +173,9 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
             print(e)
             
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

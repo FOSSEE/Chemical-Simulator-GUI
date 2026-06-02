@@ -16,6 +16,7 @@ from collections import defaultdict
 from python.utils.ComponentSelector import *
 from python.DockWidgets.DistillationColumnStagewiseResults import DistillationColumnStagewiseResults
 from python.utils.Graphics import *
+from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetDistillationColumn.ui')
 
@@ -31,6 +32,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
         self.type = comptype
         self.input_dict = []
         self.pushButton_2.clicked.connect(self.param)
+        log_signal_connection('DockWidgetDistillationColumn', 'pushButton_2', 'param')
         self.dict = []
         self.input_params_list()
         self.name_type = None
@@ -57,7 +59,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                 print(i)
                 l = QLineEdit()
                 l.setFixedWidth(80)
-                if len(self.obj.variables['InT_s']['value']) is not 0:
+                if len(self.obj.variables['InT_s']['value']) != 0:
                     l.setText(str(self.obj.variables['InT_s']['value'][i]))
                 self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),2*(i+1),0, alignment=Qt.AlignLeft)
                 self.lay1.addWidget(l,2*(i+1),1, alignment=Qt.AlignLeft)
@@ -167,6 +169,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
     def param(self):
         try:
+            log_submit_click('DockWidgetDistillationColumn', self.name, self.obj.type)
             self.dict= []
             temp = 0
             print("param.input_dict ", self.input_dict)
@@ -202,12 +205,18 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            log_param_setter_result(self.obj.name, True)
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            log_param_setter_result(self.name, False, error=str(e))
             print(e)
 
     def showStagewiseResults(self):
@@ -385,6 +394,9 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             print(e)
 
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

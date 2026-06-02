@@ -11,6 +11,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
+from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetShortcutColumn.ui')
 
@@ -26,6 +27,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
         self.input_dict = []
         self.input_params_list()
         self.btn.clicked.connect(self.param)
+        log_signal_connection('DockWidgetShortcutColumn', 'btn', 'param')
         self.dict = []
 
         self.name_type = None
@@ -92,17 +94,26 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
 
     def param(self):
         try:
+            log_submit_click('DockWidgetShortcutColumn', self.name, self.obj.type)
             self.dict=[]
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].currentText(),float(self.input_dict[2].text()), float(self.input_dict[3].text()),
                         self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),
                         self.input_dict[8].currentText()]            
+            log_input_data(self.name, self.dict)
+            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
+            log_param_setter_result(self.obj.name, True)
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            log_param_setter_result(self.name, False, error=str(e))
             print(e)
 
     @staticmethod
@@ -143,6 +154,9 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
         except Exception as e:
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

@@ -14,6 +14,7 @@ from functools import partial
 from python.utils.ComponentSelector import *
 from collections import defaultdict
 from python.utils.Graphics import *
+from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetCompoundSeparator.ui')
 
@@ -28,6 +29,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
         self.type = comptype
         self.input_dict = []
         self.lst = []
+        self.container = container
         self.input_params_list()
         self.dict = []
             
@@ -76,6 +78,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 
                 btn = QPushButton('Submit')
                 btn.clicked.connect(self.param)
+                log_signal_connection('DockWidgetCompoundSeparator', 'btn(Submit)', 'param')
                 
                 self.gridLayout.setVerticalSpacing(5)
                 self.gridLayout.addWidget(self.calculationGroupBox,0,0)
@@ -91,6 +94,8 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
 
     def update_compounds(self):
         try:
+            if hasattr(self.obj, 'update_compounds'):
+                self.obj.update_compounds()
             self.obj.init_variables()
             t_item = self.calculationGroupBox.layout().itemAt(0)
             self.calculationGroupBox.layout().removeItem(t_item)
@@ -107,6 +112,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
 
     def param(self):
         try:
+            log_submit_click('DockWidgetCompoundSeparator', self.name, self.obj.type)
             self.dict=[]
            
             self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
@@ -119,16 +125,26 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 else:
                     self.show_error()
                 
-            
+            log_input_data(self.name, self.dict)
+            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
+            log_param_setter_result(self.obj.name, True)
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            log_param_setter_result(self.name, False, error=str(e))
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass
