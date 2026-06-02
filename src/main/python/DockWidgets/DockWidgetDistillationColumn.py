@@ -16,7 +16,6 @@ from collections import defaultdict
 from python.utils.ComponentSelector import *
 from python.DockWidgets.DistillationColumnStagewiseResults import DistillationColumnStagewiseResults
 from python.utils.Graphics import *
-from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetDistillationColumn.ui')
 
@@ -32,7 +31,6 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
         self.type = comptype
         self.input_dict = []
         self.pushButton_2.clicked.connect(self.param)
-        log_signal_connection('DockWidgetDistillationColumn', 'pushButton_2', 'param')
         self.dict = []
         self.input_params_list()
         self.name_type = None
@@ -140,6 +138,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             # self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
              
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def update_compounds(self):
@@ -169,7 +168,6 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
     def param(self):
         try:
-            log_submit_click('DockWidgetDistillationColumn', self.name, self.obj.type)
             self.dict= []
             temp = 0
             print("param.input_dict ", self.input_dict)
@@ -205,7 +203,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
-            log_param_setter_result(self.obj.name, True)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
                 #added try block to safely handle the errors
                 try:
@@ -216,7 +214,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             self.hide()
             
         except Exception as e:
-            log_param_setter_result(self.name, False, error=str(e))
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def showStagewiseResults(self):
@@ -391,6 +389,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             for t in tables:
                 t.resizeColumnsToContents()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def closeEvent(self,event):

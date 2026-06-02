@@ -11,7 +11,6 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
-from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetSplitter.ui')
 
@@ -28,7 +27,6 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
         self.container = container
         self.input_params_list()
         self.btn.clicked.connect(self.param)
-        log_signal_connection('DockWidgetSplitter', 'btn', 'param')
         self.dict = {}
 
     # input data tab
@@ -54,6 +52,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.input_dict = [self.le1, self.cb2, self.le3, self.le4]
  
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def fun(self):
@@ -72,13 +71,10 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            log_submit_click('DockWidgetSplitter', self.name, self.obj.type)
             self.dict={}
             self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
-            log_input_data(self.name, self.dict)
-            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
-            log_param_setter_result(self.obj.name, True)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
                 #added try block to safely handle the errors
                 try:
@@ -88,7 +84,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
                     pass
             self.hide()
         except Exception as e:
-            log_param_setter_result(self.name, False, error=str(e))
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def closeEvent(self,event):

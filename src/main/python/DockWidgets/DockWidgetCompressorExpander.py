@@ -11,7 +11,6 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
-from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetCompressorExpander.ui')
 
@@ -30,7 +29,6 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
        
         self.pushButton_2.clicked.connect(self.param)
-        log_signal_connection('DockWidgetCompressorExpander', 'pushButton_2', 'param')
         self.dict = {}
 
         self.name_type = None
@@ -87,6 +85,7 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
             self.input_dict['Thermo Package'] = self.cbTP
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def show_error(self):
@@ -94,7 +93,6 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            log_submit_click('DockWidgetCompressorExpander', self.name, self.obj.type)
             self.dict={}
             for i in self.input_dict:
                 if (self.input_dict[i] == None):
@@ -110,10 +108,8 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                         self.show_error()
                         break
             
-            log_input_data(self.name, self.dict)
-            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
-            log_param_setter_result(self.obj.name, True)
+            print(f"[UI] Submit successful for {self.name}")
 
             for i in self.container.graphics.graphicsView.items():
                 try: 
@@ -131,7 +127,7 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
             self.hide()
             
         except Exception as e:
-            log_param_setter_result(self.name, False, error=str(e))
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     @staticmethod
@@ -170,6 +166,7 @@ class DockWidgetCompressorExpander(QDockWidget,ui_dialog):
                     self.tableWidget.resizeColumnsToContents()
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
             
     def closeEvent(self,event):

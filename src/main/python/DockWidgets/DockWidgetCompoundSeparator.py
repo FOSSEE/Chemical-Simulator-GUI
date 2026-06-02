@@ -14,7 +14,6 @@ from functools import partial
 from python.utils.ComponentSelector import *
 from collections import defaultdict
 from python.utils.Graphics import *
-from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetCompoundSeparator.ui')
 
@@ -78,7 +77,6 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 
                 btn = QPushButton('Submit')
                 btn.clicked.connect(self.param)
-                log_signal_connection('DockWidgetCompoundSeparator', 'btn(Submit)', 'param')
                 
                 self.gridLayout.setVerticalSpacing(5)
                 self.gridLayout.addWidget(self.calculationGroupBox,0,0)
@@ -87,6 +85,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 self.input_dict = self.lst            
                         
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def show_error(self):
@@ -107,12 +106,12 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 t_item = self.calculationGroupBox.layout().itemAt(0)
             self.input_params_list()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
             
 
     def param(self):
         try:
-            log_submit_click('DockWidgetCompoundSeparator', self.name, self.obj.type)
             self.dict=[]
            
             self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
@@ -125,10 +124,8 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 else:
                     self.show_error()
                 
-            log_input_data(self.name, self.dict)
-            log_param_setter(self.obj.name, self.obj.type, self.dict)
             self.obj.param_setter(self.dict)
-            log_param_setter_result(self.obj.name, True)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
                 #added try block to safely handle the errors
                 try:
@@ -139,7 +136,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
             self.hide()
             
         except Exception as e:
-            log_param_setter_result(self.name, False, error=str(e))
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     def closeEvent(self,event):
         #added try block to safely handle the errors

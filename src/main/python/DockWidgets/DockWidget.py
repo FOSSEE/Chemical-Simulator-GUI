@@ -11,7 +11,6 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
-from python.utils.submit_debug_logger import *
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidget.ui')
 
@@ -65,7 +64,6 @@ class DockWidget(QDockWidget,ui_dialog):
        
         #print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
-        log_signal_connection('DockWidget', 'pushButton_2', 'param')
 
         self.dict = {}          # a dictionary
         self.container = container
@@ -113,6 +111,7 @@ class DockWidget(QDockWidget,ui_dialog):
                 self.formLayout.addRow(lay)
                 self.input_dict[i] = l
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
 
@@ -121,7 +120,6 @@ class DockWidget(QDockWidget,ui_dialog):
 
     def param(self):
         try:
-            log_submit_click('DockWidget', self.name, self.obj.type)
             self.dict = {}
             #print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
@@ -138,7 +136,7 @@ class DockWidget(QDockWidget,ui_dialog):
             
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
-            log_param_setter_result(self.obj.name, True)
+            print(f"[UI] Submit successful for {self.name}")
 
             for i in self.container.graphics.graphicsView.items():
                 try: 
@@ -156,7 +154,7 @@ class DockWidget(QDockWidget,ui_dialog):
             self.hide()
             
         except Exception as e:
-            log_param_setter_result(self.name, False, error=str(e))
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     @staticmethod
@@ -205,6 +203,7 @@ class DockWidget(QDockWidget,ui_dialog):
 
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def closeEvent(self,event):
