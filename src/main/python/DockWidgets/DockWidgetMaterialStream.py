@@ -27,6 +27,14 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
         self.pushButton_2.clicked.connect(self.param)
+
+        self.btn_normalize = QPushButton("Normalize")
+        self.btn_equalize = QPushButton("Equalize")
+        self.verticalLayout_5.addWidget(self.btn_normalize)
+        self.verticalLayout_5.addWidget(self.btn_equalize)
+        self.btn_normalize.clicked.connect(self.normalize)
+        self.btn_equalize.clicked.connect(self.equalize)
+
         self.dict = {}  # a dictionary
 
         self.name_type = None
@@ -373,4 +381,45 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
         self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+
+    def equalize(self):
+        try:
+            noc = len(self.x_pclist)
+            if noc > 0:
+                val = 1.0 / noc
+                sum_val = 0
+                for i in range(noc - 1):
+                    v = round(val, 4)
+                    self.x_pclist[i].setText(str(v))
+                    sum_val += v
+                self.x_pclist[-1].setText(str(round(1.0 - sum_val, 4)))
+        except Exception as e:
+            print(e)
+
+    def normalize(self):
+        try:
+            values = []
+            for l in self.x_pclist:
+                try:
+                    t = l.text().strip()
+                    if not t:
+                        v = 0.0
+                    else:
+                        v = float(t)
+                except ValueError:
+                    v = 0.0
+                values.append(v)
+
+            total = sum(values)
+            if total > 0:
+                sum_norm = 0
+                for i in range(len(self.x_pclist) - 1):
+                    normalized_val = round(values[i] / total, 4)
+                    self.x_pclist[i].setText(str(normalized_val))
+                    sum_norm += normalized_val
+                self.x_pclist[-1].setText(str(round(1.0 - sum_norm, 4)))
+            else:
+                self.show_error()
+        except Exception as e:
+            print(e)
     
