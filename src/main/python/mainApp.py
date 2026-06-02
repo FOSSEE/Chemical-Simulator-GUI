@@ -217,27 +217,21 @@ class MainApp(QMainWindow,ui):
         QTimer.singleShot(0, self._apply_initial_layout)
 
         
-        # Calling initialisation 
+        # Calling initialisation
         self.menu_bar()
-        
-        # after self.menu_bar()
-        self.actionUndo.setEnabled(True)
-        self.actionRedo.setEnabled(True)
 
         self.button_handler()
         self.comp.show()
         self.comp.raise_()          # Bring to front
         self.comp.activateWindow()
 
-        # Setting up keyboard shortcuts for undo and redo
-        from PyQt5.QtWidgets import QShortcut
-        from PyQt5.QtGui import QKeySequence
-
-        undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
-        undo_shortcut.activated.connect(self.undo)
-
-        redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
-        redo_shortcut.activated.connect(self.redo)
+        from python.utils.undo_manager import clean_file, push
+        clean_file('Undo')
+        clean_file('Redo')
+        initial_snapshot = self.container.graphics.save_canvas()
+        if initial_snapshot is not None:
+            push('Undo', initial_snapshot)
+        self._update_undo_redo_actions()
 
     def _apply_initial_layout(self):
         # Component Selector: ~300px wide, Selected Compounds: ~130px wide
@@ -564,11 +558,13 @@ class MainApp(QMainWindow,ui):
         # --- Step 5: Direct placement if returned item ---
         if node_item is not None and hasattr(node_item, "setPos"):
             node_item.setPos(target_pos)
+            node_item.obj.set_pos(node_item.scenePos())
             print("[DEBUG] Set position on returned item:", target_pos)
 
             if pos is None: # Only center view for click-to-add
                 self.graphicsView.centerOn(node_item)
                 print("[DEBUG] Centered view on new component.")
+            self.container.graphics.push_snapshot()
             return
 
         # --- Step 6: Fallback — detect newly added graphics item ---
@@ -593,6 +589,8 @@ class MainApp(QMainWindow,ui):
 
             if not positioned:
                 print("[DEBUG] No suitable QGraphicsItem found to position (fallback failed).")
+            else:
+                self.container.graphics.push_snapshot()
 
         # --- Step 7: Schedule fallback positioning ---
         QTimer.singleShot(50, find_and_position_new)
@@ -603,8 +601,6 @@ class MainApp(QMainWindow,ui):
         self.comp.show()
         self.comp.raise_()
         self.comp.activateWindow()
-        clean_file('Undo')
-        clean_file('Redo')
 
 
     '''
@@ -649,6 +645,7 @@ class MainApp(QMainWindow,ui):
                 snapshot = self.container.graphics.save_canvas()
                 if snapshot is not None:
                     push('Undo', snapshot)
+                self._update_undo_redo_actions()
             except Exception as e:
                 print("[DEBUG] new: failed to push initial Undo:", e)
 
@@ -715,65 +712,60 @@ class MainApp(QMainWindow,ui):
     '''
 
     def undo(self):
+        from python.utils.undo_manager import pop, push, get_last_list
         try:
-            from python.utils.undo_manager import pop, push, get_last_list
             print("\n[UNDO] Requested → Start")
 
-            # Save current scene as redo candidate
-            try:
-                s_cur = self.container.graphics.save_canvas()
-                if s_cur is not None:
-                    push("Redo", s_cur)
-                    print(f"[DEBUG] Undo: pushed current snapshot to Redo (items={len(s_cur.get('items', []))})")
-            except Exception as e:
-                print("[DEBUG] Undo: push current to Redo failed:", e)
-
-            # Pop last Undo (this is the snapshot we want to restore)
-            snap = pop("Undo")
-            if not snap:
+            current = pop("Undo")
+            if current is None:
                 print("[UNDO] Nothing to undo.")
                 return
 
-            # Use load_canvas_from_snapshot for snapshot dict
+            previous = get_last_list("Undo")
+            if previous is None:
+                push("Undo", current)
+                print("[UNDO] Already at initial state.")
+                return
+
+            push("Redo", current)
             self.undo_redo_helper()
-            self.container.graphics.load_canvas_from_snapshot(snap, self.container)
-            print(f"[UNDO] Scene restored → {len(snap.get('items', []))} items")
+            self.container.graphics.load_canvas_from_snapshot(previous, self.container)
+            self._refresh_selected_compounds()
+            print(f"[UNDO] Scene restored → {len(previous.get('items', []))} items")
 
         except Exception as e:
             print("[DEBUG] Undo failed:", e)
         finally:
-            # Update action states
-            self.actionUndo.setEnabled(get_last_list('Undo') is not None)
-            self.actionRedo.setEnabled(get_last_list('Redo') is not None)
+            self._update_undo_redo_actions()
 
     def redo(self):
+        from python.utils.undo_manager import pop, push
         try:
-            from python.utils.undo_manager import pop, push, get_last_list
             print("\n[REDO] Requested → Start")
 
-            # Save current scene into Undo before redo (so redo can be undone)
-            try:
-                s_cur = self.container.graphics.save_canvas()
-                if s_cur is not None:
-                    push("Undo", s_cur)
-                    print(f"[DEBUG] Redo: pushed current snapshot to Undo (items={len(s_cur.get('items', []))})")
-            except Exception as e:
-                print("[DEBUG] Redo: push current to Undo failed:", e)
-
             snap = pop("Redo")
-            if not snap:
+            if snap is None:
                 print("[REDO] Nothing to redo.")
                 return
 
+            push("Undo", snap)
             self.undo_redo_helper()
             self.container.graphics.load_canvas_from_snapshot(snap, self.container)
+            self._refresh_selected_compounds()
             print(f"[REDO] Scene restored → {len(snap.get('items', []))} items")
 
         except Exception as e:
             print("[DEBUG] Redo failed:", e)
         finally:
-            self.actionUndo.setEnabled(get_last_list('Undo') is not None)
-            self.actionRedo.setEnabled(get_last_list('Redo') is not None)
+            self._update_undo_redo_actions()
+
+    def _update_undo_redo_actions(self):
+        try:
+            from python.utils.undo_manager import stack_size
+            self.actionUndo.setEnabled(stack_size("Undo") > 1)
+            self.actionRedo.setEnabled(stack_size("Redo") > 0)
+        except Exception as e:
+            print("[DEBUG] _update_undo_redo_actions failed:", e)
 
 
     '''

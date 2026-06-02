@@ -125,63 +125,171 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
 
 
     def save_canvas(self):
-        """
-        Capture the current scene state (positions, types, parameters)
-        for Undo/Redo snapshots.
-        Returns a dict that can later be restored by load_canvas().
-        """
         try:
-            scene = self.scene
-            items = scene.items()
-            print(f"[DEBUG] save_canvas: scene has {len(items)} items")
+            from python.utils.ComponentSelector import compound_selected
 
-            data = {"items": []}
-            for item in items:
-                # Only save NodeItem-type components (ignore graphics like lines, text, etc.)
-                if hasattr(item, "serialize"):
-                    data["items"].append(item.serialize())
-                elif hasattr(item, "name"):
-                    # Minimal fallback for items without serialize()
+            data = {"items": [], "connections": [], "compounds": list(compound_selected)}
+
+            for item in self.scene.items():
+                if isinstance(item, NodeItem):
+                    obj = item.obj
+                    has_stms = hasattr(obj, "input_stms") and hasattr(obj, "output_stms")
+                    if has_stms:
+                        saved_in, saved_out = obj.input_stms, obj.output_stms
+                        obj.input_stms, obj.output_stms = {}, {}
+                    try:
+                        obj_copy = copy.deepcopy(obj)
+                    finally:
+                        if has_stms:
+                            obj.input_stms, obj.output_stms = saved_in, saved_out
+
                     data["items"].append({
-                        "name": item.name,
-                        "pos": (item.pos().x(), item.pos().y()),
-                        "type": getattr(item, "type", None)
+                        "obj": obj_copy,
+                        "pos": (item.scenePos().x(), item.scenePos().y()),
+                        "width": item.rect.width(),
+                        "height": item.rect.height(),
                     })
 
+            for item in self.scene.items():
+                if isinstance(item, NodeLine):
+                    src = getattr(item, "source", None)
+                    tgt = getattr(item, "target", None)
+                    if src is not None and tgt is not None and src.parent is not None and tgt.parent is not None:
+                        data["connections"].append({
+                            "source_name": src.parent.obj.name,
+                            "source_id": src.id,
+                            "target_name": tgt.parent.obj.name,
+                            "target_id": tgt.id,
+                        })
+
+            print(f"[DEBUG] save_canvas: {len(data['items'])} items, {len(data['connections'])} connections")
             return data
 
         except Exception as e:
             print("[DEBUG] save_canvas failed:", e)
             return None
 
+    def push_snapshot(self):
+        from python.utils.undo_manager import push, clean_file
+        try:
+            snap = self.save_canvas()
+            if snap is None:
+                return
+            clean_file("Redo")
+            push("Undo", snap)
+            mw = findMainWindow(self)
+            if mw is not None and hasattr(mw, "_update_undo_redo_actions"):
+                mw._update_undo_redo_actions()
+        except Exception as e:
+            print("[DEBUG] push_snapshot failed:", e)
 
+    def _restore_counters(self, ops):
+        import re
+        from python.utils.UnitOperations import (
+            Mixer, Heater, Cooler, Valve, Flash, Splitter,
+            DistillationColumn, ShortcutColumn, AdiabaticCompressor,
+            AdiabaticExpander, CentrifugalPump, CompoundSeparator)
+        from python.utils.Streams import MaterialStream
+
+        classes = {c.__name__: c for c in [
+            Mixer, Heater, Cooler, Valve, Flash, Splitter,
+            DistillationColumn, ShortcutColumn, AdiabaticCompressor,
+            AdiabaticExpander, CentrifugalPump, CompoundSeparator, MaterialStream]}
+
+        max_num = {}
+        for op in ops:
+            match = re.search(r"(\d+)$", getattr(op, "name", "") or "")
+            num = int(match.group(1)) if match else 0
+            max_num[op.type] = max(max_num.get(op.type, 0), num)
+
+        for type_name, num in max_num.items():
+            if type_name in classes:
+                classes[type_name].counter = num + 1
 
     def load_canvas_from_snapshot(self, snapshot, container):
         try:
             if not snapshot:
                 return
 
-            # ✅ Clear old scene first
             self.scene.clear()
             lst.clear()
             dock_widget_lst.clear()
+            container.unit_operations.clear()
+            self.unit_operations = container.unit_operations
 
-            # ✅ Rebuild from saved snapshot data
-            unit_ops_data = snapshot.get("items", [])
-            if not unit_ops_data:
-                return
+            from python.utils.ComponentSelector import compound_selected
+            compounds = snapshot.get("compounds", None)
+            if compounds is not None:
+                compound_selected.clear()
+                compound_selected.extend(compounds)
 
-            # Reconstruct minimal unit operation objects from snapshot
-            from python.utils.UnitOperations import UnitOperation
-            rebuilt_ops = []
-            for data in unit_ops_data:
+            stm = ['MaterialStream', 'EngStm']
+            name_to_item = {}
+
+            for entry in snapshot.get("items", []):
                 try:
-                    op = UnitOperation.reconstruct_from_dict(data)
-                    rebuilt_ops.append(op)
-                except Exception as e:
-                    print("[DEBUG] Failed to reconstruct op:", e)
+                    obj = copy.deepcopy(entry["obj"])
+                    obj.saved = True
+                    if hasattr(obj, "input_stms"):
+                        obj.input_stms = {}
+                    if hasattr(obj, "output_stms"):
+                        obj.output_stms = {}
 
-            self.load_canvas(rebuilt_ops, container)
+                    box = self.create_node_item(obj, container)
+                    if box is None:
+                        continue
+                    self.scene.addItem(box)
+
+                    pos = entry.get("pos", None)
+                    if pos is not None:
+                        box.setPos(QtCore.QPointF(pos[0], pos[1]))
+                        obj.set_pos(box.scenePos())
+
+                    width = entry.get("width", None)
+                    height = entry.get("height", None)
+                    if width and height and (width != box.rect.width() or height != box.rect.height()):
+                        box.resize_node(width, height)
+
+                    container.unit_operations.append(obj)
+                    name_to_item[obj.name] = box
+                except Exception as e:
+                    print("[DEBUG] load_canvas_from_snapshot: rebuild item failed:", e)
+
+            for conn in snapshot.get("connections", []):
+                try:
+                    src_item = name_to_item.get(conn["source_name"])
+                    tgt_item = name_to_item.get(conn["target_name"])
+                    if src_item is None or tgt_item is None:
+                        continue
+                    src_socket = next((s for s in src_item.output if s.id == conn["source_id"]), None)
+                    tgt_socket = next((s for s in tgt_item.input if s.id == conn["target_id"]), None)
+                    if src_socket is None or tgt_socket is None:
+                        continue
+
+                    line = NodeLine(src_socket.get_center(), tgt_socket.get_center(), 'op')
+                    line.source = src_socket
+                    line.target = tgt_socket
+                    src_socket.out_lines.append(line)
+                    tgt_socket.in_lines.append(line)
+                    self.scene.addItem(line)
+                    line.pointA = src_socket.get_center()
+                    line.pointB = tgt_socket.get_center()
+
+                    if getattr(src_socket.parent.obj, 'type', None) not in stm:
+                        src_socket.parent.obj.add_connection(0, src_socket.id, tgt_socket.parent.obj)
+                    if getattr(tgt_socket.parent.obj, 'type', None) not in stm:
+                        tgt_socket.parent.obj.add_connection(1, tgt_socket.id, src_socket.parent.obj)
+
+                    sc = src_socket.parent
+                    tg = tgt_socket.parent
+                    if getattr(sc.obj, 'type', None) == 'MaterialStream' and len(sc.input[0].in_lines) > 0:
+                        sc.obj.disableInputDataTab(sc.dock_widget)
+                    if getattr(tg.obj, 'type', None) == 'MaterialStream' and len(tg.input[0].in_lines) > 0:
+                        tg.obj.disableInputDataTab(tg.dock_widget)
+                except Exception as e:
+                    print("[DEBUG] load_canvas_from_snapshot: rebuild connection failed:", e)
+
+            self._restore_counters(container.unit_operations)
 
         except Exception as e:
             print("[DEBUG] Graphics.load_canvas_from_snapshot error:", e)
@@ -481,20 +589,9 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     if len(getattr(tg.input[0], 'in_lines', [])) > 0:
                         tg.obj.disableInputDataTab(tg.dock_widget)
 
-                # ✅ Save Undo snapshot after successful connection
                 try:
-                    main_window = None
-                    for w in QApplication.instance().topLevelWidgets():
-                        if isinstance(w, QMainWindow):
-                            main_window = w
-                            break
-                    if main_window and hasattr(main_window, 'container'):
-                        from python.utils.undo_manager import push, clean_file
-                        snapshot = main_window.container.graphics.save_canvas()
-                        if snapshot is not None:
-                            clean_file('Redo')  # clear redo stack
-                            push('Undo', snapshot)
-                            print("[DEBUG] Snapshot pushed after socket connection (Case 1)")
+                    self.parent.container.graphics.push_snapshot()
+                    print("[DEBUG] Snapshot pushed after socket connection (Case 1)")
                 except Exception as e:
                     print("[DEBUG] socket connection push error (Case 1):", e)
 
@@ -519,20 +616,9 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     if len(getattr(tg.input[0], 'in_lines', [])) > 0:
                         tg.obj.disableInputDataTab(tg.dock_widget)
 
-                # ✅ Save Undo snapshot after successful connection
                 try:
-                    main_window = None
-                    for w in QApplication.instance().topLevelWidgets():
-                        if isinstance(w, QMainWindow):
-                            main_window = w
-                            break
-                    if main_window and hasattr(main_window, 'container'):
-                        from python.utils.undo_manager import push, clean_file
-                        snapshot = main_window.container.graphics.save_canvas()
-                        if snapshot is not None:
-                            clean_file('Redo')
-                            push('Undo', snapshot)
-                            print("[DEBUG] Snapshot pushed after socket connection (Case 2)")
+                    self.parent.container.graphics.push_snapshot()
+                    print("[DEBUG] Snapshot pushed after socket connection (Case 2)")
                 except Exception as e:
                     print("[DEBUG] socket connection push error (Case 2):", e)
 
@@ -998,6 +1084,23 @@ class NodeItem(QtWidgets.QGraphicsItem):
         for op in self.output:
             for line in op.out_lines:
                 line.pointA = op.get_center()
+
+    def mousePressEvent(self, event):
+        self._press_scene_pos = self.scenePos()
+        super(NodeItem, self).mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        super(NodeItem, self).mouseReleaseEvent(event)
+        try:
+            start = getattr(self, "_press_scene_pos", None)
+            if start is not None and self.scenePos() != start:
+                self.obj.set_pos(self.scenePos())
+                if self.container is not None and hasattr(self.container, "graphics"):
+                    self.container.graphics.push_snapshot()
+        except Exception as e:
+            print("[DEBUG] NodeItem.mouseReleaseEvent push failed:", e)
+        finally:
+            self._press_scene_pos = None
 
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)

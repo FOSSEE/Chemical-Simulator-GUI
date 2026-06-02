@@ -53,24 +53,20 @@ class Container():
     # ----------------- Unit Operations -----------------
     def add_unit_operation(self, obj):
         """
-        Adds a unit operation node to the scene and pushes a correct Undo snapshot.
-        Fixes empty snapshot bug by taking the snapshot AFTER adding the item.
+        Adds a unit operation node to the scene.
+        The Undo snapshot is pushed by the caller after the node is positioned.
         """
-        from python.utils.undo_manager import push, clean_file
         try:
-            # 1️⃣ Create the NodeItem for this unit operation
             self.obj = obj
             box = self.graphics.create_node_item(obj, self)
             if not box:
                 print("[DEBUG] add_unit_operation: create_node_item returned None")
                 return None
 
-            # 2️⃣ Add it to the active scene
             self.scene.addItem(box)
             self.scene.update()
             QApplication.processEvents()
 
-            # 3️⃣ Update internal model and UI message
             if obj not in self.unit_operations:
                 self.unit_operations.append(obj)
                 self.signals.msg_signal.emit(
@@ -78,19 +74,6 @@ class Container():
                     f"<b>{obj.name}</b> is instantiated.</span>"
                 )
 
-            # 4️⃣ Take a POST-ADD snapshot (scene now contains the new item)
-            try:
-                snapshot_after = self.graphics.save_canvas()
-                if snapshot_after and len(snapshot_after.get("items", [])) > 0:
-                    clean_file("Redo")  # new user action → clear Redo stack
-                    push("Undo", snapshot_after)
-                    print(f"[DEBUG] add_unit_operation: pushed post-add snapshot (items={len(snapshot_after.get('items', []))})")
-                else:
-                    print("[DEBUG] add_unit_operation: save_canvas returned empty snapshot_after")
-            except Exception as e:
-                print("[DEBUG] add_unit_operation: snapshot capture failed:", e)
-
-            # 5️⃣ Center view and finalize
             self.scene.update()
             QApplication.processEvents()
             print("[DEBUG] add_unit_operation: completed add")
@@ -105,21 +88,9 @@ class Container():
     def delete(self, l):
         """
         Delete items in list `l` from the scene and model.
-        Save pre-delete snapshot for Undo, clear Redo.
+        Push a post-delete snapshot for Undo and clear Redo.
         """
         try:
-            from python.utils.undo_manager import push, clean_file
-
-            # --- Save snapshot before deletion ---
-            try:
-                snapshot_before = self.graphics.save_canvas()
-                if snapshot_before is not None:
-                    clean_file('Redo')
-                    push('Undo', snapshot_before)
-                    print(f"[DEBUG] delete: pushed pre-delete snapshot (items={len(snapshot_before.get('items', []))})")
-            except Exception as e:
-                print("[DEBUG] delete: pre-delete snapshot failed:", e)
-
             # --- Now actually perform deletions ---
             items_to_delete = list(l)
             
@@ -173,6 +144,9 @@ class Container():
 
                 except Exception as e:
                     print(f"[DEBUG] delete: error deleting item {getattr(item, 'name', None)}: {e}")
+
+            if items_to_delete:
+                self.graphics.push_snapshot()
 
         except Exception as e:
             print("[DEBUG] delete: outer exception:", e)
