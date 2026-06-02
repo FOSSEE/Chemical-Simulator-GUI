@@ -19,6 +19,20 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         QDockWidget.__init__(self, parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
+
+        # --- Make dock content resizable ---
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        content = self.widget()
+        if content is None:
+            content = QWidget()
+            self.setWidget(content)
+        if content.layout() is None:
+            layout = QVBoxLayout(content)
+            layout.setContentsMargins(0, 0, 0, 0)
+            if hasattr(self, 'tabWidget'):
+                self.tabWidget.setParent(None)
+                layout.addWidget(self.tabWidget)
+
         self.name = name
         self.obj = obj
         self.type = comptype
@@ -27,6 +41,12 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
         self.pushButton_2.clicked.connect(self.param)
+
+        self.btn_normalize = QPushButton("Normalize")
+        self.btn_equalize = QPushButton("Equalize")
+        self.btn_normalize.clicked.connect(self.normalize)
+        self.btn_equalize.clicked.connect(self.equalize)
+
         self.dict = {}  # a dictionary
 
         self.name_type = None
@@ -55,7 +75,51 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
         for j in lines:
             self.cbTP.addItem(str(j))
-        # --- End Thermo Package fix ---
+
+        # --- Clean Scrollable Layout Hierarchy ---
+        # 1. Create a QScrollArea instance for the tab's main content wrapper.
+        self.scrollArea = QScrollArea()
+        # 2. Set scroll_area.setWidgetResizable(True) so that the contents dynamically adapt to the dock panel's width.
+        self.scrollArea.setWidgetResizable(True)
+        # 3. Turn off horizontal scrollbars explicitly.
+        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # 4. Enable vertical scrollbars on-demand.
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scrollArea.setFrameShape(QFrame.NoFrame)
+
+        # 5. Create a container widget to act as the viewport content.
+        self.scrollWidget = QWidget()
+        # 6. Create a layout for this container to hold ALL form elements.
+        self.innerLayout = QVBoxLayout(self.scrollWidget)
+        self.innerLayout.setContentsMargins(5, 5, 5, 5)
+        self.innerLayout.setSpacing(10)
+
+        # 7. Move all elements (Mode Selection, Parameters, Buttons) into this container widget.
+        widgets_to_move = []
+        if hasattr(self, 'groupBox'): widgets_to_move.append(self.groupBox)
+        if hasattr(self, 'groupBox_2'): widgets_to_move.append(self.groupBox_2)
+        if hasattr(self, 'groupBox_3'): widgets_to_move.append(self.groupBox_3)
+        if hasattr(self, 'pushButton_2'): widgets_to_move.append(self.pushButton_2)
+        widgets_to_move.append(self.btn_normalize)
+        widgets_to_move.append(self.btn_equalize)
+
+        for w in widgets_to_move:
+            w.setParent(None)
+            self.innerLayout.addWidget(w)
+        
+        # Add a stretch at the bottom to ensure widgets stay at the top
+        self.innerLayout.addStretch()
+
+        # 8. Set this container widget as the scroll area's widget.
+        self.scrollArea.setWidget(self.scrollWidget)
+
+        # Finally, set the QScrollArea as the main widget inside the "Input Data" tab's layout.
+        while self.verticalLayout_5.count():
+            item = self.verticalLayout_5.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+        
+        self.verticalLayout_5.addWidget(self.scrollArea)
 
         self.modes()
 
@@ -101,7 +165,6 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                         lay.addWidget(QLabel(str(compound_selected[j]) + ":"), j, 0, alignment=Qt.AlignLeft)
                         lay.addWidget(l, j, 1, alignment=Qt.AlignCenter)
                         self.x_pclist.append(l)
-                        lay.setSizeConstraint(QLayout.SetFixedSize)
                     self.comp_gb.setLayout(lay)
                     self.formLayout.addRow(self.comp_gb)
                 elif i == "Thermo Package":
@@ -142,7 +205,6 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                 lay.addWidget(QLabel(str(compound_selected[j]) + ":"), j, 0, alignment=Qt.AlignLeft)
                 lay.addWidget(l, j, 1, alignment=Qt.AlignCenter)
                 self.x_pclist.append(l)
-                lay.setSizeConstraint(QLayout.SetFixedSize)
             self.comp_gb.setLayout(lay)
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
@@ -373,4 +435,45 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
         currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
         self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+
+    def equalize(self):
+        try:
+            noc = len(self.x_pclist)
+            if noc > 0:
+                val = 1.0 / noc
+                sum_val = 0
+                for i in range(noc - 1):
+                    v = round(val, 4)
+                    self.x_pclist[i].setText(str(v))
+                    sum_val += v
+                self.x_pclist[-1].setText(str(round(1.0 - sum_val, 4)))
+        except Exception as e:
+            print(e)
+
+    def normalize(self):
+        try:
+            values = []
+            for l in self.x_pclist:
+                try:
+                    t = l.text().strip()
+                    if not t:
+                        v = 0.0
+                    else:
+                        v = float(t)
+                except ValueError:
+                    v = 0.0
+                values.append(v)
+
+            total = sum(values)
+            if total > 0:
+                sum_norm = 0
+                for i in range(len(self.x_pclist) - 1):
+                    normalized_val = round(values[i] / total, 4)
+                    self.x_pclist[i].setText(str(normalized_val))
+                    sum_norm += normalized_val
+                self.x_pclist[-1].setText(str(round(1.0 - sum_norm, 4)))
+            else:
+                self.show_error()
+        except Exception as e:
+            print(e)
     
