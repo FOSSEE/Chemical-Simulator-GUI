@@ -36,6 +36,7 @@ graphify-out/
 src/main/graphify-out/
 .graphify*
 .agents*
+debug_crash.py
 env/
 venv/
 
