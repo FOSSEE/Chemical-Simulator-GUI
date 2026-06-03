@@ -796,8 +796,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # self.dock_widget.setFixedHeight(640)
         self.dock_widget.setMinimumSize(280, 400)
         self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.dock_widget.DockWidgetFeature(QDockWidget.AllDockWidgetFeatures)
-        self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
+        self.dock_widget.setFeatures(QDockWidget.AllDockWidgetFeatures)
+        if self.main_window is not None:
+            self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
 
         # ✅ Update parameters safely (skip MaterialStream)
         if self.dock_widget.obj.type != 'MaterialStream':
@@ -1225,10 +1226,10 @@ class NodeItem(QtWidgets.QGraphicsItem):
         
 def findMainWindow(self):
     '''
-        Global function to find the (open) QMainWindow in application
+        Safely find the QMainWindow by navigating up the widget hierarchy from the graphicsView.
     ''' 
-    app = QApplication.instance()
-    for widget in app.topLevelWidgets():
-        if isinstance(widget, QMainWindow):
-            return widget
-    return None             
+    if hasattr(self, 'graphicsView') and self.graphicsView is not None:
+        return self.graphicsView.window()
+    elif hasattr(self, 'container') and hasattr(self.container, 'graphicsView') and self.container.graphicsView is not None:
+        return self.container.graphicsView.window()
+    return None
