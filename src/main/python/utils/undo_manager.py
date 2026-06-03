@@ -2,7 +2,8 @@
 import pickle
 import copy
 
-UNDO_PATH = "undo_redo"
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+UNDO_PATH = os.path.join(_BASE_DIR, "Simulator", "undo_redo")
 
 
 # -------------------- Internal Helpers -------------------- #
@@ -72,6 +73,11 @@ def get_last_list(file_name):
         print(f"[DEBUG] UndoManager.get_last_list → {file_name} empty")
         return None
     return copy.deepcopy(stack[-1])
+
+
+def stack_size(file_name):
+    """Return the number of snapshots currently in the stack."""
+    return len(_load_stack(file_name))
 
 
 def clean_file(file_name):

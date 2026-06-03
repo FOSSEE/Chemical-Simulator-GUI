@@ -2,6 +2,10 @@
 env/
 venv/
 
+# Undo/Redo runtime stacks
+undo_redo/
+src/main/Simulator/undo_redo/
+
 # Python cache
 __pycache__/
 *.pyc
