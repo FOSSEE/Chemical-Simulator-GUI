@@ -762,16 +762,11 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.obj.no_of_inputs = self.nin
             self.obj.variables['NI']['value'] = self.nin
 
-        # ✅ Distillation Column: ask number of input(s)
+        # ✅ Distillation Column: use default 1 input for new components (no prompt)
         elif self.obj.type == 'DistillationColumn' and not getattr(self.obj, "saved", False):
-            combo_values = list(map(str, range(1, 9)))
-            text, self.ok = QInputDialog.getItem(
-                self.container.graphicsView, 'DistillationColumn', 'Select number of input(s):', combo_values, False
-            )
-            if self.ok:
-                self.nin = int(text)
-                self.obj.no_of_inputs = self.nin
-                self.obj.variables['Ni']['value'] = self.nin
+            self.nin = 1
+            self.obj.no_of_inputs = self.nin
+            self.obj.variables['Ni']['value'] = self.nin
 
         # ✅ Default input/output counts
         self.nin = getattr(self.obj, "no_of_inputs", 0)
@@ -1146,11 +1141,143 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.obj.set_pos(self.current_pos)
 
 
+    def update_input_ports(self, new_count):
+        """Dynamically adjust the number of input sockets for this node (e.g. Mixer)."""
+        old_count = len(self.input)
+        if new_count == old_count:
+            return
+
+        self.prepareGeometryChange()
+
+        # Remove excess sockets from the end
+        while len(self.input) > new_count:
+            socket = self.input.pop()
+            # Remove any connected lines from the scene
+            for line in list(socket.in_lines):
+                # Clean up the source side
+                if hasattr(line, 'source') and line.source is not None:
+                    if line in line.source.out_lines:
+                        line.source.out_lines.remove(line)
+                    # Remove logical connection on the source object
+                    try:
+                        line.source.parent.obj.remove_connection(0, line.source.id)
+                    except Exception as e:
+                        print(f"[DEBUG] update_input_ports: source cleanup error: {e}")
+                # Remove logical connection on this object
+                try:
+                    self.obj.remove_connection(1, socket.id)
+                except Exception as e:
+                    print(f"[DEBUG] update_input_ports: target cleanup error: {e}")
+                if self.scene() is not None:
+                    self.scene().removeItem(line)
+            socket.in_lines.clear()
+            if self.scene() is not None:
+                self.scene().removeItem(socket)
+
+        # Add new sockets if needed
+        while len(self.input) < new_count:
+            idx = len(self.input) + 1
+            socket = NodeSocket(
+                QtCore.QRect(
+                    int(-6.5),
+                    int(self.rect.height() * idx / (new_count + 1) - 6),
+                    12, 12
+                ),
+                self, 'in', idx
+            )
+            self.input.append(socket)
+
+        # Reposition all input sockets evenly
+        for i, socket in enumerate(self.input):
+            idx = i + 1
+            socket.prepareGeometryChange()
+            socket.rect = QtCore.QRectF(
+                -6.5,
+                self.rect.height() * idx / (new_count + 1) - 6,
+                12, 12
+            )
+            socket.id = idx
+            socket.update()
+
+        self.nin = new_count
+        self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
+        self._update_connected_lines()
+        self.update()
+        print(f"[DEBUG] update_input_ports: {old_count} → {new_count} ports")
+
+    def update_output_ports(self, new_count):
+        """Dynamically adjust the number of output sockets for this node (e.g. Splitter)."""
+        old_count = len(self.output)
+        if new_count == old_count:
+            return
+
+        self.prepareGeometryChange()
+
+        # Remove excess sockets from the end
+        while len(self.output) > new_count:
+            socket = self.output.pop()
+            # Remove any connected lines from the scene
+            for line in list(socket.out_lines):
+                # Clean up the target side
+                if hasattr(line, 'target') and line.target is not None:
+                    if line in line.target.in_lines:
+                        line.target.in_lines.remove(line)
+                    # Remove logical connection on the target object
+                    try:
+                        line.target.parent.obj.remove_connection(1, line.target.id)
+                    except Exception as e:
+                        print(f"[DEBUG] update_output_ports: target cleanup error: {e}")
+                # Remove logical connection on this object
+                try:
+                    self.obj.remove_connection(0, socket.id)
+                except Exception as e:
+                    print(f"[DEBUG] update_output_ports: source cleanup error: {e}")
+                if self.scene() is not None:
+                    self.scene().removeItem(line)
+            socket.out_lines.clear()
+            if self.scene() is not None:
+                self.scene().removeItem(socket)
+
+        # Add new sockets if needed
+        while len(self.output) < new_count:
+            idx = len(self.output) + 1
+            socket = NodeSocket(
+                QtCore.QRect(
+                    int(self.rect.width() - 6.5),
+                    int(self.rect.height() * idx / (new_count + 1) - 6),
+                    12, 12
+                ),
+                self, 'op', idx
+            )
+            self.output.append(socket)
+
+        # Reposition all output sockets evenly
+        for i, socket in enumerate(self.output):
+            idx = i + 1
+            socket.prepareGeometryChange()
+            socket.rect = QtCore.QRectF(
+                self.rect.width() - 6.5,
+                self.rect.height() * idx / (new_count + 1) - 6,
+                12, 12
+            )
+            socket.id = idx
+            socket.update()
+
+        self.nop = new_count
+        self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
+        self._update_connected_lines()
+        self.update()
+        print(f"[DEBUG] update_output_ports: {old_count} → {new_count} ports")
+
                 
     def mouseDoubleClickEvent(self, event):
 
         self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
         self.graphicsView.setInteractive(False)
+        # Purge any destroyed widgets from the stack before accessing
+        import sip
+        while stack and sip.isdeleted(stack[-1]):
+            stack.pop()
         if len(stack):
             stack[-1].hide()
         self.dock_widget.show()

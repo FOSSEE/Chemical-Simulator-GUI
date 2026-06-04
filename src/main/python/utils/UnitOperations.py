@@ -660,6 +660,7 @@ class Splitter(UnitOperation):
     def param_setter(self,params):
         #print("param_setter ", params)
         self.variables['No']['value'] = int(params[0])
+        self.no_of_outputs = int(params[0])
         self.variables['CalcType']['value'] = params[1]
         self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]
         if self.variables['CalcType']['value'] == 'Molar_Flow':
@@ -691,6 +692,7 @@ class Mixer(UnitOperation):
 
     def param_setter(self, params):
         self.variables['NI']['value'] = int(params[0])
+        self.no_of_inputs = int(params[0])
         self.variables['outPress']['value'] = params[1]
         
 class Heater(UnitOperation):
