@@ -111,6 +111,7 @@ class DockWidget(QDockWidget,ui_dialog):
                 self.formLayout.addRow(lay)
                 self.input_dict[i] = l
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
 
@@ -135,6 +136,8 @@ class DockWidget(QDockWidget,ui_dialog):
             
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
+
             for i in self.container.graphics.graphicsView.items():
                 try: 
                     if(i.name == self.name):
@@ -142,11 +145,16 @@ class DockWidget(QDockWidget,ui_dialog):
                 except:
                     pass
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     @staticmethod
@@ -195,9 +203,13 @@ class DockWidget(QDockWidget,ui_dialog):
 
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

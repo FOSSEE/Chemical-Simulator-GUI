@@ -242,12 +242,7 @@ class ComponentSelector(QDialog, ui_dialog):
         This is used by the simulator when generating .mo file.
         """
         try:
-            if hasattr(self, "selected_compounds"):
-                return self.selected_compounds
-            elif hasattr(self, "compounds"):
-                return self.compounds
-            else:
-                return []
+            return compound_selected
         except Exception as e:
             print(f"[DEBUG] get_compounds() error: {e}")
             return []
