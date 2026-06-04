@@ -263,8 +263,7 @@ class LandingPage(QWidget):
             self.hide()
 
             # Ensure compound selector is visible
-            # unncomment the below line to show the compound selector
-            # QTimer.singleShot(100, lambda: self.show_compound_selector())
+            QTimer.singleShot(100, lambda: self.show_compound_selector())
 
         finally:
             self.reset_cursor()
@@ -280,13 +279,13 @@ class LandingPage(QWidget):
         comp_window.activateWindow()
 
         # === Show Intro Page overlay (same size and position) ===
-        self.intro_page = IntroPage(self.launch_compound_selector, self.cancel_intro)
-        self.intro_page.resize(comp_window.size())
-        self.intro_page.move(comp_window.pos())
-        self.intro_page.setWindowFlag(Qt.WindowStaysOnTopHint)
-        self.intro_page.setWindowModality(Qt.ApplicationModal)
-        self.intro_page.show()
-        self.intro_page.raise_()
+        # self.intro_page = IntroPage(self.launch_compound_selector, self.cancel_intro)
+        # self.intro_page.resize(comp_window.size())
+        # self.intro_page.move(comp_window.pos())
+        # self.intro_page.setWindowFlag(Qt.WindowStaysOnTopHint)
+        # self.intro_page.setWindowModality(Qt.ApplicationModal)
+        # self.intro_page.show()
+        # self.intro_page.raise_()
 
     def launch_compound_selector(self):
         """When user clicks Next on IntroPage"""
