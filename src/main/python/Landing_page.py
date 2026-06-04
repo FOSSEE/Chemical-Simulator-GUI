@@ -263,7 +263,8 @@ class LandingPage(QWidget):
             self.hide()
 
             # Ensure compound selector is visible
-            QTimer.singleShot(100, lambda: self.show_compound_selector())
+            # unncomment the below line to show the compound selector
+            # QTimer.singleShot(100, lambda: self.show_compound_selector())
 
         finally:
             self.reset_cursor()

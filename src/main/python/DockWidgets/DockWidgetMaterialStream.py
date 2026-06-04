@@ -141,6 +141,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             for i in reversed(range(self.formLayout.count())):
                 self.formLayout.removeRow(i)
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
         self.input_dict = self.obj.param_getter(self.comboBox.currentText())
         self.obj.mode = self.comboBox.currentText()
@@ -188,6 +189,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     self.input_dict[i] = l
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     # ------------------- Remaining methods unchanged -------------------
@@ -209,8 +211,11 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+            if hasattr(self.obj, 'update_compounds'):
+                self.obj.update_compounds()
             self.obj.init_variables()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def param(self):
@@ -244,6 +249,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
             self.obj.param_setter(self.dict)
 
+            print(f"[UI] Submit successful for {self.name}")
             for i in self.container.graphics.graphicsView.items():
                 try:
                     if i.name == self.name:
@@ -251,11 +257,16 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                 except:
                     pass
             if self.isVisible():
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                except Exception:
+                    pass
             self.hide()
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def update_input_values(self):
@@ -430,12 +441,16 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass
+        
     def equalize(self):
         try:
             noc = len(self.x_pclist)
@@ -448,6 +463,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     sum_val += v
                 self.x_pclist[-1].setText(str(round(1.0 - sum_val, 4)))
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def normalize(self):
@@ -475,5 +491,6 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             else:
                 self.show_error()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     

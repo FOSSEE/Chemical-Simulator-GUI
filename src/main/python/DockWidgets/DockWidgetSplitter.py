@@ -24,6 +24,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
         self.obj=obj
         self.type = comptype
         self.input_dict = []
+        self.container = container
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = {}
@@ -51,6 +52,7 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.input_dict = [self.le1, self.cb2, self.le3, self.le4]
  
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def fun(self):
@@ -72,14 +74,23 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.dict={}
             self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

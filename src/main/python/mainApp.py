@@ -221,9 +221,10 @@ class MainApp(QMainWindow,ui):
         self.menu_bar()
 
         self.button_handler()
-        self.comp.show()
-        self.comp.raise_()          # Bring to front
-        self.comp.activateWindow()
+        # uncomment the below three lines to show the compound selector
+        # self.comp.show()
+        # self.comp.raise_()          # Bring to front
+        # self.comp.activateWindow()
 
         from python.utils.undo_manager import clean_file, push
         clean_file('Undo')
@@ -598,9 +599,10 @@ class MainApp(QMainWindow,ui):
     def new_project(self):
         self.new()  # reset everything
         # Show compound selector properly
-        self.comp.show()
-        self.comp.raise_()
-        self.comp.activateWindow()
+        # uncomment the below three lines to show the compound selector
+        # self.comp.show()
+        # self.comp.raise_()
+        # self.comp.activateWindow()
 
 
     '''

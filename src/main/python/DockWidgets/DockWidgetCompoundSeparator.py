@@ -28,6 +28,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
         self.type = comptype
         self.input_dict = []
         self.lst = []
+        self.container = container
         self.input_params_list()
         self.dict = []
             
@@ -84,6 +85,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 self.input_dict = self.lst            
                         
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def show_error(self):
@@ -91,6 +93,8 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
 
     def update_compounds(self):
         try:
+            if hasattr(self.obj, 'update_compounds'):
+                self.obj.update_compounds()
             self.obj.init_variables()
             t_item = self.calculationGroupBox.layout().itemAt(0)
             self.calculationGroupBox.layout().removeItem(t_item)
@@ -102,6 +106,7 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                 t_item = self.calculationGroupBox.layout().itemAt(0)
             self.input_params_list()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
             
 
@@ -118,17 +123,25 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
                     j += 1
                 else:
                     self.show_error()
-                
-            
+                      
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                 #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass

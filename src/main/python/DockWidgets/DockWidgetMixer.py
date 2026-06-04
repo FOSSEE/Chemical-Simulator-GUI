@@ -25,6 +25,7 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
         self.type = comptype
         self.input_dict = []
         self.x_pclist = []
+        self.container = container
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = {}
@@ -43,6 +44,7 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
             self.input_dict = [self.le1, self.cb2]
  
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     
     def show_error(self):
@@ -53,14 +55,23 @@ class DockWidgetMixer(QDockWidget,ui_dialog):
             self.dict={}
             self.dict = [int(self.input_dict[0].text()), self.input_dict[1].currentText()]
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                 #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
     def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        #added try block to safely handle the errors
+        try:
+            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+        except Exception:
+            pass
