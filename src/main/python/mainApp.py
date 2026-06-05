@@ -184,6 +184,7 @@ class MainApp(QMainWindow,ui):
         self.selectedElementsDock.setWidget(sel_dock_container)
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.selectedElementsDock)
+        self.selectedElementsDock.hide()
 
         self.dockWidget.setFeatures(QDockWidget.DockWidgetFloatable |
                                     QDockWidget.DockWidgetMovable |
@@ -221,10 +222,9 @@ class MainApp(QMainWindow,ui):
         self.menu_bar()
 
         self.button_handler()
-        # uncomment the below three lines to show the compound selector
-        # self.comp.show()
-        # self.comp.raise_()          # Bring to front
-        # self.comp.activateWindow()
+        self.comp.show()
+        self.comp.raise_()          # Bring to front
+        self.comp.activateWindow()
 
         from python.utils.undo_manager import clean_file, push
         clean_file('Undo')
@@ -286,7 +286,7 @@ class MainApp(QMainWindow,ui):
         # View : Selected Compounds 
         self.actionViewSelectedElements = QAction("Selected Compounds", self)
         self.actionViewSelectedElements.setCheckable(True)
-        self.actionViewSelectedElements.setChecked(True)
+        self.actionViewSelectedElements.setChecked(False)
         self.actionViewSelectedElements.triggered.connect(self.toggle_selected_elements_view)
         self.menuView.addAction(self.actionViewSelectedElements)
 
@@ -599,10 +599,9 @@ class MainApp(QMainWindow,ui):
     def new_project(self):
         self.new()  # reset everything
         # Show compound selector properly
-        # uncomment the below three lines to show the compound selector
-        # self.comp.show()
-        # self.comp.raise_()
-        # self.comp.activateWindow()
+        self.comp.show()
+        self.comp.raise_()
+        self.comp.activateWindow()
 
 
     '''

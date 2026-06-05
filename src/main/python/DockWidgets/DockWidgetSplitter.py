@@ -33,7 +33,28 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
     def input_params_list(self):
         try:        
             self.l1.setText(self.obj.variables['No']['name']+":")
-            self.le1.setText(str(self.obj.variables['No']['value']))
+
+            # Replace le1 with a combo box for No. of Output (2–6)
+            self.no_combo = QComboBox()
+            for v in range(2, 7):
+                self.no_combo.addItem(str(v))
+            current_no = self.obj.variables['No']['value']
+            self.no_combo.setCurrentText(str(current_no))
+
+            # Swap le1 out of gridLayout and put no_combo in its place
+            grid = self.gridLayout
+            idx = grid.indexOf(self.le1)
+            if idx >= 0:
+                row, col, rowspan, colspan = grid.getItemPosition(idx)
+                grid.removeWidget(self.le1)
+                self.le1.hide()
+                self.le1.setParent(None)
+                grid.addWidget(self.no_combo, row, col)
+            else:
+                self.le1.hide()
+                self.le1.setParent(None)
+                grid.addWidget(self.no_combo, 0, 2)
+
             self.u1.setText(self.obj.variables['No']['unit'])
 
             self.l2.setText(self.obj.variables['CalcType']['name'] + ":")
@@ -49,10 +70,10 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.u4.setText(str(self.obj.variables['SpecVal_s']['unit']))
             self.cb2.currentIndexChanged.connect(self.fun)
 
-            self.input_dict = [self.le1, self.cb2, self.le3, self.le4]
+            self.input_dict = [self.no_combo, self.cb2, self.le3, self.le4]
  
         except Exception as e:
-            print(f"[UI] Submit failed for {self.name}: {e}")
+            print(f"[UI] input_params_list failed for {self.name}: {e}")
             print(e)
 
     def fun(self):
@@ -72,9 +93,18 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
     def param(self):
         try:
             self.dict={}
-            self.dict = [int(self.input_dict[0].text()),self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
+            new_no = int(self.input_dict[0].currentText())
+            self.dict = [new_no, self.input_dict[1].currentText(), float(self.input_dict[2].text()), float(self.input_dict[3].text())]
             self.obj.param_setter(self.dict)
             print(f"[UI] Submit successful for {self.name}")
+
+            # Refresh output ports 
+            from python.utils.Graphics import lst
+            for node in lst:
+                if node.obj is self.obj:
+                    node.update_output_ports(new_no)
+                    break
+
             if(self.isVisible()):
                 #added try block to safely handle the errors
                 try:
