@@ -104,7 +104,7 @@ class UnitOperation():
         self.OM_data_init = ''
 
         if(self.thermo_pack_req):
-            if len(self.extra)>1:
+            if len(self.extra)>1:   
                 for i in range(len(self.extra)):
                     latest = ''
                     for j in range(self.extra[i]):
@@ -167,6 +167,7 @@ class UnitOperation():
 
     
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input streams
@@ -262,11 +263,12 @@ class ShortcutColumn(UnitOperation):
         self.variables['thermo_package']['value'] = params[8]
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
@@ -397,6 +399,7 @@ class DistillationColumn(UnitOperation):
         return self.OM_data_init
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
         self.OM_data_eqn = self.OM_data_eqn + (
                 'connect(' + self.name + '.Dist' + ", " + self.output_stms[1].name + '.In);\n')
@@ -524,11 +527,12 @@ class CompoundSeparator(UnitOperation):
 
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
@@ -584,11 +588,12 @@ class Flash(UnitOperation):
         self.variables['Pdef']['value'] = params[4]        
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
