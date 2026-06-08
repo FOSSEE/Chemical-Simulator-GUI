@@ -1,4 +1,4 @@
-﻿import os
+import os
 import platform
 import csv
 from subprocess import Popen, PIPE
@@ -58,9 +58,13 @@ class Flowsheet():
 
     def get_omc_path(self, msg=None):
         import platform
+        import glob
 
         if platform.system() == "Windows":
-            omc_path = r"C:\Program Files\OpenModelica1.25.4-64bit\bin\omc.exe"
+            # Try to find the latest OpenModelica installation dynamically
+            pattern = r"C:\Program Files\OpenModelica*-64bit\bin\omc.exe"
+            candidates = sorted(glob.glob(pattern), reverse=True)
+            omc_path = candidates[0] if candidates else r"C:\Program Files\OpenModelica1.26.3-64bit\bin\omc.exe"
         else:
             omc_path = "/usr/bin/omc"
 
