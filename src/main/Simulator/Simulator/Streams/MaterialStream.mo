@@ -1,4 +1,4 @@
-within Simulator.Streams;
+﻿within Simulator.Streams;
 
 model MaterialStream "Model representing Material Stream"
   //1 -  Mixture, 2 - Liquid phase, 3 - Gas Phase
@@ -34,6 +34,14 @@ model MaterialStream "Model representing Material Stream"
     Placement(visible = true, transformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
 
   extends GuessModels.InitialGuess(Nc = Nc);
+  Real K_c[Nc];
+  Real Cpres_p[3];
+  Real Hres_p[3];
+  Real Sres_p[3];
+  Real gmabubl_c[Nc];
+  Real gmadew_c[Nc];
+  Real philiqbubl_c[Nc];
+  Real phivapdew_c[Nc];
 
 equation
 //Connector equations
@@ -140,3 +148,4 @@ annotation(
 </div><div><br></div><div>For variables which are decalared as 1-D array, the array size represent the phase where the array element indices 1 represents mixed phase, 2 represents liquid phase and 3 represents vapor phase.</div><div><br></div><div>For example, variable <b>F_p[3]</b> represents <i>Total molar flow in different phase</i>. So when simulated, the variables in the results will be as follow:</div><div>F_p[1] is Molar flow in mixed phase</div><div>F_p[2] is Molar flow in liquid phase</div><div>F_p[3] is Molar flow in vapor phase</div><div><br></div><div><br></div><div>For variables which are decalared as 2-D array, the first indice represent phase and second indice represents components.<div><br></div><div>For example, variable&nbsp;<b>F_pc[3,Nc]</b>&nbsp;represents <i>Component&nbsp;molar flow in different phase</i>. So when simulated, the variables in the results will be as follow:</div><div>F_pc[1,Nc] is Molar flow of Nc<sup>th</sup> in mixed phase</div><div>F_pc[2,Nc] is Molar flow of Nc<sup>th</sup> in liquid phase</div><div>F_pc[3,Nc] is Molar flow of Nc<sup>th</sup> in vapor phase</div></div><div><br></div><div><br></div><div>For examples on simulating a material stream, go to <b><i>Examples</i></b> &gt;&gt; <i><b>MaterialStream</b></i></div></body></html>"));
     
     end MaterialStream;
+

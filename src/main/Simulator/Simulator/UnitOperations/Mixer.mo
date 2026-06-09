@@ -1,5 +1,5 @@
-within Simulator.UnitOperations;
-
+﻿within Simulator.UnitOperations;
+// Updated dimensionless units from "-" to "1" for OMC 4.x compliance
 model Mixer "Model of a mixer to mix multiple material streams"
   extends Simulator.Files.Icons.Mixer;
   import Simulator.Files.*;
@@ -7,23 +7,23 @@ model Mixer "Model of a mixer to mix multiple material streams"
   parameter Integer Nc "Number of components";
   parameter Integer NI = 6 "Number of inlet streams";
   
-  Real Pin[NI](unit = "Pa", min = 0, start = Pg) "Inlet stream pressure";
-  Real xin_sc[NI, Nc](each unit = "-", each min = 0, each max = 1) "Inlet stream component mol fraction";
+  Real Pin[NI](each unit = "Pa", each min = 0, each start = Pg) "Inlet stream pressure";
+  Real xin_sc[NI, Nc](each unit = "1", each min = 0, each max = 1) "Inlet stream component mol fraction";
   Real Fin_s[NI](each unit = "mol/s", each min = 0, each start = Fg) "Inlet stream Molar Flow";
   Real Hin_s[NI](each unit = "kJ/kmol") "Inlet stream molar enthalpy";
   Real Tin_s[NI](each unit = "K", each min = 0, each start = Tg) "Inlet stream temperature";
   Real Sin_s[NI](each unit = "kJ/[kmol.K]") "Inlet stream molar entropy";
-  Real xvapin_s[NI](each unit = "-", each min = 0, each max = 1, each start = xvapg) "Inlet stream vapor phase mol fraction";
+  Real xvapin_s[NI](each unit = "1", each min = 0, each max = 1, each start = xvapg) "Inlet stream vapor phase mol fraction";
   
   parameter String outPress "Calculation mode for outet pressure: Inlet_Minimum, Inlet_Average, Inlet_Maximum";
-  
-  Real Fout(unit = "mol/s", each min = 0, each start = Fg) "Outlet stream molar flow";
+  // scalar variables 
+  Real Fout(unit = "mol/s", min = 0, start = Fg) "Outlet stream molar flow";
   Real Pout(unit = "Pa", min = 0, start = Pg) "Outlet stream pressure";
   Real Hout(unit = "kJ/kmol") "Outlet stream molar enthalpy";
   Real Tout(unit = "K", each min = 0, each start = Tg) "Outlet stream temperature";
   Real Sout(unit = "kJ/[kmol.K]") "Outlet stream molar entropy";
-  Real xvapout(unit = "-", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mol fraction";
-  Real xout_c[Nc](each unit = "-", each min = 0, each max = 1, start = xguess) "Outlet stream component mol fraction";
+  Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mol fraction";
+  Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start = xguess) "Outlet stream component mol fraction";
  //================================================================================
   //  Files.Interfaces.matConn inlet[NI](each Nc = Nc);
   Simulator.Files.Interfaces.matConn Out(Nc = Nc) annotation(
