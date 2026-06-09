@@ -112,6 +112,12 @@ class Flowsheet():
                     stderr=PIPE
                 )
             self.stdout, self.stderr = self.process.communicate()
+
+            print("===== STDOUT =====")
+            print(self.stdout.decode("utf-8"))
+
+            print("===== STDERR =====")
+            print(self.stderr.decode("utf-8"))
            
             os.chdir(self.root_dir)
             if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
@@ -163,9 +169,10 @@ class Flowsheet():
                 main_unit = u
                 break
 
-        package_name = main_unit.name if main_unit else "Flowsheet"
+        package_name = "Flowsheet"
 
         # --- Start Package ---
+        self.data.append("within Simulator;\n\n")
         self.data.append(f"package {package_name}\n\n")
 
         # --- Define reusable ms model ---
@@ -223,10 +230,10 @@ class Flowsheet():
         # --- Generate the simulation .mos file ---
         with open(self.eqn_mos_path, 'w') as mosFile:
             mosFile.write('loadModel(Modelica);\n')
-            mosFile.write('loadFile("Simulator/package.mo");\n')
-            mosFile.write(f'loadFile("Simulator/Flowsheet.mo");\n')
-            mosFile.write(f'simulate({package_name}.{package_name}Simulation, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n')
-
+            mosFile.write('loadFile("package.mo");\n')
+            mosFile.write('loadFile("Flowsheet.mo");\n')
+            mosFile.write(f'simulate(Simulator.{package_name}.{package_name}Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n'
+)
         # --- Run simulation ---
         self.send_for_simulation_Eqn(msg)
 

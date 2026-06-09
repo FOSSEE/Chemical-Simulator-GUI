@@ -418,7 +418,7 @@ class MainApp(QMainWindow,ui):
                 # update flowsheet contents from current container before generating file
                 self.container.flowsheet.add_compound_list([c[:c.index('(')] for c in getattr(self, 'compounds', self.comp.get_compounds() or [])])
                 # regenerate modelica file (implementations may vary)
-                self.container.flowsheet.generate_modelica_file()
+                #self.container.flowsheet.generate_modelica_file()
                 print("[DEBUG] Generated .mo file for simulation.")
             except Exception as e:
                 print("[DEBUG] .mo generation failed:", e)
