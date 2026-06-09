@@ -343,7 +343,7 @@ class Container():
             # ----------------------------
             # Step 7: Success / Failure Report
             # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) == 4:
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 4:
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] Simulation <b>Successful.</b></span>"
                 )
