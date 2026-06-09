@@ -1,4 +1,4 @@
-within Simulator.UnitOperations.DistillationColumn;
+﻿within Simulator.UnitOperations.DistillationColumn;
 
   model Reb "Model of a reboiler used in distillation column"
     import Simulator.Files.*;
@@ -10,19 +10,19 @@ within Simulator.UnitOperations.DistillationColumn;
     Real Fin(unit = "mol/s", min = 0, start = Fg) "Feed molar flow";
     Real Hin(unit = "kJ/kmol",start=Htotg) "Feed molar enthalpy";
     Real Hliqin(unit = "kJ/kmol",start=Hliqg) "Inlet liquid molar enthalpy";
-    Real xin_c[Nc](each unit = "-", each min = 0, each max = 1, start=xguess) "Feed components mole fraction"; 
+    Real xin_c[Nc](each unit = "1", each min = 0, each max = 1, start=xguess) "Feed components mole fraction"; 
     Real Fliqin(unit = "mol/s", min = 0, start =Fg) "Inlet liquid molar flow";
-    Real xliqin_c[Nc](each unit = "-", each min = 0, each max = 1,start=xg) "Inlet liquid component mole fraction";
+    Real xliqin_c[Nc](each unit = "1", each min = 0, each max = 1,start=xg) "Inlet liquid component mole fraction";
    
     Real Fout(unit = "mol/s", min = 0, start = Fg) "Side draw molar flow";
     Real Fvapout(unit = "mol/s", min = 0, start =Fvapg) "Outlet vapor molar flow";
-    Real xout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Side draw mole fraction";
-    Real xvapout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xvapg) "Outlet vapor component mole fraction";
+    Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Side draw mole fraction";
+    Real xvapout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xvapg) "Outlet vapor component mole fraction";
     Real Hvapout(unit = "kJ/kmol",start=Hvapg) "Outlet vapor molar enthalpy";
     Real Hvapout_c[Nc](each unit = "kJ/kmol") "Outlet vapor component molar enthalpy";
     Real Q(unit = "W") "Heat load";
     Real Hout(unit = "kJ/kmol") "Side draw molar enthalpy";
-    Real x_pc[3, Nc](each unit = "-", each min = 0, each max = 1, each start = 1/(Nc + 1)) "Component mole fraction";
+    Real x_pc[3, Nc](each unit = "1", each min = 0, each max = 1, each start = 1/(Nc + 1)) "Component mole fraction";
     Real Pdew(unit = "Pa", min = 0, start = sum(C[:].Pc)/Nc) "Dew point pressure";
     Real Pbubl(unit = "Pa", min = 0, start = sum(C[:].Pc)/Nc) "Bubble point pressure";
    
