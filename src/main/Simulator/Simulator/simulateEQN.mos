@@ -1,4 +1,5 @@
 loadModel(Modelica);
-loadFile("Simulator/package.mo");
-loadFile("Simulator/Flowsheet.mo");
-simulate(Mixer1.Mixer1Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);
+loadFile("package.mo");
+loadFile("Flowsheet.mo");
+simulate(Simulator.Flowsheet.FlowsheetSimulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);
+getErrorString();
