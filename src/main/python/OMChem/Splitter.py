@@ -54,8 +54,8 @@ class Splitter():
         #print("Output#########",self.OutputStms)
         for strm in self.OutputStms:
             self.OM_data_eqn = self.OM_data_eqn + (
-            'connect(' + strm.name + '.inlet,' + self.name + '.outlet[' + str(strcount) + ']);\n')
+            'connect(' + strm.name + '.In,' + self.name + '.Out[' + str(strcount) + ']);\n')
             strcount += 1
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.inlet,' + self.InputStms[0].name + '.outlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.In,' + self.InputStms[0].name + '.Out);\n')
         self.OM_data_eqn = self.OM_data_eqn + self.name +'.' +'specVal =' + self.specval +';\n'
         return self.OM_data_eqn
