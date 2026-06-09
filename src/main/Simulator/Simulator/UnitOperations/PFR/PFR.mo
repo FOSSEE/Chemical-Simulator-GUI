@@ -1,4 +1,4 @@
-within Simulator.UnitOperations.PFR;
+﻿within Simulator.UnitOperations.PFR;
 
  model PFR         
   
@@ -26,10 +26,10 @@ within Simulator.UnitOperations.PFR;
         Real Pin(unit = "Pa", min = 0, start = Pg) "Inlet stream pressure";
         Real Fin_pc[3, Nc](each unit = "mol/s", each min = 0, start={Fg,Fliqg,Fvapg}) "Inlet stream components molar flow rate in phase";
         Real Fin_p[3](each unit = "mol/s", each min = 0,start={Fg,Fliqg,Fvapg}) "Inlet stream molar flow rate in phase";
-        Real xin_pc[3, Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Inlet stream mole fraction";
+        Real xin_pc[3, Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Inlet stream mole fraction";
         Real Hin(unit = "kJ/kmol",start=Htotg) "Inlet stream enthalpy";
-        Real Sin(unit = "kJ/[kmol.K]") "Inlet stream entropy";
-        Real xvapin(unit = "-", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction";
+        Real Sin(unit = "kJ/(kmol.K)") "Inlet stream entropy";
+        Real xvapin(unit = "1", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction";
         Real Cin_c[Nc] "Inlet Concentration";
         Real Fin_c[Nc](each min = 0, each start = Fg) "Inlet Mole Flow";
         
@@ -40,12 +40,12 @@ within Simulator.UnitOperations.PFR;
         Real Fout_pc[3, Nc](each unit = "mol/s", each min = 0, start={Fg,Fliqg,Fvapg}) "Outlet stream components molar flow rate";
         Real xout_pc[3, Nc](each min = 0,start=xg) "Mole Fraction of Component in outlet stream";
         Real Hout(unit = "kJ/kmol",start=Htotg) "Outlet stream molar enthalpy";
-        Real Sout(unit = "kJ/[kmol.K]") "Outlet stream molar entropy";
-        Real xvapout(unit = "-", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
+        Real Sout(unit = "kJ/(kmol.K)") "Outlet stream molar entropy";
+        Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
 
         Real MWout_p[3](each unit = "kg/kmol") "Outlset stream molecular weight in phase";
         Real Fmin_p[3](each unit = "kg/s",start={Fg,Fliqg,Fvapg}) "Inlet stream mass flow rate";
-        Real xm_pc[3, Nc](each unit = "-",start=xg) "Component mass fraction in phase";
+        Real xm_pc[3, Nc](each unit = "1",start=xg) "Component mass fraction in phase";
         Real MW_p[3](each unit = "kg/kmol")"Molecular weight of phase";
         Real Fv_p[3](start={Fg,Fliqg,Fvapg});
         
@@ -62,7 +62,7 @@ within Simulator.UnitOperations.PFR;
         Real k_r[Nr] "Rate constant";
         Real Hr(unit = "kJ/kmol") "Heat of Reaction";
         Real Fin_cr[Nc, Nr](each unit = "mol/s") "Number of moles at initial state";
-        Real X_r[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Conversion of the components in reaction";
+        Real X_r[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Conversion of the components in reaction";
         Real V(unit = "m3", min = 0) "Volume of the reactor";
         Real tr(unit = "s")"Residence Time";
         
@@ -430,3 +430,5 @@ for i in 1:Nc loop
       Diagram(coordinateSystem(extent = {{-350, -100}, {350, 100}})),
       __OpenModelica_Cin_cmmandLineOptions = "");
   end PFR;
+
+

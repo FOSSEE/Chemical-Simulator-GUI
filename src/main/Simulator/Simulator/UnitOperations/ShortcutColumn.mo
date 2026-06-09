@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model ShortcutColumn "Model of a shortcut column to calculate minimum reflux in a distillation column"
 
@@ -14,29 +14,29 @@ model ShortcutColumn "Model of a shortcut column to calculate minimum reflux in 
   //==============================================================================
   //Model Variables
   Real F_p[3](each unit = "mol/s", each min = 0, each start = Fg) "Inlet stream molar flow";
-  Real x_pc[3, Nc](each unit = "-",  start = {xguess,xg,yg}, each min = 0, each max = 1) "Inlet stream mole fraction";
+  Real x_pc[3, Nc](each unit = "1",  start = {xguess,xg,yg}, each min = 0, each max = 1) "Inlet stream mole fraction";
   Real H_p[3](each unit = "kJ/kmol",start={Htotg,Hliqg,Hvapg}) "Inlet stream molar enthalpy ";
-  Real S_p[3](each unit = "kJ/[kmol.K]") "Inlet stream molar entropy";
+  Real S_p[3](each unit = "kJ/(kmol.K)") "Inlet stream molar entropy";
   Real Pin(unit = "Pa", min = 0, start = Pg) "Inlet stream pressure";
   Real Tin(unit = "K", min = 0, start = Tg)"Inlet stream temperature";
-  Real xin_pc[3, Nc](each unit = "-", each min = 0, each max = 1, start={xguess,xg,yg}) "Inlet stream components mole fraction";
+  Real xin_pc[3, Nc](each unit = "1", each min = 0, each max = 1, start={xguess,xg,yg}) "Inlet stream components mole fraction";
   
-  Real Ntmin(unit = "-", min = 0, start = 10) "Minimum Number of trays";
-  Real RRmin(unit = "-", start = 1) "Minimum Reflux Ratio";
-  Real alpha_c[Nc](unit = "-") "Relative Volatility";
-  Real theta(unit = "-", start = 1) "Fraction";
+  Real Ntmin(unit = "1", min = 0, start = 10) "Minimum Number of trays";
+  Real RRmin(unit = "1", start = 1) "Minimum Reflux Ratio";
+  Real alpha_c[Nc](unit = "1") "Relative Volatility";
+  Real theta(unit = "1", start = 1) "Fraction";
   Real T(start=Tg) "Thermodynamic Adjustment", P(start=Pg) "Thermodynamic Adjustment";
   Real Tcond(unit = "K", start = max(C[:].Tb), min = 0)"Condenser temperature";
   Real Pcond(unit = "Pa", min = 0, start = 101325) "Condenser pressure";
   Real Preb(unit = "Pa", min = 0, start = 101325)"Reboiler pressure";
   Real Treb(unit = "K", start = min(C[:].Tb), min = 0) "Reboiler temperature";
-  Real xvap_p[3](each unit = "-", each min = 0, each max = 1, each start = xvapg) "Vapor Phase Mole Fraction";
+  Real xvap_p[3](each unit = "1", each min = 0, each max = 1, each start = xvapg) "Vapor Phase Mole Fraction";
   Real Hliqcond(unit = "kJ/kmol",start=Hliqg) "Enthalpy of liquid in condenser";
   Real Hvapcond(unit = "kJ/kmol",start=Hvapg) "Enthalpy of vapor in condenser";
   Real Hvapcond_c[Nc](each unit = "kJ/kmol") "Component enthalpy of vapor in condenser";
   Real Hliqcond_c[Nc](each unit = "kJ/kmol") "Component enthalpy of vapor in condenser";
-  Real xliqcond_c[Nc](each unit = "-", each min = 0, each max = 1,  start = xg)"Component mole fraction in liquid phase in condenser";
-  Real xvapcond_c[Nc](each unit = "-", each min = 0, each max = 1,  start = yg)"Component mole fraction in vapor phase in condenser";
+  Real xliqcond_c[Nc](each unit = "1", each min = 0, each max = 1,  start = xg)"Component mole fraction in liquid phase in condenser";
+  Real xvapcond_c[Nc](each unit = "1", each min = 0, each max = 1,  start = yg)"Component mole fraction in vapor phase in condenser";
   
   Real Pdew(unit = "Pa", min = 0, start = Pmax)"Dew point pressure";
   Real Pbubl(unit = "Pa", min = 0, start = Pmin)"Bubble point pressure";
@@ -220,3 +220,5 @@ annotation(
     __OpenModelica_commandLineOptions = "",
   Documentation(info = "<html><head></head><body><!--StartFragment--><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">The shortcut column is used to calculate the minimum reflux in a distillation column by Fenske-Underwood-Gilliland (FUG) method.&nbsp;</span><div><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\"><br></span></div><div><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">The column should have following inputs:</span></div><div><ol><li><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">a single feed stage</span></li><li><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">two products (top and bottom)</span></li><li><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">condenser (total or partial)</span></li><li><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13.3333px; orphans: 2; widows: 2;\">reboiler</span></li></ol><div style=\"orphans: 2; widows: 2;\"><div><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">The results are:</span></font></div><div><ol><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Minumum Reflux Ratio</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Actual Reflux Ratio</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Total Number of Stages</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Feed Stage</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Condenser and Reboiler Duty</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Liquid and Vapor flows in Rectification and Stripping section</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Pressure and Temperature of Condenser and Reboiler</span></font></li></ol><div><br></div></div></div><div style=\"orphans: 2; widows: 2;\"><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">To simulate a shortcut column, following calculation parameters must be provided:</span></font></div><div style=\"orphans: 2; widows: 2;\"><ol><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Condenser Type</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">High Key Component</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Low Key Component</span></font></li></ol></div><div style=\"orphans: 2; widows: 2;\"><span style=\"font-family: Arial, Helvetica, sans-serif; font-size: 13px;\">Additionally, following input for following variables must be provided:</span></div><div style=\"orphans: 2; widows: 2;\"><ol><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Reflux Ratio</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Heavy Key Component Mole Fraction in Distillate</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Light Key Component Mole Fraction in Bottoms</span></font></li><li><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">Condenser and Reboiler Pressure</span></font></li></ol></div><div style=\"orphans: 2; widows: 2;\"><div><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\"><br></span></font></div><div><font face=\"Arial, Helvetica, sans-serif\"><span style=\"font-size: 13px;\">For example on simulating a Shortcut Column, go to <i><b>Examples</b></i> &gt;&gt; <i><b>ShortcutColumn</b></i></span></font></div></div><!--EndFragment--></div></body></html>"));
   end ShortcutColumn;
+
+

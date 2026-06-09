@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model Flash "Model of a flash column to separate vapor and liquid phases from a mixed phase material stream"
 //==============================================================================
@@ -19,15 +19,15 @@ model Flash "Model of a flash column to separate vapor and liquid phases from a 
   Real Pbubl(unit = "Pa", min = 0, start = Pmin) "Bubble point pressure";
   Real Pdew(unit = "Pa", min = 0, start = Pmax) "Dew point pressure";
   Real F_p[3](each unit = "mol/s", each min = 0,start = {Fg,Fliqg,Fvapg})"Feed stream mole flow";
-  Real x_pc[3, Nc](each unit = "-", each min = 0, each max = 1, start={xguess,xg,yg}) "Component mole fraction";
-  Real Cp_pc[3, Nc](each unit = "kJ/[kmol.K]") "Component molar specific heat";
+  Real x_pc[3, Nc](each unit = "1", each min = 0, each max = 1, start={xguess,xg,yg}) "Component mole fraction";
+  Real Cp_pc[3, Nc](each unit = "kJ/(kmol.K)") "Component molar specific heat";
   Real H_pc[3, Nc](each unit = "kJ/kmol") "Comopent molar enthalpy";
-  Real S_pc[3, Nc](each unit = "kJ/[kmol.K]") "Component molar entropy";
-  Real Cp_p[3](each unit = "kJ/[kmol.K]") "Molar specific heat in phase";
+  Real S_pc[3, Nc](each unit = "kJ/(kmol.K)") "Component molar entropy";
+  Real Cp_p[3](each unit = "kJ/(kmol.K)") "Molar specific heat in phase";
   Real H_p[3](each unit = "kJ/kmol") "Molar enthalpy in phase";
-  Real S_p[3](each unit = "kJ/[kmol.K]") "Molar entropy in phase";
-  Real xliq(unit = "-", min = 0, max = 1, start = xliqg)"Liquid phase mole fraction";
-  Real xvap(unit = "-", min = 0, max = 1, start = xvapg) "Vapor phase mole fraction";
+  Real S_p[3](each unit = "kJ/(kmol.K)") "Molar entropy in phase";
+  Real xliq(unit = "1", min = 0, max = 1, start = xliqg)"Liquid phase mole fraction";
+  Real xvap(unit = "1", min = 0, max = 1, start = xvapg) "Vapor phase mole fraction";
   
 //===============================================================================
 //Instantiation of Connectors
@@ -127,3 +127,5 @@ annotation(
     __OpenModelica_commandLineOptions = "",
   Documentation(info = "<html><head></head><body>The flash column is used to calculate the vapor and liquid phase distribution for a mixed phase material stream.<div><br></div><div>Following calculation parameters may be provided for the flash column:</div><div><ol><li>Separation Temperature</li><li>Separation Pressure</li></ol><div><br></div></div><div>For example on simulating a flash column, go to <b><i>Examples</i></b> &gt;&gt; <b><i>Flash</i></b></div></body></html>"));
   end Flash;
+
+

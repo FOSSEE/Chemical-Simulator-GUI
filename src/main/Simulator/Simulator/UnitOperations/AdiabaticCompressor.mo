@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model AdiabaticCompressor "Model of an adiabatic compressor to provide energy to vapor stream in form of pressure"
   extends Simulator.Files.Icons.AdiabaticCompressor;
@@ -13,7 +13,7 @@ model AdiabaticCompressor "Model of an adiabatic compressor to provide energy to
   Real Tin(unit = "K", min = 0, start = Tg) "Inlet stream temperature";
   Real Hin(unit = "kJ/kmol",start=Htotg) "Inlet stream molar enthalpy";
   Real Sin(unit = "kJ/[kmol/K]") "Inlet stream molar entropy";
-  Real xvapin(unit = "-", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mol fraction";   
+  Real xvapin(unit = "1", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mol fraction";   
   
   Real Fout(min = 0, start = Fg) "Outlet stream molar flow rate";
   Real Q(unit = "W") "Power required";
@@ -23,11 +23,11 @@ model AdiabaticCompressor "Model of an adiabatic compressor to provide energy to
   Real Pout(unit = "Pa", min = 0, start = Pg) "Outlet stream pressure";
   Real Tout(unit = "Pa", min = 0, start = Tg) "Outlet stream temperature";
   Real Hout(unit = "kJ/kmol",start=Htotg) "Outlet stream molar enthalpy";
-  Real Sout(unit = "kJ/[kmol.K]") "Outlet stream molar entropy";
-  Real xvapout(unit = "-", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
-  Real x_c[Nc](each unit = "-", each min = 0, each max = 1,start=xg) "Component mole fraction";
+  Real Sout(unit = "kJ/(kmol.K)") "Outlet stream molar entropy";
+  Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
+  Real x_c[Nc](each unit = "1", each min = 0, each max = 1,start=xg) "Component mole fraction";
  
-  parameter Real Eff(unit = "-") "Efficiency";
+  parameter Real Eff(unit = "1") "Efficiency";
 
   //========================================================================================
   Files.Interfaces.matConn In(Nc = Nc) annotation(
@@ -76,3 +76,5 @@ equation
 annotation(
     Documentation(info = "<html><head></head><body><div style=\"font-size: 12px;\">Adiabatic Compressor is generally used to provide energy to a vapor material stream. The energy supplied is in form of pressure.</div><div style=\"font-size: 12px;\"><br></div><span style=\"font-size: 12px;\">To simulate an adiabatic compressor, Efficiency of the compressor should be provided as calculation parameter. Additionally, one of the following variables must be defined:</span><div style=\"font-size: 12px;\"><ol><li>Outlet Pressure</li><li>Pressure Increase</li><li>Power Required</li></ol><div><br></div></div><div style=\"font-size: 12px;\">For example on simulating an adiabatic compressor, go to&nbsp;<i><b>Examples</b></i>&nbsp;&gt;&gt; <b><i>Compressor</i></b></div></body></html>"));
     end AdiabaticCompressor;
+
+
