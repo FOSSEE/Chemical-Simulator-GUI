@@ -327,8 +327,8 @@ class Flowsheet():
 
                 # --- Define compounds ---
                 for c in self.compounds:
-                    c_title = c.title()
-                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{c_title} {c_title};\n")
+                    norm = _normalize_compound_name(c)
+                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{norm} {norm};\n")
 
                 self.data.append(unitop.OM_Flowsheet_Initialize())
 
