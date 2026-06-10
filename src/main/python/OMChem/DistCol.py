@@ -85,12 +85,12 @@ class DistCol():
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
-        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.'+'condensor_duty'+','+ self.EngStm1.name+'.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.reboiler_duty'+', '+self.EngStm2.name+'.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.distillate'+", "+self.OutputStms[0].name+'.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.bottoms'+", "+self.OutputStms[1].name+'.inlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.'+'condensor_duty'+','+ self.EngStm1.name+'.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.En2'+', '+self.EngStm2.name+'.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.Out1'+", "+self.OutputStms[0].name+'.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.name+'.Out2'+", "+self.OutputStms[1].name+'.In);\n')
         for i in range(len(self.InputStms)):
-            self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.InputStms[i].name+'.outlet'+", "+self.name+'.feed['+str(i+1)+']);\n')
+            self.OM_data_eqn = self.OM_data_eqn + ('connect('+self.InputStms[i].name+'.Out'+", "+self.name+'.In['+str(i+1)+']);\n')
         self.OM_data_eqn = self.OM_data_eqn + (self.OutputStms[1].name+'.'+'totMolFlow[1] = '+str(self.OutputStms[1].Prop['totMolFlo[1]'])+';\n')
         if self.mode=="refluxRatio":
             self.OM_data_eqn = self.OM_data_eqn + (self.name+'.'+str(self.mode)+'='+ str(self.modeVal) + ';\n')

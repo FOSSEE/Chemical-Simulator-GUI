@@ -1,7 +1,11 @@
-within Simulator.Files.ThermodynamicPackages;
+﻿within Simulator.Files.ThermodynamicPackages;
 
   model RaoultsLaw
     import Simulator.Files.ThermodynamicFunctions.*;
+    parameter Integer Nc;
+    parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
+    Real P;
+    Real T;
     Real K_c[Nc](each min = 0), Cpres_p[3], Hres_p[3], Sres_p[3];
     Real gma_c[Nc], gmabubl_c[Nc], gmadew_c[Nc];
     Real philiqbubl_c[Nc], phivapdew_c[Nc], Pvap_c[Nc];

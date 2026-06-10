@@ -123,7 +123,7 @@ class Flowsheet():
             if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
                 self.result_data = []
             else:
-                csvpath = os.path.join(self.sim_dir_path,'Flowsheet_res.csv')
+                csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
                 with open (csvpath,'r') as resultFile:
                     self.result_data = []
                     csvreader = csv.reader(resultFile,delimiter=',')
@@ -211,9 +211,25 @@ class Flowsheet():
 
         # --- Equations section ---
         self.data.append("\n  equation\n")
+        
+        # Determine output streams to avoid overdetermining the system
+        output_stream_names = set()
+        for unitop in self.unit_operations:
+            if unitop.type != 'MaterialStream':
+                outstms = getattr(unitop, 'output_stms', None)
+                if isinstance(outstms, dict):
+                    outstms = outstms.values()
+                if outstms:
+                    for stm in outstms:
+                        if hasattr(stm, 'name'):
+                            output_stream_names.add(stm.name)
+
         for unitop in self.unit_operations:
             if unitop.type == 'MaterialStream':
-                self.data.append(unitop.OM_Flowsheet_Equation(norm_compounds, 'Eqn'))
+                if unitop.name in output_stream_names:
+                    self.data.append(f"    // Output Stream {unitop.name} property equations are skipped\n")
+                else:
+                    self.data.append(unitop.OM_Flowsheet_Equation(norm_compounds, 'Eqn'))
             else:
                 self.data.append(unitop.OM_Flowsheet_Equation())
 
@@ -232,10 +248,39 @@ class Flowsheet():
             mosFile.write('loadModel(Modelica);\n')
             mosFile.write('loadFile("package.mo");\n')
             mosFile.write('loadFile("Flowsheet.mo");\n')
-            mosFile.write(f'simulate(Simulator.{package_name}.{package_name}Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n'
-)
+            mosFile.write(f'simulate(Simulator.{package_name}.{package_name}Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n')
+            mosFile.write('getErrorString();\n')
+
+        # --- Ensure Flowsheet is listed in package.order ---
+        # OMC v1.26.3+ (Modelica 4.x) requires all .mo files in a package
+        # directory to be listed in package.order, otherwise the entire
+        # package fails to load.
+        order_path = os.path.join(self.sim_dir_path, 'package.order')
+        if os.path.exists(order_path):
+            with open(order_path, 'r') as f:
+                order_lines = [line.strip() for line in f if line.strip()]
+            if 'Flowsheet' not in order_lines:
+                order_lines.append('Flowsheet')
+                with open(order_path, 'w') as f:
+                    f.write('\n'.join(order_lines) + '\n')
+
+        # --- Clean up stray .mo files from previous runs ---
+        # Files not part of the Simulator library but left in the package
+        # directory will cause OMC to reject the entire package.
+        known_library_entries = set(order_lines) if os.path.exists(order_path) else set()
+        known_library_entries.update(['package.mo', 'package.order',
+                                      'Flowsheet.mo', 'simulateEQN.mos', 'simulateSM.mos'])
+        for stray in os.listdir(self.sim_dir_path):
+            stray_path = os.path.join(self.sim_dir_path, stray)
+            if (os.path.isfile(stray_path)
+                    and stray.endswith('.mo')
+                    and stray not in known_library_entries
+                    and stray.replace('.mo', '') not in known_library_entries):
+                os.remove(stray_path)
+
         # --- Run simulation ---
         self.send_for_simulation_Eqn(msg)
+
 
 
     def simulate_SM(self, ip, op):

@@ -1,9 +1,11 @@
-within Simulator.GuessModels;
+﻿within Simulator.GuessModels;
 
 model InitialGuess
 
    //Inputs Required to generate Guess Values
       extends GuessInput;
+      parameter Integer Nc;
+      parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
       //==========================================================================================
       //Guess variables for Pressures and Temperatures
       protected
@@ -141,3 +143,4 @@ model InitialGuess
       Hvapg = sum(xguess .* Hcompvg);
     equation
 end InitialGuess;
+

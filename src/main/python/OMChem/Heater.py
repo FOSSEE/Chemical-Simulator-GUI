@@ -64,9 +64,9 @@ class Heater():
 
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' +  self.name + '.inlet' + ');\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.outlet,' + self.OutputStms[0].name + '.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.outlet,' + self.name + '.energy);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.Out,' +  self.name + '.In' + ');\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.Out,' + self.OutputStms[0].name + '.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.Out,' + self.name + '.En);\n')
 
         if(self.mode =="enFlo"):
             self.OM_data_eqn = self.OM_data_eqn + (self.EngStms.name+'.'+self.mode+'='+ self.modeVal + ';\n')

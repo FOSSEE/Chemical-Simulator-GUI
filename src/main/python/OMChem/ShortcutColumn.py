@@ -72,12 +72,12 @@ class ShortcutColumn():
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
        
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.reboiler_duty,' +self.EngStm1.name +'.outlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStm2.name+'.inlet,' + self.name + '.condenser_duty);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.distillate,' + self.OutputStms[0].name + '.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.bottoms,' + self.OutputStms[1].name + '.inlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.En2,' +self.EngStm1.name +'.Out);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStm2.name+'.In,' + self.name + '.En1);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.Out1,' + self.OutputStms[0].name + '.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.Out2,' + self.OutputStms[1].name + '.In);\n')
         
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' + self.name + '.feed);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.Out,' + self.name + '.In);\n')
         self.OM_data_eqn = self.OM_data_eqn + self.name +'.rebP = ' + self.rebP + ';\n'
         self.OM_data_eqn = self.OM_data_eqn + self.name +'.condP = ' + self.condP + ';\n'
         self.OM_data_eqn = self.OM_data_eqn + self.name +'.mixMolFrac[2,'+self.name+'.LKey]='+self.LKeyMolFrac+ ';\n'
