@@ -45,6 +45,7 @@ Thumbs.db
 *_init.xml
 
 # Generated Modelica files
+src/main/Simulator/Simulator/testFlowsheet.mos
 Flowsheet.mo
 simulateEQN.mos
 FlowsheetSEQ.csv__pycache__/
