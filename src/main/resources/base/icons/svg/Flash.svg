@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65 100">
+  <!-- top flange -->
+  <rect x="6" y="9" width="53" height="6" rx="1" fill="none" stroke="#004646" stroke-width="2"/>
+  <!-- bottom flange -->
+  <rect x="6" y="85" width="53" height="6" rx="1" fill="none" stroke="#004646" stroke-width="2"/>
+  <!-- vessel body with domed caps -->
+  <path d="M12,30 Q32.5,12 53,30 V70 Q32.5,88 12,70 Z"
+        fill="none" stroke="#004646" stroke-width="2" stroke-linejoin="round"/>
+  <!-- liquid level (wavy) -->
+  <path d="M12,52 q5.1,-7 10.25,0 t10.25,0 t10.25,0 t10.25,0"
+        fill="none" stroke="#004646" stroke-width="2" stroke-linecap="round"/>
+</svg>
