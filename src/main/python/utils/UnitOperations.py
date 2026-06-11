@@ -5,7 +5,7 @@ parent = os.path.dirname(current)
 parentPath = os.path.dirname(parent)
 sys.path.append(parentPath)
 
-from python.OMChem.Flowsheet import Flowsheet
+from python.OMChem.Flowsheet import Flowsheet, _normalize_compound_name
 from python.OMChem.EngStm import EngStm
 from python.utils.ComponentSelector import *
 from python.utils.Container import *
@@ -138,8 +138,7 @@ class UnitOperation():
 
                     self.OM_data_init += self.for_naming[i] + str(self.counter) + ' ' + self.for_naming + '(Nc = ' + str(len(self.compounds))
                  
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
+            C = ', '.join(_normalize_compound_name(c) for c in self.compounds)
             self.OM_data_init += ',C = {' + C + '}'  
 
             for k in self.parameters:
@@ -153,8 +152,7 @@ class UnitOperation():
 
         else: 
             self.OM_data_init += 'Simulator.UnitOperations.' + self.type + ' ' + self.name + '(Nc = ' + str(len(self.compounds))
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
+            C = ', '.join(_normalize_compound_name(c) for c in self.compounds)
             self.OM_data_init += ',C = {' + C + '}'
 
             for k in self.parameters:
@@ -518,8 +516,7 @@ class CompoundSeparator(UnitOperation):
         self.OM_data_init = self.OM_data_init + (
         "Simulator.UnitOperations.CompoundSeparator " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (", C = {")
-        comp = str(self.compounds).strip('[').strip(']')
-        comp = comp.replace("'", "")
+        comp = ', '.join(_normalize_compound_name(c) for c in self.compounds)
         self.OM_data_init = self.OM_data_init + comp + ("},")
         self.OM_data_init = self.OM_data_init + ("SepFact_c = " + SepFact + ",SepStrm = " + SepStrm + ");\n")
 
