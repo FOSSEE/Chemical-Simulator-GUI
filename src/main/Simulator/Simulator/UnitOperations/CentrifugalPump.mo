@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model CentrifugalPump "Model of a centrifugal pump to provide energy to liquid stream in form of pressure"
   //===========================================================================
@@ -6,14 +6,14 @@ model CentrifugalPump "Model of a centrifugal pump to provide energy to liquid s
   extends Simulator.Files.Icons.CentrifugalPump;
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
   parameter Integer Nc = 2 "Number of components";
-  parameter Real Eff(unit = "-") "Efficiency";
+  parameter Real Eff(unit = "1") "Efficiency";
   //===========================================================================
   //Model Variables
   Real Pin(unit = "Pa", min = 0, start = Pg) "Inlet stream pressure";
   Real Tin(unit = "K", min = 0, start = Tg) "Inlet stream temperature";
   Real Hin(unit = "kJ/kmol",start=Htotg) "Inlet stream molar enthalpy";
   Real Fin(unit = "mol/s", min = 0, start = Fg) "Inlet stream molar flow";
-  Real xin_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Inlet stream components molar fraction";
+  Real xin_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Inlet stream components molar fraction";
   Real Tdel(unit = "K") "Temperature increase";
   Real Pdel(unit = "K") "Pressure increase";
   Real Q(unit = "W") "Power required";
@@ -25,7 +25,7 @@ model CentrifugalPump "Model of a centrifugal pump to provide energy to liquid s
   Real Tout(unit = "K", min = 0, start = Tg) "Outlet stream temperature";
   Real Hout(unit = "kJ/kmol",start=Htotg) "Outlet stream molar enthalpy";
   Real Fout(unit = "mol/s", min = 0, start = Fg) "Outlet stream molar flow";
-  Real xout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Outlet stream molar fraction";
+  Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Outlet stream molar fraction";
   //============================================================================
   //Instantiation of Connectors
   Simulator.Files.Interfaces.matConn In(Nc = Nc) annotation(
@@ -74,3 +74,4 @@ equation
     Documentation(info = "<html><head></head><body><div>Centrifugal pump is generally used to provide energy to a liquid material stream. The energy supplied is in form of pressure.</div><div><br></div>To simulate a centrifugal pump, Efficiency of the pump should be provided as calculation parameter. Additional one of the following input variables must be defined:<div><ol><li>Outlet Pressure</li><li>Pressure Increase</li><li>Power Required</li></ol><div><br></div></div><div>For example on simulating a centrifual pum, go to <i><b>Examples</b></i> &gt;&gt; <i><b>Pump</b></i></div></body></html>"));
     
 end CentrifugalPump;
+
