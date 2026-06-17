@@ -1,4 +1,4 @@
-﻿import json
+import json
 import sys,os
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -51,10 +51,12 @@ class MaterialStream():
             'H_p[2]'  : {'name':'Liquid Molar Enthalpy',        'value':None,       'unit':'J/mol'},
             'S_p[2]'  : {'name':'Liquid Molar Entropy',        'value':None,       'unit':'J/mol.K'},
             'F_p[2]'  : {'name':'Liquid Molar Flow',            'value':None,       'unit':'mol/s'},
+            'Fm_p[2]' : {'name':'Liquid Mass Flow',             'value':None,       'unit':'g/s'},
 
             'H_p[3]'  : {'name':'Vapour Molar Enthalpy',        'value':None,       'unit':'J/mol'},
             'S_p[3]'  : {'name':'Vapour Molar Entropy',        'value':None,       'unit':'J/mol.K'},
             'F_p[3]'  : {'name':'Vapour Molar Flow',            'value':None,       'unit':'mol/s'},
+            'Fm_p[3]' : {'name':'Vapour Mass Flow',             'value':None,       'unit':'g/s'},
 
             'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':''},
             'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':''},
@@ -147,32 +149,35 @@ class MaterialStream():
     def param_getter_tooltip_selectedVar(self):
         dict = {}
 
+        def _safe_round(val):
+            """Safely convert to float and round, return None if not numeric."""
+            if val is None:
+                return None
+            try:
+                return round(float(val), 4)
+            except (ValueError, TypeError):
+                return val
+
         pressure_name = self.variables['P']['name']
-        pressure_val = self.variables['P']['value']
+        pressure_val = _safe_round(self.variables['P']['value'])
         pressure_unit =  self.variables['P']['unit']
         temp_name = self.variables['T']['name']
-        temp_val = self.variables['T']['value']
+        temp_val = _safe_round(self.variables['T']['value'])
         temp_unit =  self.variables['T']['unit']
         mixMolEntal_name = self.variables['H_p[1]']['name']
-        mixMolEntal_val = self.variables['H_p[1]']['value']
-        if mixMolEntal_val != None:
-            mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
+        mixMolEntal_val = _safe_round(self.variables['H_p[1]']['value'])
         mixMolEntal_unit =  self.variables['H_p[1]']['unit']
         mixMolEntro_name = self.variables['S_p[1]']['name']
-        mixMolEntro_val = self.variables['S_p[1]']['value']
-        if mixMolEntro_val != None:
-            mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
+        mixMolEntro_val = _safe_round(self.variables['S_p[1]']['value'])
         mixMolEntro_unit =  self.variables['S_p[1]']['unit']
         vapMolFrac_name = self.variables['xvap']['name']
         vapMolFrac_val = self.variables['xvap']['value']
         vapMolFrac_unit =  self.variables['xvap']['unit']
         mixMolFlo_name = self.variables['F_p[1]']['name']
-        mixMolFlo_val = self.variables['F_p[1]']['value']
+        mixMolFlo_val = _safe_round(self.variables['F_p[1]']['value'])
         mixMolFlo_unit =  self.variables['F_p[1]']['unit']
         mixMassFlo_name = self.variables['Fm_p[1]']['name']
-        mixMassFlo_val = self.variables['Fm_p[1]']['value']
-        if mixMassFlo_val != None:
-            mixMassFlo_val = round(float(self.variables['Fm_p[1]']['value']),4)
+        mixMassFlo_val = _safe_round(self.variables['Fm_p[1]']['value'])
         mixMassFlo_unit =  self.variables['Fm_p[1]']['unit']
         
         dict = {pressure_name:str(pressure_val)+' '+pressure_unit, 
@@ -195,25 +200,20 @@ class MaterialStream():
                 pass
         self.variables['x_pc']['value'] = temp
 
-        pressure_val = self.variables['P']['value']
-        temp_val = self.variables['T']['value']
-        mixMolFlo_val = self.variables['F_p[1]']['value']
-        mixMolEntal_val = self.variables['H_p[1]']['value']
-        vapMolFrac_val = self.variables['xvap']['value']
-        mixMolEntro_val = self.variables['S_p[1]']['value']
+        def _safe_float(val):
+            if val is None:
+                return None
+            try:
+                return round(float(val), 4)
+            except (ValueError, TypeError):
+                return val
 
-        if pressure_val != None:
-            pressure_val = round(float(self.variables['P']['value']),4)
-        if temp_val != None:
-            temp_val = round(float(self.variables['T']['value']),4)
-        if mixMolFlo_val != None:
-            mixMolFlo_val = round(float(self.variables['F_p[1]']['value']),4)
-        if mixMolEntal_val != None:
-            mixMolEntal_val = round(float(self.variables['H_p[1]']['value']),4)
-        if vapMolFrac_val != None:
-            vapMolFrac_val = round(float(self.variables['xvap']['value']),4)
-        if mixMolEntro_val != None:
-            mixMolEntro_val = round(float(self.variables['S_p[1]']['value']),4)
+        pressure_val = _safe_float(self.variables['P']['value'])
+        temp_val = _safe_float(self.variables['T']['value'])
+        mixMolFlo_val = _safe_float(self.variables['F_p[1]']['value'])
+        mixMolEntal_val = _safe_float(self.variables['H_p[1]']['value'])
+        vapMolFrac_val = _safe_float(self.variables['xvap']['value'])
+        mixMolEntro_val = _safe_float(self.variables['S_p[1]']['value'])
         if(mode=="PT"):
             self.mode1 = 'P'
             self.mode2 = 'T'
@@ -328,7 +328,7 @@ class MaterialStream():
                     for j in range(1,len(self.compound_names)+1):
                         cmf.append(str(self.variables['xm_pc['+str(i)+','+str(j)+']']['value']))
                     xm_pcarr.append(cmf)
-                xm_pcstr = json.dumps(x_pcarr)
+                xm_pcstr = json.dumps(xm_pcarr)
                 xm_pcstr = xm_pcstr.replace('[','{')
                 xm_pcstr = xm_pcstr.replace(']','}')
                 xm_pcstr = xm_pcstr.replace('"','')
@@ -341,7 +341,7 @@ class MaterialStream():
                     for j in range(1,len(self.compound_names)+1):
                         cmf.append(str(self.variables['Fm_pc['+str(i)+','+str(j)+']']['value']))
                     Fm_pcarr.append(cmf)
-                Fm_pcstr = json.dumps(x_pcarr)
+                Fm_pcstr = json.dumps(Fm_pcarr)
                 Fm_pcstr = Fm_pcstr.replace('[','{')
                 Fm_pcstr = Fm_pcstr.replace(']','}')
                 Fm_pcstr = Fm_pcstr.replace('"','')
@@ -360,7 +360,7 @@ class MaterialStream():
                 F_pcstr = F_pcstr.replace('"','')
                 self.start_dict['F_pc'] = F_pcstr
 
-            if self.variables['MW_p[2]']['value'] != None:
+            if self.variables.get('MW_p[2]', {}).get('value') != None:
                 MW_pArr = []
                 for i in range(1,4):
                     MW_pArr.append(self.variables['MW_p['+str(i)+']']['value'])
@@ -380,7 +380,7 @@ class MaterialStream():
                 F_pStr = F_pStr.replace('"','')
                 self.start_dict['F_p'] = F_pStr
 
-            if self.variables['Cp_p[2]']['value'] != None:
+            if self.variables.get('Cp_p[2]', {}).get('value') != None:
                 Cp_pArr = []
                 for i in range(1,4):
                     Cp_pArr.append(self.variables['Cp_p['+str(i)+']']['value'])
