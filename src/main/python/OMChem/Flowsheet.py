@@ -120,15 +120,17 @@ class Flowsheet():
             print(self.stderr.decode("utf-8"))
            
             os.chdir(self.root_dir)
-            if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
+            csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
+            stdout_text = self.stdout.decode("utf-8")
+            if 'timeSimulation = 0.0,\n' in stdout_text or not os.path.exists(csvpath):
                 self.result_data = []
             else:
-                csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
                 with open (csvpath,'r') as resultFile:
                     self.result_data = []
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
                         self.result_data.append(row)
+                self.ext_data()
 
     def send_for_simulation_SM(self,unitop):
         self.result_data = []
@@ -151,11 +153,11 @@ class Flowsheet():
         for unit in self.unit_operations:
             unitop = unit[0] if isinstance(unit, list) else unit
             if unitop.type == 'MaterialStream':
-                for key, value in unitop.Prop.items():
+                for key in list(unitop.variables.keys()):
                     property_name = unitop.name + '.' + key
                     if self.result_data and property_name in self.result_data[0]:
                         ind = self.result_data[0].index(property_name)
-                        unitop.Prop[key] = str(self.result_data[-1][ind])
+                        unitop.variables[key]['value'] = str(self.result_data[-1][ind])
 
              
     def simulate_EQN(self, msg):
