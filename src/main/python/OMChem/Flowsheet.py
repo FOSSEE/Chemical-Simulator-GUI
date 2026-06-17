@@ -150,14 +150,20 @@ class Flowsheet():
         self.ext_data()
 
     def ext_data(self):
+        if not self.result_data or len(self.result_data) < 2:
+            print("[DEBUG] ext_data: result_data has no data rows, skipping")
+            return
         for unit in self.unit_operations:
             unitop = unit[0] if isinstance(unit, list) else unit
             if unitop.type == 'MaterialStream':
                 for key in list(unitop.variables.keys()):
                     property_name = unitop.name + '.' + key
-                    if self.result_data and property_name in self.result_data[0]:
+                    if property_name in self.result_data[0]:
                         ind = self.result_data[0].index(property_name)
-                        unitop.variables[key]['value'] = str(self.result_data[-1][ind])
+                        try:
+                            unitop.variables[key]['value'] = str(self.result_data[-1][ind])
+                        except (IndexError, KeyError) as e:
+                            print(f"[DEBUG] ext_data: failed to read {property_name}: {e}")
 
              
     def simulate_EQN(self, msg):

@@ -355,19 +355,22 @@ class Container():
                 )
 
             # ----------------------------
-            # Step 8: Post-Simulation Updates
+            # Step 8: Post-Simulation Updates (only on success)
             # ----------------------------
-            for it in self.graphics.scene.items():
-                if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
-                    it.update_tooltip_selectedVar()
-                    try:
-                        if len(it.input[0].in_lines) > 0:
-                            it.obj.disableInputDataTab(it.dock_widget)
-                    except Exception:
-                        pass
-
-            # Step 9: Populate Results Tabs (via signal for thread-safety)
             if isinstance(self.result, (list, tuple)) and len(self.result) >= 4:
+                for it in self.graphics.scene.items():
+                    if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
+                        try:
+                            it.update_tooltip_selectedVar()
+                        except Exception as tooltip_err:
+                            print(f"[DEBUG] update_tooltip_selectedVar failed for {it.name}: {tooltip_err}")
+                        try:
+                            if len(it.input[0].in_lines) > 0:
+                                it.obj.disableInputDataTab(it.dock_widget)
+                        except Exception:
+                            pass
+
+                # Step 9: Populate Results Tabs (via signal for thread-safety)
                 self.signals.results_ready.emit()
 
         except Exception as e:
