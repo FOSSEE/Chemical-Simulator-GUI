@@ -1,4 +1,4 @@
-﻿from collections import defaultdict
+from collections import defaultdict
 import datetime
 import os, sys
 
@@ -20,6 +20,7 @@ from python.DockWidgets.DockWidget import DockWidget
 # ----------------- Signals -----------------
 class SimulationSignals(QObject):
     msg_signal = pyqtSignal(str)  # Thread-safe message signal
+    results_ready = pyqtSignal()  # Emitted when simulation results are ready
 
 
 # ----------------- Container -----------------
@@ -28,6 +29,7 @@ class Container():
         self.signals = SimulationSignals()
         self.msg = msgbrowser
         self.signals.msg_signal.connect(self.msg.append)
+        self.signals.results_ready.connect(self._populate_results)
 
         self.unit_operations = []
         self.thermo_package = None
@@ -364,6 +366,10 @@ class Container():
                     except Exception:
                         pass
 
+            # Step 9: Populate Results Tabs (via signal for thread-safety)
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 4:
+                self.signals.results_ready.emit()
+
         except Exception as e:
             print("[DEBUG] Simulation crashed:", e)
             self.signals.msg_signal.emit(
@@ -376,6 +382,14 @@ class Container():
             print("[DEBUG] ==== Container.simulate finished ====")
 
 
+
+    # Results Population 
+    def _populate_results(self):
+        """Slot called on the main thread when simulation results are ready."""
+        try:
+            DockWidget.show_result(dock_widget_lst)
+        except Exception as e:
+            print(f"[DEBUG] _populate_results failed: {e}")
 
     # ----------------- Toolbar -----------------
     def enableToolbar(self, status):
