@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <circle cx="26" cy="21" r="17" fill="none" stroke="#004646" stroke-width="2"/>
+  <!-- inlet line into impeller -->
+  <path d="M9,21 H26" fill="none" stroke="#004646" stroke-width="2" stroke-linecap="round"/>
+  <!-- base -->
+  <path d="M26,38 V46 M5,46 H47"
+        fill="none" stroke="#004646" stroke-width="2" stroke-linecap="round"/>
+</svg>

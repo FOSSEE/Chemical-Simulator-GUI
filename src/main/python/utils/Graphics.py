@@ -5,8 +5,28 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5 import QtSvg
 import os, sys
 import copy
+
+_svg_renderer_cache = {}
+
+
+def get_svg_renderer(component_type):
+    """Return a shared QSvgRenderer for the component type, or None if no SVG."""
+    if component_type in _svg_renderer_cache:
+        return _svg_renderer_cache[component_type]
+
+    svg_path = os.path.join(parentPath, "resources", "base", "icons", "svg",
+                            f"{component_type}.svg")
+    renderer = None
+    if os.path.exists(svg_path):
+        candidate = QtSvg.QSvgRenderer(svg_path)
+        if candidate.isValid():
+            renderer = candidate
+
+    _svg_renderer_cache[component_type] = renderer
+    return renderer
 
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -807,6 +827,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # ✅ Graphics setup
         self.pic = QtGui.QPixmap(parentPath + f"/resources/base/icons/{self.type}.png")
+        self.svg_renderer = get_svg_renderer(self.type)
         self.rect = QtCore.QRect(0, 0, self.pic.width(), self.pic.height())
 
         self.text = QGraphicsTextItem(self)
@@ -860,12 +881,18 @@ class NodeItem(QtWidgets.QGraphicsItem):
         return QtCore.QRectF(self.rect)
  
     def paint(self, painter, option, widget):
+        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
         if self.isSelected():
             painter.setPen(self.sel_pen)
             painter.drawRect(QtCore.QRectF(self.rect))
         else:
             painter.setPen(self.pen)
-        painter.drawPixmap(self.rect,self.pic)
+        if self.svg_renderer is not None:
+            # Vector art is re-rasterized at the current size every paint -> crisp.
+            self.svg_renderer.render(painter, QtCore.QRectF(self.rect))
+        else:
+            painter.drawPixmap(self.rect, self.pic)
 
     def initialize_sockets(self, type):
         if self.type in ["Flash", "CompoundSeparator"]:

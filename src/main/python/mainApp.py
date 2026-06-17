@@ -137,6 +137,12 @@ class MainApp(QMainWindow,ui):
         self.graphicsView.setMouseTracking(True)
         self.graphicsView.keyPressEvent=self.delete_call
 
+        self.graphicsView.setRenderHints(
+            QPainter.Antialiasing
+            | QPainter.SmoothPixmapTransform
+            | QPainter.TextAntialiasing
+        )
+
         # ✅ Enable Drag-and-Drop on the canvas
         self.graphicsView.setAcceptDrops(True)
         self.graphicsView.viewport().setAcceptDrops(True)

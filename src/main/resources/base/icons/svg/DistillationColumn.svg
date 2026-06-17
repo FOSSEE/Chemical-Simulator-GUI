@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 245">
+  <g fill="none" stroke="#004646" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- column vessel with rounded caps -->
+    <path d="M8,52 Q8,35 25,35 Q42,35 42,52 V193 Q42,210 25,210 Q8,210 8,193 Z"/>
+    <!-- trays -->
+    <path d="M8,72 H42 M8,92 H42 M8,112 H42 M8,132 H42 M8,152 H42 M8,172 H42"/>
+    <!-- feed line -->
+    <path d="M0,122 H8"/>
+    <!-- top vapour line to condenser -->
+    <path d="M25,35 V18 H52"/>
+    <!-- bottoms line to reboiler -->
+    <path d="M25,210 V227 H52"/>
+  </g>
+  <!-- condenser -->
+  <circle cx="62" cy="18" r="10" fill="none" stroke="#004646" stroke-width="2.4"/>
+  <path d="M54,11 L70,25" stroke="#e2001a" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- reboiler -->
+  <circle cx="62" cy="227" r="10" fill="none" stroke="#004646" stroke-width="2.4"/>
+  <path d="M54,220 L70,234" stroke="#e2001a" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
