@@ -292,6 +292,11 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             result=self.container.result
             obj = self.container.fetch_object(name)
 
+            def _safe_result(val):
+                if val.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit():
+                    return str(round(float(val), 4))
+                return val
+
 
             d = {"Mole Fraction":"x_pc", "Mass Fraction":"xm_pc", "Mole Flow":"F_pc", "Mass Flow":"Fm_pc"}
             ms_lst = list(d.keys())
@@ -339,13 +344,13 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     compound_no = int(k[k.index(',') + 1]) - 1  # compound is from python list
 
                     if phase_no == 1:
-                        child = QTreeWidgetItem(mroot, [compound_selected[compound_no], str(round(float(resultval),4)),
+                        child = QTreeWidgetItem(mroot, [compound_selected[compound_no], _safe_result(resultval),
                                                         obj.variables[k.split('.')[1]]['unit']])
                     elif phase_no == 2:
-                        child = QTreeWidgetItem(lroot, [compound_selected[compound_no], str(round(float(resultval),4)),
+                        child = QTreeWidgetItem(lroot, [compound_selected[compound_no], _safe_result(resultval),
                                                         obj.variables[k.split('.')[1]]['unit']])
                     elif phase_no == 3:
-                        child = QTreeWidgetItem(vroot, [compound_selected[compound_no], str(round(float(resultval),4)),
+                        child = QTreeWidgetItem(vroot, [compound_selected[compound_no], _safe_result(resultval),
                                                         obj.variables[k.split('.')[1]]['unit']])
                         if (compound_no + 1) == len(compound_selected):
                             j += 1
@@ -383,7 +388,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                             mrowPosition = self.mTableWidget.rowCount()
                             self.mTableWidget.insertRow(mrowPosition)
                             self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.mTableWidget.resizeColumnsToContents() 
                                                  
@@ -391,14 +396,14 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                             lrowPosition = self.lTableWidget.rowCount()
                             self.lTableWidget.insertRow(lrowPosition)
                             self.lTableWidget.setItem(lrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.lTableWidget.setItem(lrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.lTableWidget.setItem(lrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.lTableWidget.setItem(lrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.lTableWidget.resizeColumnsToContents()                         
                         if '3' in val.split('.')[1]:   
                             vrowPosition = self.vTableWidget.rowCount()
                             self.vTableWidget.insertRow(vrowPosition)
                             self.vTableWidget.setItem(vrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.vTableWidget.setItem(vrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.vTableWidget.setItem(vrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.vTableWidget.setItem(vrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.vTableWidget.resizeColumnsToContents()                                
                     if not '[' in val:
@@ -406,7 +411,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                         mrowPosition = self.mTableWidget.rowCount()
                         self.mTableWidget.insertRow(mrowPosition)
                         self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                        self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                        self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4)) if resultval.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit() else resultval))
                         self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                         self.mTableWidget.resizeColumnsToContents() 
 
