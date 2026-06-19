@@ -88,6 +88,7 @@ class DropFilter(QObject):
     MainApp class is responsible for all the main App Ui operations
 '''
 class MainApp(QMainWindow,ui):
+    closed = pyqtSignal()
     global compound_selected
     '''
         Initializing the application
@@ -446,20 +447,27 @@ class MainApp(QMainWindow,ui):
         Terminate the current running simulation
     '''
     def terminate(self):
-        os.chdir(self.container.flowsheet.root_dir)
-        if self.thrd:
+        try:
+            os.chdir(self.container.flowsheet.root_dir)
+        except Exception:
+            pass
+            
+        if self.thrd and self.thrd.is_alive():
             thread_id = self.thrd.ident
-            # print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
-            # print('____________________Going to terminate the new process created for omc____________________')
-            self.container.flowsheet.process.terminate()
-            print('____________________New process created for omc is terminated.____________________')
-            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
+            if hasattr(self.container, 'flowsheet') and hasattr(self.container.flowsheet, 'process') and self.container.flowsheet.process:
+                try:
+                    self.container.flowsheet.process.terminate()
+                    print('____________________New process created for omc is terminated.____________________')
+                except Exception:
+                    pass
+            
+            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit)) 
             self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b>Simulation Terminated.</b></span>")
             self.container.disableInterfaceforSimulation(False)
-            # print('____________________Simulation thread terminated____________________')
             if res > 1: 
-                ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0) 
-                # print('Exception raise (Thread termination) failure')
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
+        
+        self.thrd = None
 
     '''
         Resets the zoom level to default scaling
@@ -626,10 +634,13 @@ class MainApp(QMainWindow,ui):
                 if hasattr(cls, "counter"):
                     cls.counter = 1
 
-            # Clear old dock widgets
+            # Clear old dock widgets — guard against already-deleted C++ objects
             for dw in dock_widget_lst:
-                dw.hide()
-                dw.setParent(None)
+                try:
+                    dw.hide()
+                    dw.setParent(None)
+                except RuntimeError:
+                    pass  # C++ object already deleted — safe to skip
             dock_widget_lst.clear()
 
             # Reset compound selection
@@ -892,6 +903,21 @@ class MainApp(QMainWindow,ui):
     def _clear_selected_compounds_panel(self):
         self.selectedElementsList.clear()
         self._sel_status_label.setText("No compounds selected")
+
+    def closeEvent(self, event):
+        # Stop simulation thread if still running
+        try:
+            if self.thrd and self.thrd.is_alive():
+                self.terminate()
+        except Exception:
+            pass
+
+        # Drain any override cursors this window left on the stack
+        while QApplication.overrideCursor() is not None:
+            QApplication.restoreOverrideCursor()
+
+        event.accept()
+        self.closed.emit()
 
 from python.utils.ComponentSelectorWindow import ComponentSelectorWindow
 
