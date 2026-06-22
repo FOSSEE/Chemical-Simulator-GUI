@@ -22,6 +22,20 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from src.main.ui.utils.LandingPageUI import IconPanel, GlassButton
 
+# Import the module-level globals that Graphics.py uses so we can
+# purge them before stashing the old MainApp window.
+try:
+    from python.utils.Graphics import dock_widget_lst as _dock_widget_lst, lst as _node_lst
+except Exception:
+    _dock_widget_lst = None
+    _node_lst = None
+
+# Keep old MainApp instances alive (hidden) so their C++ objects are never
+# destroyed while something might still reference them.  This prevents the
+# "wrapped C/C++ object has been deleted" crashes and the "Not responding"
+# freezes caused by asynchronous deleteLater() destruction.
+_stashed_windows = []
+
 class LandingPage(QWidget):
     def __init__(self):
         super().__init__()
@@ -41,7 +55,7 @@ class LandingPage(QWidget):
         self.main_window = None
         self.init_ui()
 
-        # 🔥 Start background preload once the window is ready
+        # Start background preload once the window is ready
         QTimer.singleShot(500, self.preload_main_window)
 
     def paintEvent(self, event):
@@ -157,13 +171,33 @@ class LandingPage(QWidget):
 
 
     def _cleanup_main_window(self):
-        """Safely schedule the old main window for deletion."""
+        """Hide the old main window and stash it so it stays alive.
+        
+        We intentionally do NOT call deleteLater().  Destroying a QMainWindow
+        with dozens of child widgets, dock widgets, QThreads, and scene items
+        triggers asynchronous C++ object destruction that races with the Qt
+        event loop and causes 'Not responding' freezes or outright segfaults.
+        Keeping the old window alive but hidden is safe and costs very little
+        memory (users won't create hundreds of sessions).
+        """
         if self.main_window is not None:
+            # Clear the module-level global Graphics lists so the new
+            # MainApp starts with clean state.
             try:
-                self.main_window.hide()
-                self.main_window.deleteLater()
+                if _dock_widget_lst is not None:
+                    _dock_widget_lst.clear()
+                if _node_lst is not None:
+                    _node_lst.clear()
             except Exception:
                 pass
+
+            try:
+                self.main_window.hide()
+            except Exception:
+                pass
+
+            # Stash — prevent Python GC from collecting (and destroying) it
+            _stashed_windows.append(self.main_window)
             self.main_window = None
 
     def open_existing_project(self):
@@ -184,18 +218,8 @@ class LandingPage(QWidget):
             self._cleanup_main_window()
             self.main_window = MainApp()
 
-            # Preserve original closeEvent
-            orig_close = getattr(self.main_window, "closeEvent", None)
-            def _wrapped_close(event):
-                try:
-                    if orig_close is not None:
-                        orig_close(event)
-                except Exception:
-                    pass
-                if event.isAccepted():
-                    # Defer restoration so closeEvent finishes before we touch self.main_window
-                    QTimer.singleShot(0, self.restore_landing_page)
-            self.main_window.closeEvent = _wrapped_close
+            # Connect to closed signal to restore landing page
+            self.main_window.closed.connect(lambda: QTimer.singleShot(0, self.restore_landing_page))
 
             # Open project file
             self.main_window.open(file_path)
@@ -241,18 +265,8 @@ class LandingPage(QWidget):
             self.main_window = MainApp()
             self.main_window.new_project()  # reset all components for new project
 
-            # Wrap closeEvent to restore landing page
-            orig_close = getattr(self.main_window, "closeEvent", None)
-            def _wrapped_close(event):
-                if orig_close:
-                    try:
-                        orig_close(event)
-                    except Exception:
-                        pass
-                if event.isAccepted():
-                    # Defer restoration so closeEvent finishes before we touch self.main_window
-                    QTimer.singleShot(0, self.restore_landing_page)
-            self.main_window.closeEvent = _wrapped_close
+            # Connect to closed signal to restore landing page
+            self.main_window.closed.connect(lambda: QTimer.singleShot(0, self.restore_landing_page))
 
             # Show main window maximized
             self.main_window.showMaximized()
@@ -324,12 +338,19 @@ class LandingPage(QWidget):
         gv.centerOn(self.main_window.scene.itemsBoundingRect().center())
         self.reset_cursor()
 
+    def closeEvent(self, event):
+        # Explicitly quit the entire application when the landing page is closed
+        QApplication.quit()
+        event.accept()
+
     def restore_landing_page(self):
+        # Drain the entire override cursor stack left by MainApp/Graphics/Container
+        # before showing the landing page, to prevent corrupted mouse events.
+        while QApplication.overrideCursor() is not None:
+            QApplication.restoreOverrideCursor()
+
         # Safely clean up old main window using Qt event loop
         self._cleanup_main_window()
-
-        # Show landing page in full screen
-        # self.showFullScreen()  
 
         # Show landing page (windowed)
         self.show()
@@ -337,7 +358,6 @@ class LandingPage(QWidget):
         # Make sure it is active
         self.activateWindow()
         self.raise_()
-        # QApplication.processEvents()
 
     def resizeEvent(self, event):
         # """Make sure gradient background fills screen on resize."""
@@ -391,6 +411,7 @@ class LandingPage(QWidget):
 
 def run():
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
     window = LandingPage()
     window.show()
     sys.exit(app.exec_())

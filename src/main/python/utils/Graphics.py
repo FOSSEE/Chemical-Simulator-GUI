@@ -1073,16 +1073,29 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.update()
 
     def _reposition_sockets(self):
-        """Reposition sockets proportionally after a resize."""
-        scale_y = self.rect.height() / self._orig_height if self._orig_height else 1
+        """Reposition sockets after a resize while keeping their relative
+        positions on the component.
+
+        Each socket's *centre* is kept at the same fraction of the component
+        height it had originally, and the socket keeps its fixed size. Scaling
+        the centre (rather than the top-left corner) avoids amplifying the
+        small centring offsets baked into the original rects, which otherwise
+        made the ports drift further off as the component grew.
+        """
+        new_height = self.rect.height()
+        new_width = self.rect.width()
+        orig_height = self._orig_height if self._orig_height else 1
 
         for i, socket in enumerate(self.input):
             if i < len(self._orig_input_rects):
                 orig = self._orig_input_rects[i]
+                frac_y = (orig.y() + orig.height() / 2) / orig_height
+                new_cy = frac_y * new_height
+                # x stays anchored to the left edge
                 socket.prepareGeometryChange()
                 socket.rect = QtCore.QRectF(
                     orig.x(),
-                    orig.y() * scale_y,
+                    new_cy - orig.height() / 2,
                     orig.width(), orig.height()
                 )
                 socket.update()
@@ -1090,11 +1103,14 @@ class NodeItem(QtWidgets.QGraphicsItem):
         for i, socket in enumerate(self.output):
             if i < len(self._orig_output_rects):
                 orig = self._orig_output_rects[i]
+                frac_y = (orig.y() + orig.height() / 2) / orig_height
+                new_cy = frac_y * new_height
+                # x stays anchored to the right edge
                 right_offset = self._orig_width - orig.x()
                 socket.prepareGeometryChange()
                 socket.rect = QtCore.QRectF(
-                    self.rect.width() - right_offset,
-                    orig.y() * scale_y,
+                    new_width - right_offset,
+                    new_cy - orig.height() / 2,
                     orig.width(), orig.height()
                 )
                 socket.update()

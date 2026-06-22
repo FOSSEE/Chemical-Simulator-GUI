@@ -44,7 +44,7 @@ class Container():
         self.result = []
         self.graphics = Graphics(self, self.graphicsView)
         self.scene = self.graphics.get_scene()
-        print(f"[DEBUG] Scene check → container.scene id={id(self.scene)}, graphics.scene id={id(self.graphics.scene)}")
+        print(f"[DEBUG] Scene check -> container.scene id={id(self.scene)}, graphics.scene id={id(self.graphics.scene)}")
         
 
     # ----------------- Utility -----------------
