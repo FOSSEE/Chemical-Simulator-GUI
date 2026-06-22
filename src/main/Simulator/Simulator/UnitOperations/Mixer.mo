@@ -1,4 +1,4 @@
-﻿within Simulator.UnitOperations;
+within Simulator.UnitOperations;
 // Updated dimensionless units from "-" to "1" for OMC 4.x compliance
 model Mixer "Model of a mixer to mix multiple material streams"
   extends Simulator.Files.Icons.Mixer;
@@ -20,7 +20,7 @@ model Mixer "Model of a mixer to mix multiple material streams"
   Real Fout(unit = "mol/s", min = 0, start = Fg) "Outlet stream molar flow";
   Real Pout(unit = "Pa", min = 0, start = Pg) "Outlet stream pressure";
   Real Hout(unit = "kJ/kmol") "Outlet stream molar enthalpy";
-  Real Tout(unit = "K", each min = 0, each start = Tg) "Outlet stream temperature";
+  Real Tout(unit = "K", min = 1, start = Tg) "Outlet stream temperature";
   Real Sout(unit = "kJ/(kmol.K)") "Outlet stream molar entropy";
   Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mol fraction";
   Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start = xguess) "Outlet stream component mol fraction";

@@ -1,4 +1,4 @@
-﻿within Simulator.Streams;
+within Simulator.Streams;
 
 model MaterialStream "Model representing Material Stream"
   //1 -  Mixture, 2 - Liquid phase, 3 - Gas Phase
@@ -8,7 +8,7 @@ model MaterialStream "Model representing Material Stream"
   parameter Integer Nc "Number of components";
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
   Real P(unit = "Pa", min = 0, start = Pg) "Pressure";
-  Real T(unit = "K", start = Tg) "Temperature";
+  Real T(unit = "K", start = Tg, min = 1) "Temperature";
   Real Pbubl(unit = "Pa", min = 0, start = Pmin) "Bubble point pressure";
   Real Pdew(unit = "Pa", min = 0, start = Pmax) "dew point pressure";
   Real xliq(unit = "1", start = xliqg, min = 0, max = 1) "Liquid Phase mole fraction";
@@ -42,7 +42,8 @@ model MaterialStream "Model representing Material Stream"
   Real gmadew_c[Nc];
   Real philiqbubl_c[Nc];
   Real phivapdew_c[Nc];
-
+protected
+  Real T_safe;
 equation
 //Connector equations
   In.P = P;
@@ -83,10 +84,10 @@ equation
     xm_pc[3, :] = xm_pc[1, :];
   end if;
 //phase molar and mass fractions
-  xliq = F_p[2] / F_p[1];
-  xvap = F_p[3] / F_p[1];
-  xmliq = Fm_p[2] / Fm_p[1];
-  xmvap = Fm_p[3] / Fm_p[1];
+  xliq = F_p[2] / noEvent(max(F_p[1], 1e-12));
+  xvap = F_p[3] / noEvent(max(F_p[1], 1e-12));
+  xmliq = Fm_p[2] / noEvent(max(Fm_p[1], 1e-12));
+  xmvap = Fm_p[3] / noEvent(max(Fm_p[1], 1e-12));
 //Conversion between mole and mass flow
   for i in 1:Nc loop
     Fm_pc[:, i] = F_pc[:, i] * C[i].MW;
@@ -112,10 +113,11 @@ equation
   H_pc[1, :] = x_pc[1, :] .* H_p[1];
   S_p[1] = xliq * S_p[2] + xvap * S_p[3];
   S_pc[1, :] = x_pc[1, :] * S_p[1];
+  T_safe = max(T, 1);
 //Bubble point calculation
-  Pbubl = sum(gmabubl_c[:] .* x_pc[1, :] .* exp(C[:].VP[2] + C[:].VP[3] / T + C[:].VP[4] * log(T) + C[:].VP[5] .* T .^ C[:].VP[6]) ./ philiqbubl_c[:]);
+  Pbubl = sum(gmabubl_c[:] .* x_pc[1, :] .* exp(C[:].VP[2] + C[:].VP[3] / T_safe + C[:].VP[4] * log(T_safe) + C[:].VP[5] .* T_safe .^ C[:].VP[6]) ./ philiqbubl_c[:]);
 //Dew point calculation
-  Pdew = 1 / sum(x_pc[1, :] ./ (gmadew_c[:] .* exp(C[:].VP[2] + C[:].VP[3] / T + C[:].VP[4] * log(T) + C[:].VP[5] .* T .^ C[:].VP[6])) .* phivapdew_c[:]);
+  Pdew = 1 / noEvent(max(sum(x_pc[1, :] ./ (gmadew_c[:] .* exp(C[:].VP[2] + C[:].VP[3] / T_safe + C[:].VP[4] * log(T_safe) + C[:].VP[5] .* T_safe .^ C[:].VP[6])) .* phivapdew_c[:]), 1e-12));
   if P >= Pbubl then
 //below bubble point region
     x_pc[3, :] = zeros(Nc);
@@ -126,7 +128,7 @@ equation
 //VLE region
     for i in 1:Nc loop
       x_pc[3, i] = K_c[i] * x_pc[2, i];
-      x_pc[2, i] = x_pc[1, i] ./ (1 + xvap * (K_c[i] - 1));
+      x_pc[2, i] = x_pc[1, i] ./ noEvent(max(1 + xvap * (K_c[i] - 1), 1e-12));
     end for;
     sum(x_pc[3, :]) = 1;
 //sum y = 1

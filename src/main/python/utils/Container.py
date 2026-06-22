@@ -345,7 +345,7 @@ class Container():
             # ----------------------------
             # Step 7: Success / Failure Report
             # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) >= 4:
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] Simulation <b>Successful.</b></span>"
                 )
@@ -357,7 +357,7 @@ class Container():
             # ----------------------------
             # Step 8: Post-Simulation Updates (only on success)
             # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) >= 4:
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
                 for it in self.graphics.scene.items():
                     if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
                         try:
