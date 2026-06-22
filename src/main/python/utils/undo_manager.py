@@ -1,4 +1,4 @@
-﻿import os
+import os
 import pickle
 import copy
 
@@ -17,11 +17,11 @@ def _load_stack(file_name):
         with open(file_path, "rb") as f:
             stack = pickle.load(f)
             if not isinstance(stack, list):
-                print(f"[DEBUG] UndoManager._load_stack → invalid format (not list)")
+                print(f"[DEBUG] UndoManager._load_stack -> invalid format (not list)")
                 return []
             return stack
     except Exception as e:
-        print(f"[DEBUG] UndoManager._load_stack failed → {e}")
+        print(f"[DEBUG] UndoManager._load_stack failed -> {e}")
         return []
 
 
@@ -37,32 +37,32 @@ def _save_stack(file_name, stack):
             pickle.dump(stack, f)
         os.replace(tmp_path, file_path)
     except Exception as e:
-        print(f"[DEBUG] UndoManager._save_stack failed → {e}")
+        print(f"[DEBUG] UndoManager._save_stack failed -> {e}")
 
 
 # -------------------- Public Interface -------------------- #
 def push(file_name, data):
     """Push snapshot to Undo/Redo stack (file-based)."""
     if data is None:
-        print(f"[DEBUG] UndoManager.push → skipped (None data)")
+        print(f"[DEBUG] UndoManager.push -> skipped (None data)")
         return
 
     stack = _load_stack(file_name)
     stack.append(copy.deepcopy(data))
     _save_stack(file_name, stack)
-    print(f"[DEBUG] UndoManager.push → file='{file_name}', stack_size={len(stack)}")
+    print(f"[DEBUG] UndoManager.push -> file='{file_name}', stack_size={len(stack)}")
 
 
 def pop(file_name):
     """Pop last snapshot from stack and return it."""
     stack = _load_stack(file_name)
     if not stack:
-        print(f"[DEBUG] UndoManager.pop → file='{file_name}', stack empty")
+        print(f"[DEBUG] UndoManager.pop -> file='{file_name}', stack empty")
         return None
 
     data = stack.pop()
     _save_stack(file_name, stack)
-    print(f"[DEBUG] UndoManager.pop → file='{file_name}', remaining={len(stack)}")
+    print(f"[DEBUG] UndoManager.pop -> file='{file_name}', remaining={len(stack)}")
     return data
 
 
@@ -70,7 +70,7 @@ def get_last_list(file_name):
     """Return top snapshot from the stack (without popping)."""
     stack = _load_stack(file_name)
     if not stack:
-        print(f"[DEBUG] UndoManager.get_last_list → {file_name} empty")
+        print(f"[DEBUG] UndoManager.get_last_list -> {file_name} empty")
         return None
     return copy.deepcopy(stack[-1])
 
@@ -86,9 +86,9 @@ def clean_file(file_name):
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
-        print(f"[DEBUG] UndoManager.clean_file → cleared {file_name}")
+        print(f"[DEBUG] UndoManager.clean_file -> cleared {file_name}")
     except Exception as e:
-        print(f"[DEBUG] UndoManager.clean_file failed → {e}")
+        print(f"[DEBUG] UndoManager.clean_file failed -> {e}")
 
 
 # -------------------- Optional Convenience -------------------- #
@@ -100,11 +100,11 @@ def reset_all():
 
 def swap_to_redo():
     """
-    Utility: move current snapshot from Undo → Redo.
+    Utility: move current snapshot from Undo -> Redo.
     Used automatically during Undo operations.
     """
     last = get_last_list("Undo")
     if last:
         push("Redo", last)
         pop("Undo")
-        print("[DEBUG] UndoManager.swap_to_redo → moved top from Undo → Redo")
+        print("[DEBUG] UndoManager.swap_to_redo -> moved top from Undo -> Redo")
