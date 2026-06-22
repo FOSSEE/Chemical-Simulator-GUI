@@ -1,4 +1,4 @@
-﻿within Simulator.GuessModels;
+within Simulator.GuessModels;
 
 model InitialGuess
 
@@ -42,6 +42,36 @@ model InitialGuess
       //Flow Rate-Guess
       parameter Real Fliqg(fixed = false), Fvapg(fixed = false);
     
+      protected
+        function computeFractions
+          input Real xguess;
+          input Real Beta;
+          input Real K_guess;
+          input Real xvapg;
+          output Real xmol;
+          output Real ymol;
+        algorithm
+          if xguess <> 0 then
+            if Beta > 0 and Beta <> 1 then
+              ymol := xguess * K_guess / ((K_guess - 1) * xvapg + 1);
+            elseif Beta == 1 then
+              ymol := xguess;
+            else
+              ymol := 0;
+            end if;
+            if Beta > 0 and Beta < 1 then
+              xmol := ymol / K_guess;
+            elseif Beta == 0 then
+              xmol := xguess;
+            else
+              xmol := 0;
+            end if;
+          else
+            xmol := 0;
+            ymol := 0;
+          end if;
+        end computeFractions;
+
       //======================================================================================
     initial equation
      for i in 1:Nc loop
@@ -84,25 +114,7 @@ model InitialGuess
       end if;
       Alpha = 1 - Beta;
       for i in 1:Nc loop
-        if xguess[i] <> 0 then
-          if Beta > 0 and Beta <> 1 then
-            ymol[i] = xguess[i] * K_guess[i] / ((K_guess[i] - 1) * xvapg + 1);
-          elseif Beta == 1 then
-            ymol[i] = xguess[i];
-          else
-            ymol[i] = 0;
-          end if;
-          if Beta > 0 and Beta < 1 then
-            xmol[i] = ymol[i] / K_guess[i];
-          elseif Beta == 0 then
-            xmol[i] = xguess[i];
-          else
-            xmol[i] = 0;
-          end if;
-        else
-          xmol[i] = 0;
-          ymol[i] = 0;
-        end if;
+        (xmol[i], ymol[i]) = computeFractions(xguess[i], Beta, K_guess[i], xvapg);
       end for;
       for i in 1:Nc loop
         if xmol[i] < 0 then
