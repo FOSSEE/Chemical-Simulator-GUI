@@ -363,10 +363,10 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     propertyname = name + '.' + p[phase]
                     #print("phase ", phase, propertyname)
                     for i in result[0]:
-                        if i.find('['):
+                        if '[' in i:
                             if (propertyname == i[0:i.find('[')]):
                                 phaseResLst.append(i)
-                        if propertyname == i:
+                        elif propertyname == i:
                             phaseResLst.append(i)
                 #print(phaseResLst)
                 
