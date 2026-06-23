@@ -354,9 +354,11 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                                                         obj.variables[k.split('.')[1]]['unit']])
                         if (compound_no + 1) == len(compound_selected):
                             j += 1
+                # drop down default behaviour is set to expanded
+                self.mTreeWidget.expandAll()
+                self.lTreeWidget.expandAll()
+                self.vTreeWidget.expandAll()
 
-
-                
                 # Phase Properties Tab
                 phaseResLst = []
                 for phase in p:
