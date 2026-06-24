@@ -76,25 +76,9 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         for j in lines:
             self.cbTP.addItem(str(j))
 
-        # --- Clean Scrollable Layout Hierarchy ---
-        # 1. Create a QScrollArea instance for the tab's main content wrapper.
-        self.scrollArea = QScrollArea()
-        # 2. Set scroll_area.setWidgetResizable(True) so that the contents dynamically adapt to the dock panel's width.
-        self.scrollArea.setWidgetResizable(True)
-        # 3. Turn off horizontal scrollbars explicitly.
-        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # 4. Enable vertical scrollbars on-demand.
-        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.scrollArea.setFrameShape(QFrame.NoFrame)
-
-        # 5. Create a container widget to act as the viewport content.
-        self.scrollWidget = QWidget()
-        # 6. Create a layout for this container to hold ALL form elements.
-        self.innerLayout = QVBoxLayout(self.scrollWidget)
-        self.innerLayout.setContentsMargins(5, 5, 5, 5)
-        self.innerLayout.setSpacing(10)
-
-        # 7. Move all elements (Mode Selection, Parameters, Buttons) into this container widget.
+        # --- Place all Input Data controls directly in the tab ---
+        # No inner QScrollArea: the controls live straight in the tab's layout
+        # so they always fill the whole panel instead of a small sub-region.
         widgets_to_move = []
         if hasattr(self, 'groupBox'): widgets_to_move.append(self.groupBox)
         if hasattr(self, 'groupBox_2'): widgets_to_move.append(self.groupBox_2)
@@ -103,25 +87,60 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         widgets_to_move.append(self.btn_normalize)
         widgets_to_move.append(self.btn_equalize)
 
-        for w in widgets_to_move:
-            w.setParent(None)
-            self.innerLayout.addWidget(w)
-        
-        # Add a stretch at the bottom to ensure widgets stay at the top
-        self.innerLayout.addStretch()
-
-        # 8. Set this container widget as the scroll area's widget.
-        self.scrollArea.setWidget(self.scrollWidget)
-
-        # Finally, set the QScrollArea as the main widget inside the "Input Data" tab's layout.
+        # Clear whatever the .ui left in the Input Data tab layout.
         while self.verticalLayout_5.count():
             item = self.verticalLayout_5.takeAt(0)
             if item.widget():
                 item.widget().setParent(None)
-        
-        self.verticalLayout_5.addWidget(self.scrollArea)
+
+        # The .ui pins this layout to QLayout::SetFixedSize, which clamps the
+        # content to a tiny fixed region. Let it follow the panel size instead.
+        self.verticalLayout_5.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.verticalLayout_5.setContentsMargins(8, 8, 8, 8)
+        self.verticalLayout_5.setSpacing(8)
+        for w in widgets_to_move:
+            w.setParent(None)
+            self.verticalLayout_5.addWidget(w)
+        # Stretch keeps controls anchored at the top when the panel is tall.
+        self.verticalLayout_5.addStretch()
 
         self.modes()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Content (compounds, mode fields) can change between shows, so float
+        # and re-fit once the layout has settled.
+        QTimer.singleShot(0, self._fit_panel)
+
+    def _fit_panel(self):
+        # Pop the panel out as a floating window so it isn't squeezed by the
+        # other docks sharing the left area, then size it to its content.
+        if not self.isFloating():
+            self.setFloating(True)
+        self._autosize()
+
+    def _autosize(self):
+        """Size the panel so the Input Data controls fill it without scrolling."""
+        try:
+            self.tabWidget.adjustSize()
+            hint = self.tabWidget.sizeHint()
+            content_w, content_h = hint.width(), hint.height()
+
+            screen = QApplication.primaryScreen().availableGeometry()
+            # Comfortable minimums so nothing is clipped, capped to the screen
+            # so the window never grows off-screen.
+            desired_w = min(max(420, content_w + 40), int(screen.width() * 0.6))
+            desired_h = min(max(520, content_h + 80), int(screen.height() * 0.9))
+
+            self.setMinimumSize(min(420, desired_w), min(520, desired_h))
+            self.resize(desired_w, desired_h)
+
+            # Center the floating window on screen.
+            frame = self.frameGeometry()
+            frame.moveCenter(screen.center())
+            self.move(frame.topLeft())
+        except Exception as e:
+            print(e)
 
     # ------------------- input data tab -------------------
     def modes(self):
@@ -187,6 +206,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l
 
+            self._autosize()
         except Exception as e:
             print(e)
 
