@@ -12,12 +12,88 @@ from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
+class BaseDockWidget(QDockWidget):
+    """
+    Base class for all DockWidgets in the application.
+    Centralizes common methods (error popups, close events, locking UI) 
+    and standardizes variable names across all simulation parameter docks.
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        # Standardized list/dict to hold all input Qt Widgets
+        self.input_dict = []
+        
+        # Standardized list/dict to hold final parameter values for simulation
+        self.dict = []
+        
+    def show_error(self):
+        """Standard error popup for missing or invalid data."""
+        QMessageBox.about(self, 'Important', "Please fill all fields with data")
+
+    def closeEvent(self, event):
+        """Standard close event that resets horizontal scrollbar on closing."""
+        try:
+            if hasattr(self, 'container') and self.container:
+                currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+        except Exception:
+            pass
+
+    def set_read_only(self, readonly):
+        """Toggle read-only state on all input controls of a dock widget."""
+        # --- 1. input_dict (dict or list) ---
+        input_dict = getattr(self, 'input_dict', getattr(self, 'input_dict', {}))
+        widgets = input_dict.values() if isinstance(input_dict, dict) else input_dict
+
+        for widget in widgets:
+            if isinstance(widget, QLineEdit):
+                widget.setReadOnly(readonly)
+            elif isinstance(widget, (QComboBox, QCheckBox, QRadioButton)):
+                widget.setDisabled(readonly)
+
+        # --- 2. Extra QLineEdit lists (e.g. x_pclist in MaterialStream) ---
+        for le in getattr(self, 'x_pclist', []):
+            if isinstance(le, QLineEdit):
+                le.setReadOnly(readonly)
+
+        # --- 3. Common buttons and combo boxes ---
+        for attr in ('btn', 'pushButton_2', 'btn_normalize', 'btn_equalize',
+                     'comboBox', 'cbTP'):
+            w = getattr(self, attr, None)
+            if w is not None:
+                w.setDisabled(readonly)
+
+        # --- 4. Dynamically-added Submit button (CompoundSeparator) ---
+        if hasattr(self, 'calculationGroupBox'):
+            grid = getattr(self, 'gridLayout', None)
+            if grid:
+                for i in range(grid.count()):
+                    item = grid.itemAt(i)
+                    if item and isinstance(item.widget(), QPushButton):
+                        item.widget().setDisabled(readonly)
+
+    def clear_results(self):
+        """Clear the default table widget."""
+        if hasattr(self, 'tableWidget'):
+            self.tableWidget.setRowCount(0)
+
+    @staticmethod
+    def show_result(lst):
+        """Iterate over all dock widgets and request them to populate results."""
+        for dock_widget in lst:
+            try:
+                # Most subclasses implement results_category(name)
+                dock_widget.results_category(dock_widget.name)
+            except AttributeError:
+                pass
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidget.ui')
 
-class DockWidget(QDockWidget,ui_dialog):
+class DockWidget(BaseDockWidget,ui_dialog):
     
     def __init__(self,name,comptype,obj,container, parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
 
@@ -113,10 +189,7 @@ class DockWidget(QDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
+        # moved the function to BaseDockWidget class ( )
 
     def param(self):
         try:
@@ -157,17 +230,7 @@ class DockWidget(QDockWidget,ui_dialog):
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
-    @staticmethod
-    def show_result(lst):
-        for i in lst:
-            try:
-                i.results_category(i.name)
-            except AttributeError:
-                pass
-        
-    def clear_results(self):
-        self.tableWidget.setRowCount(0)
-
+    # moved the function to BaseDockWidget class
     # result data tab
     def results_category(self,name):
         flag = True
@@ -205,11 +268,4 @@ class DockWidget(QDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-    def closeEvent(self,event):
-        #added try block to safely handle the errors
-        try:
-            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
-            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-        except Exception:
-            pass
+            # moved the function to BaseDockWidget class
