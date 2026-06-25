@@ -20,18 +20,14 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         self.setupUi(self)
         self.setWindowTitle(obj.name)
 
-        # --- Make dock content resizable ---
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        content = self.widget()
-        if content is None:
-            content = QWidget()
-            self.setWidget(content)
-        if content.layout() is None:
-            layout = QVBoxLayout(content)
-            layout.setContentsMargins(0, 0, 0, 0)
-            if hasattr(self, 'tabWidget'):
-                self.tabWidget.setParent(None)
-                layout.addWidget(self.tabWidget)
+        self.tabWidget.setParent(None)
+        self.tabWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        _content = QWidget()
+        _contentLayout = QVBoxLayout(_content)
+        _contentLayout.setContentsMargins(0, 0, 0, 0)
+        _contentLayout.addWidget(self.tabWidget)
+        self.setWidget(_content)
 
         self.name = name
         self.obj = obj
@@ -104,41 +100,45 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         # Stretch keeps controls anchored at the top when the panel is tall.
         self.verticalLayout_5.addStretch()
 
+        QWIDGETSIZE_MAX = 16777215
+        for _lay in self.findChildren(QLayout):
+            if _lay.sizeConstraint() == QLayout.SetFixedSize:
+                _lay.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.tab.setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)
+        for _gb in (getattr(self, 'groupBox', None),
+                    getattr(self, 'groupBox_2', None),
+                    getattr(self, 'groupBox_3', None)):
+            if _gb is not None:
+                _gb.setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX)
+                _gb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+
         self.modes()
 
     def showEvent(self, event):
         super().showEvent(event)
-        # Content (compounds, mode fields) can change between shows, so float
-        # and re-fit once the layout has settled.
-        QTimer.singleShot(0, self._fit_panel)
-
-    def _fit_panel(self):
-        # Pop the panel out as a floating window so it isn't squeezed by the
-        # other docks sharing the left area, then size it to its content.
-        if not self.isFloating():
-            self.setFloating(True)
-        self._autosize()
+        # content (compounds, mode fields) can change between shows, so re-fit
+        # once the layout has settled.
+        QTimer.singleShot(0, self._autosize)
 
     def _autosize(self):
-        """Size the panel so the Input Data controls fill it without scrolling."""
+        """Size the docked panel so all Input Data controls fit without scrolling."""
         try:
             self.tabWidget.adjustSize()
-            hint = self.tabWidget.sizeHint()
-            content_w, content_h = hint.width(), hint.height()
+            content_w = self.verticalLayout_5.sizeHint().width()
+            content_h = self.verticalLayout_5.sizeHint().height()
 
             screen = QApplication.primaryScreen().availableGeometry()
-            # Comfortable minimums so nothing is clipped, capped to the screen
-            # so the window never grows off-screen.
-            desired_w = min(max(420, content_w + 40), int(screen.width() * 0.6))
-            desired_h = min(max(520, content_h + 80), int(screen.height() * 0.9))
+            # comfortable bounds so nothing is clipped, capped to the screen.
+            desired_w = min(max(300, content_w + 30), int(screen.width() * 0.4))
+            desired_h = min(max(440, content_h + 90), int(screen.height() * 0.85))
 
-            self.setMinimumSize(min(420, desired_w), min(520, desired_h))
-            self.resize(desired_w, desired_h)
-
-            # Center the floating window on screen.
-            frame = self.frameGeometry()
-            frame.moveCenter(screen.center())
-            self.move(frame.topLeft())
+            self.setMinimumWidth(desired_w)
+            mw = self.parent()
+            if isinstance(mw, QMainWindow) and not self.isFloating():
+                mw.resizeDocks([self], [desired_w], Qt.Horizontal)
+                mw.resizeDocks([self], [desired_h], Qt.Vertical)
+            else:
+                self.resize(desired_w, desired_h)
         except Exception as e:
             print(e)
 
