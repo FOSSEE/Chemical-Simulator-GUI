@@ -3,7 +3,7 @@ import datetime
 import os, sys
 
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget
 from PyQt5.QtGui import QCursor
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -349,10 +349,18 @@ class Container():
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] Simulation <b>Successful.</b></span>"
                 )
+                # Lock all dock widgets to read-only on success
+                for dw in dock_widget_lst:
+                    if hasattr(dw, 'set_read_only'):
+                        dw.set_read_only(True)
             else:
                 self.signals.msg_signal.emit(
                     f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
                 )
+                # Keep dock widgets editable on failure
+                for dw in dock_widget_lst:
+                    if hasattr(dw, 'set_read_only'):
+                        dw.set_read_only(False)
 
             # ----------------------------
             # Step 8: Post-Simulation Updates (only on success)
@@ -391,6 +399,14 @@ class Container():
         """Slot called on the main thread when simulation results are ready."""
         try:
             DockWidget.show_result(dock_widget_lst)
+            # Make all result table items non-editable
+            for dw in dock_widget_lst:
+                for tw in dw.findChildren(QTableWidget):
+                    for row in range(tw.rowCount()):
+                        for col in range(tw.columnCount()):
+                            item = tw.item(row, col)
+                            if item:
+                                item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         except Exception as e:
             print(f"[DEBUG] _populate_results failed: {e}")
 
