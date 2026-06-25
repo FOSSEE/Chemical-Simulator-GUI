@@ -15,12 +15,14 @@ from python.utils.ComponentSelector import *
 from collections import defaultdict
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetCompoundSeparator.ui')
 
-class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
+class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
@@ -88,9 +90,6 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
-
     def update_compounds(self):
         try:
             if hasattr(self.obj, 'update_compounds'):
@@ -138,10 +137,3 @@ class DockWidgetCompoundSeparator(QDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-    def closeEvent(self,event):
-        #added try block to safely handle the errors
-        try:
-            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
-            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-        except Exception:
-            pass
