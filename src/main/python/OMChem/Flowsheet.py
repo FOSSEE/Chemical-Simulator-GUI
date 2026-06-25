@@ -93,6 +93,9 @@ class Flowsheet():
         if self.sim_method == 'Eqn':
             simpath = self.eqn_mos_path
             os.chdir(self.sim_dir_path)
+            csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
+            if os.path.exists(csvpath):
+                os.remove(csvpath)
             if platform.system() == "Windows":
                 from subprocess import STARTUPINFO, STARTF_USESHOWWINDOW
 
