@@ -35,6 +35,9 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         self.input_dict = {}
         self.x_pclist = []
 
+        self.setMinimumWidth(240)
+        self._has_autosized = False
+
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
         self.pushButton_2.clicked.connect(self.param)
 
@@ -116,12 +119,12 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
     def showEvent(self, event):
         super().showEvent(event)
-        # content (compounds, mode fields) can change between shows, so re-fit
-        # once the layout has settled.
-        QTimer.singleShot(0, self._autosize)
+        if not self._has_autosized:
+            QTimer.singleShot(0, self._autosize)
 
     def _autosize(self):
-        """Size the docked panel so all Input Data controls fit without scrolling."""
+        if self._has_autosized:
+            return
         try:
             self.tabWidget.adjustSize()
             content_w = self.verticalLayout_5.sizeHint().width()
@@ -132,13 +135,13 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             desired_w = min(max(300, content_w + 30), int(screen.width() * 0.4))
             desired_h = min(max(440, content_h + 90), int(screen.height() * 0.85))
 
-            self.setMinimumWidth(desired_w)
             mw = self.parent()
             if isinstance(mw, QMainWindow) and not self.isFloating():
                 mw.resizeDocks([self], [desired_w], Qt.Horizontal)
                 mw.resizeDocks([self], [desired_h], Qt.Vertical)
             else:
                 self.resize(desired_w, desired_h)
+            self._has_autosized = True
         except Exception as e:
             print(e)
 
@@ -205,8 +208,6 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                         lay.addWidget(QLabel("mol/s"), 0, 2, alignment=Qt.AlignLeft)
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l
-
-            self._autosize()
         except Exception as e:
             print(e)
 
