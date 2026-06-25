@@ -809,7 +809,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.main_window = findMainWindow(self)
         # self.dock_widget.setFixedWidth(360)
         # self.dock_widget.setFixedHeight(640)
-        self.dock_widget.setMinimumSize(280, 400)
+        self.dock_widget.setMinimumSize(220, 250)
         self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.dock_widget.setFeatures(QDockWidget.AllDockWidgetFeatures)
         if self.main_window is not None:

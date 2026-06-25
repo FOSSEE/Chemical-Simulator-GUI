@@ -216,6 +216,7 @@ class MainApp(QMainWindow,ui):
         self.graphicsView.keyPressEvent=self.delete_call
         
         self.setDockNestingEnabled(True)
+        self._style_dock_separators()
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget)
@@ -254,6 +255,18 @@ class MainApp(QMainWindow,ui):
             [120],
             Qt.Vertical
         )
+
+    def _style_dock_separators(self):
+        self.setStyleSheet(self.styleSheet() + """
+            QMainWindow::separator {
+                background: #e4e4e4;
+                width: 6px;
+                height: 6px;
+            }
+            QMainWindow::separator:hover {
+                background: #0a84ff;
+            }
+        """)
 
     '''
         MenuBar function handels all the all the operations of 
