@@ -48,14 +48,14 @@ class BaseDockWidget(QDockWidget):
 
         for widget in widgets:
             if isinstance(widget, QLineEdit):
-                widget.setReadOnly(readonly)
+                widget.setDisabled(readonly)
             elif isinstance(widget, (QComboBox, QCheckBox, QRadioButton)):
                 widget.setDisabled(readonly)
 
         # --- 2. Extra QLineEdit lists (e.g. x_pclist in MaterialStream) ---
         for le in getattr(self, 'x_pclist', []):
             if isinstance(le, QLineEdit):
-                le.setReadOnly(readonly)
+                le.setDisabled(readonly)
 
         # --- 3. Common buttons and combo boxes ---
         for attr in ('btn', 'pushButton_2', 'btn_normalize', 'btn_equalize',

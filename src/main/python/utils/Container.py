@@ -399,6 +399,12 @@ class Container():
         """Slot called on the main thread when simulation results are ready."""
         try:
             DockWidget.show_result(dock_widget_lst)
+            
+            # Re-apply read-only state because show_result recreates the input fields
+            for dw in dock_widget_lst:
+                if hasattr(dw, 'set_read_only'):
+                    dw.set_read_only(True)
+
             # Make all result table items non-editable
             for dw in dock_widget_lst:
                 for tw in dw.findChildren(QTableWidget):
