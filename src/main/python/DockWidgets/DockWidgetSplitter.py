@@ -12,12 +12,14 @@ from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetSplitter.ui')
 
-class DockWidgetSplitter(QDockWidget,ui_dialog):
+class DockWidgetSplitter(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
@@ -87,9 +89,6 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
             self.u3.setText('')
             self.u4.setText('')
     
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
-
     def param(self):
         try:
             self.dict={}
@@ -116,11 +115,3 @@ class DockWidgetSplitter(QDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-    def closeEvent(self,event):
-        #added try block to safely handle the errors
-        try:
-            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
-            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-        except Exception:
-            pass

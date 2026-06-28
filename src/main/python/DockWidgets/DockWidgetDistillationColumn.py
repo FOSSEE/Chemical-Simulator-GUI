@@ -17,13 +17,15 @@ from python.utils.ComponentSelector import *
 from python.DockWidgets.DistillationColumnStagewiseResults import DistillationColumnStagewiseResults
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetDistillationColumn.ui')
 
 
-class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
+class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
@@ -162,9 +164,6 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             self.cb4.setDisabled(False)
         else:
             self.cb4.setDisabled(True)
-    
-    def Show_Error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
@@ -391,11 +390,3 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-    def closeEvent(self,event):
-         #added try block to safely handle the errors
-        try:
-            currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
-            self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-        except Exception:
-            pass
