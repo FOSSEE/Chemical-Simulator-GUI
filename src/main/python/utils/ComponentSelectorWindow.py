@@ -4,11 +4,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../u
 
 from ComponentSelector import Ui_Dialog
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 
 class ComponentSelectorWindow(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
