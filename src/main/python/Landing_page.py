@@ -372,34 +372,25 @@ class LandingPage(QWidget):
     def show_about(self):
         self.about_window = QWidget()
         self.about_window.setWindowTitle("About Chemical Simulator GUI")
-        self.about_window.setStyleSheet("background-color: #ffffff;")
-        self.about_window.showMaximized()
+        self.about_window.setStyleSheet("background-color: #0f172a;")
 
         layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.about_window.setLayout(layout)
 
-        about_widget = AboutPage()
+        about_widget = AboutPage(on_close=self.about_window.close)
         layout.addWidget(about_widget)
 
-        close_btn = QPushButton("Close")
-        close_btn.setFixedHeight(50)
-        close_btn.setFont(QFont("Segoe UI", 16))
-        close_btn.setStyleSheet("""
-            QPushButton {
-                color: white;
-                background-color: #1e3c72;
-                border-radius: 10px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #2a5298;
-            }
-        """)
-        close_btn.clicked.connect(self.about_window.close)
-        layout.addWidget(close_btn, alignment=Qt.AlignCenter)
+        self.about_window.showMaximized()
 
-        self.about_window.show()
+        # Smooth fade-in (matches the Landing page entrance)
+        self.about_window.setWindowOpacity(0)
+        self._about_anim = QPropertyAnimation(self.about_window, b"windowOpacity")
+        self._about_anim.setDuration(500)
+        self._about_anim.setStartValue(0)
+        self._about_anim.setEndValue(1)
+        self._about_anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self._about_anim.start()
 
     def reset_cursor(self):
         print("[DEBUG] reset_cursor called, overrideCursor:", QApplication.overrideCursor())
