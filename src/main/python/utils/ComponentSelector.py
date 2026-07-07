@@ -67,6 +67,7 @@ class ComponentSelector(QDialog, ui_dialog):
     compounds_changed = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setupUi(self)
         self.resize(1100, 700)
 
@@ -126,7 +127,7 @@ class ComponentSelector(QDialog, ui_dialog):
 
         # populate table
         self.filtered_data = compounds_data[:]
-        self.load_table()
+        self.sync_state()
 
     # ----------------------------
     # Table Management
@@ -232,6 +233,15 @@ class ComponentSelector(QDialog, ui_dialog):
         self.update_added_compounds()
         self.load_table()
 
+    def sync_state(self):
+        current_names = [n.replace('(chemsep)', '') for n in compound_selected]
+        self.set_compounds(current_names)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if hasattr(self, 'compounds_data') and self.compounds_data:
+            self.sync_state()
+
     # ----------------------------
     # OK / Cancel Handling
     # ----------------------------
@@ -248,15 +258,13 @@ class ComponentSelector(QDialog, ui_dialog):
             return []
 
     def accept(self):
+        compound_selected.clear()
         for name in self.selected_names_list:
             stored_name = name + '(chemsep)'
-            if stored_name not in compound_selected:
-                compound_selected.append(stored_name)
+            compound_selected.append(stored_name)
         super().accept()
 
     def cancel(self):
-        compound_selected.clear()
-        self.tableWidget.setRowCount(0)
         self.reject()
 
     def is_compound_selected(self):
