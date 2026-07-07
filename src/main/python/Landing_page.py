@@ -217,6 +217,8 @@ class LandingPage(QWidget):
             print(f"[DEBUG] Opening existing project from Landing Page: {file_path}")
             self._cleanup_main_window()
             self.main_window = MainApp()
+            # Hide compound selector — open() will load saved compounds from file
+            self.main_window.comp.hide()
 
             # Connect to closed signal to restore landing page
             self.main_window.closed.connect(lambda: QTimer.singleShot(0, self.restore_landing_page))
