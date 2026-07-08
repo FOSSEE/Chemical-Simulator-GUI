@@ -9,6 +9,10 @@ import pyuac
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# Alias built-in open() to avoid collision with MainApp.open() method
+import builtins
+builtins_open = builtins.open
+
 current = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(current)
 sys.path.append(parentPath)
@@ -830,31 +834,40 @@ class MainApp(QMainWindow,ui):
         Function for loading previous saved canvas and simulation 
     '''
 
-    def open(self):
+    def open(self, file_path=None):
         try:
-            file_format = 'sim'
-            initial_path = QDir.currentPath() + 'untitled.' + file_format
+            if file_path:
+                file_name = file_path
+            else:
+                file_format = 'sim'
+                initial_path = QDir.currentPath() + 'untitled.' + file_format
 
-            file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
-                                                      initial_path, "%s Files (*.%s);; All Files (*)" %
-                                                      (file_format.upper(), file_format))
+                file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
+                                                          initial_path, "%s Files (*.%s);; All Files (*)" %
+                                                          (file_format.upper(), file_format))
             if file_name:
                 fileName = file_name.split('/')[-1].split('.')[0]
                 self.setWindowTitle(fileName+' - Chemical Simulator GUI')
+                self.last_saved_project = file_name
 
                 self.undo_redo_helper()
 
-                with open(file_name, 'rb') as f:
+                with builtins_open(file_name, 'rb') as f:
                     obj = pickle.load(f)
                 temp_result = obj[-1]
 
                 obj.pop()
-                compound_selected = obj[-1]
+                saved_compounds = obj[-1]
                 obj.pop()
-                self.comp.set_compounds(compound_selected)
-                for i in compound_selected:
-                    self.comp.compound_selection(self.comp, i)
+
+                # Update the global compound_selected list in-place
+                compound_selected.clear()
+                compound_selected.extend(saved_compounds)
+
+                self.comp.set_compounds(saved_compounds)
                 self.comp.hide()
+                self._refresh_selected_compounds()
+
                 self.container.graphics.load_canvas(obj, self.container)
                 self.container.result = temp_result
                 DockWidget.show_result(dock_widget_lst)
@@ -872,8 +885,14 @@ class MainApp(QMainWindow,ui):
                         if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
                             i.obj.disableInputDataTab(i.dock_widget)
 
+                self.textBrowser.append(
+                    f"<span style='color:green'>[{self.current_time()}] Project <b>{fileName}</b> loaded successfully.</span>"
+                )
+
         except Exception as e:
-            print(e)
+            print(f"[ERROR] open() failed: {e}")
+            import traceback; traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to load project:\n{str(e)}")
 
     '''
         Function for toggling the display of Component Selector 

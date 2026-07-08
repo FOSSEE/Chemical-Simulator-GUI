@@ -212,14 +212,26 @@ class Container():
                             pass
 
                         show_warning = False
-                        for ip in getattr(item, "input", []):
-                            if len(getattr(ip, "in_lines", [])) == 0:
+                        
+                        # Calculate total connections
+                        total_in = sum(len(getattr(ip, "in_lines", [])) for ip in getattr(item, "input", []))
+                        total_out = sum(len(getattr(op, "out_lines", [])) for op in getattr(item, "output", []))
+                        
+                        if item.type in ['MaterialStream', 'EngStm']:
+                            # Streams only need to be connected on one side (feed or product)
+                            if total_in == 0 and total_out == 0:
                                 show_warning = True
-                                missing_connections.append((item.name, "input"))
-                        for op in getattr(item, "output", []):
-                            if len(getattr(op, "out_lines", [])) == 0:
-                                show_warning = True
-                                missing_connections.append((item.name, "output"))
+                                missing_connections.append((item.name, "unconnected"))
+                        else:
+                            # Standard operations must have all their created sockets connected
+                            for ip in getattr(item, "input", []):
+                                if len(getattr(ip, "in_lines", [])) == 0:
+                                    show_warning = True
+                                    missing_connections.append((item.name, "input"))
+                            for op in getattr(item, "output", []):
+                                if len(getattr(op, "out_lines", [])) == 0:
+                                    show_warning = True
+                                    missing_connections.append((item.name, "output"))
 
                         if show_warning:
                             warnings_html += f"<br><span style='color:#999900'>Warning: {item.name} - Missing Socket Connection(s).</span>"
