@@ -156,333 +156,347 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>Results</string>
-    </attribute>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QToolBox" name="toolBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>8</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QToolBox{
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Results</string>
+     </attribute>
+     <layout class="QVBoxLayout" name="resultsMainLayout">
+      <item>
+       <widget class="QTabWidget" name="resultsTabWidget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <!-- ==================== Amounts Tab ==================== -->
+        <widget class="QWidget" name="amountsTab">
+         <attribute name="title">
+          <string>Amounts</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="amountsMainLayout">
+          <item>
+           <layout class="QHBoxLayout" name="compositionBasisLayout">
+            <item>
+             <widget class="QLabel" name="lblCompositionBasis">
+              <property name="text">
+               <string>Composition Basis:</string>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cbCompositionBasis">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTabWidget" name="amountsPhaseTabWidget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <!-- Mixture phase tab -->
+            <widget class="QWidget" name="amountsMixtureTab">
+             <attribute name="title">
+              <string>Mixture</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="amountsMixtureLayout">
+              <item>
+               <widget class="QTableWidget" name="amountsMixtureTable">
+                <property name="columnCount">
+                 <number>2</number>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Compound</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <!-- Liquid phase tab -->
+            <widget class="QWidget" name="amountsLiquidTab">
+             <attribute name="title">
+              <string>Liquid</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="amountsLiquidLayout">
+              <item>
+               <widget class="QTableWidget" name="amountsLiquidTable">
+                <property name="columnCount">
+                 <number>2</number>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Compound</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <!-- Vapour phase tab -->
+            <widget class="QWidget" name="amountsVapourTab">
+             <attribute name="title">
+              <string>Vapour</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="amountsVapourLayout">
+              <item>
+               <widget class="QTableWidget" name="amountsVapourTable">
+                <property name="columnCount">
+                 <number>2</number>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Compound</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <!-- ==================== Phase Properties Tab ==================== -->
+        <widget class="QWidget" name="phasePropsTab">
+         <attribute name="title">
+          <string>Phase Properties</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="phasePropsMainLayout">
+          <item>
+           <widget class="QToolBox" name="phasePropsToolBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QToolBox{
 	background: white;
 	border: 1px solid gray;
 	selection-background-color: rgb(255, 170, 127);
 }
 </string>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="mixtureTB">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>341</width>
-          <height>518</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QWidget{
-	background: white;
-}</string>
-        </property>
-        <attribute name="label">
-         <string>Mixture</string>
-        </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QTabWidget" name="tabWidget_2">
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">QTabWidget{
-	background: rgb(240, 240, 240);
-}</string>
-           </property>
-           <property name="tabPosition">
-            <enum>QTabWidget::North</enum>
-           </property>
-           <property name="tabShape">
-            <enum>QTabWidget::Triangular</enum>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <property name="elideMode">
-            <enum>Qt::ElideNone</enum>
-           </property>
-           <widget class="QWidget" name="tab_3">
-            <attribute name="title">
-             <string>Amounts</string>
-            </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <item>
-              <widget class="QTreeWidget" name="mTreeWidget">
-               <attribute name="headerCascadingSectionResizes">
-                <bool>false</bool>
-               </attribute>
-               <attribute name="headerDefaultSectionSize">
-                <number>150</number>
-               </attribute>
-               <attribute name="headerShowSortIndicator" stdset="0">
-                <bool>false</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <!-- Mixture Phase Properties -->
+            <widget class="QWidget" name="phasePropsM">
+             <property name="styleSheet">
+              <string notr="true">QWidget{ background: white; }</string>
+             </property>
+             <attribute name="label">
+              <string>Mixture</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="phasePropsMLayout">
+              <item>
+               <widget class="QTableWidget" name="mTableWidget">
+                <property name="columnCount">
+                 <number>3</number>
                 </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
+                <attribute name="horizontalHeaderDefaultSectionSize">
+                 <number>100</number>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Attribute</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Unit</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <!-- Liquid Phase Properties -->
+            <widget class="QWidget" name="phasePropsL">
+             <property name="styleSheet">
+              <string notr="true">QWidget{ background: white; }</string>
+             </property>
+             <attribute name="label">
+              <string>Liquid</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="phasePropsLLayout">
+              <item>
+               <widget class="QTableWidget" name="lTableWidget">
+                <property name="columnCount">
+                 <number>3</number>
+                </property>
+                <attribute name="horizontalHeaderDefaultSectionSize">
+                 <number>100</number>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Attribute</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Unit</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <!-- Vapour Phase Properties -->
+            <widget class="QWidget" name="phasePropsV">
+             <property name="styleSheet">
+              <string notr="true">QWidget{ background: white; }</string>
+             </property>
+             <attribute name="label">
+              <string>Vapour</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="phasePropsVLayout">
+              <item>
+               <widget class="QTableWidget" name="vTableWidget">
+                <property name="columnCount">
+                 <number>3</number>
+                </property>
+                <attribute name="horizontalHeaderDefaultSectionSize">
+                 <number>100</number>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Attribute</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Unit</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
-           <widget class="QWidget" name="tab_4">
-            <attribute name="title">
-             <string>Phase Properties</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QTableWidget" name="mTableWidget">
-               <property name="columnCount">
-                <number>3</number>
-               </property>
-               <attribute name="horizontalHeaderCascadingSectionResizes">
-                <bool>false</bool>
-               </attribute>
-               <attribute name="horizontalHeaderDefaultSectionSize">
-                <number>100</number>
-               </attribute>
-               <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                <bool>false</bool>
-               </attribute>
-               <attribute name="horizontalHeaderStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-               <attribute name="verticalHeaderStretchLastSection">
-                <bool>false</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Attribute</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Value</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Unit</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
-       <widget class="QWidget" name="liquidTB">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>341</width>
-          <height>518</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QWidget{
-	background: white;
-}</string>
-        </property>
-        <attribute name="label">
-         <string>Liquid</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QTabWidget" name="tabWidget_3">
-           <property name="styleSheet">
-            <string notr="true">QTabWidget{
-	background: rgb(240, 240, 240);
-}</string>
-           </property>
-           <property name="tabShape">
-            <enum>QTabWidget::Triangular</enum>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="tab_5">
-            <attribute name="title">
-             <string>Amounts</string>
-            </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QTreeWidget" name="lTreeWidget">
-               <attribute name="headerDefaultSectionSize">
-                <number>150</number>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="tab_6">
-            <attribute name="title">
-             <string>Phase Properties</string>
-            </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout_9">
-             <item>
-              <widget class="QTableWidget" name="lTableWidget">
-               <property name="columnCount">
-                <number>3</number>
-               </property>
-               <attribute name="horizontalHeaderDefaultSectionSize">
-                <number>100</number>
-               </attribute>
-               <attribute name="horizontalHeaderStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Attribute</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Value</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Unit</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="vapourTB">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>137</width>
-          <height>96</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QWidget{
-	background: white;
-
-}</string>
-        </property>
-        <attribute name="label">
-         <string>Vapour</string>
-        </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
-         <item>
-          <widget class="QTabWidget" name="tabWidget_4">
-           <property name="styleSheet">
-            <string notr="true">QTabWidget{
-	background: rgb(240, 240, 240);
-}</string>
-           </property>
-           <property name="tabShape">
-            <enum>QTabWidget::Triangular</enum>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="tab_7">
-            <attribute name="title">
-             <string>Amounts</string>
-            </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QTreeWidget" name="vTreeWidget">
-               <attribute name="headerDefaultSectionSize">
-                <number>150</number>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="tab_8">
-            <attribute name="title">
-             <string>Phase Properties</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <item>
-              <widget class="QTableWidget" name="vTableWidget">
-               <property name="columnCount">
-                <number>3</number>
-               </property>
-               <attribute name="horizontalHeaderDefaultSectionSize">
-                <number>100</number>
-               </attribute>
-               <attribute name="horizontalHeaderStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Attribute</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Value</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Unit</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+      </item>
+     </layout>
+    </widget>
   </widget>
  </widget>
  <resources/>
