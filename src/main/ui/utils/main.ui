@@ -25,7 +25,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -230,7 +230,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>200</width>
+     <width>150</width>
      <height>300</height>
     </size>
    </property>
@@ -298,7 +298,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>221</width>
+          <width>165</width>
           <height>956</height>
          </rect>
         </property>
