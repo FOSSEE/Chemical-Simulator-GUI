@@ -56,13 +56,13 @@ class CompSep():
         self.OM_data_eqn = ''
         comp_count = len(addedcomp)
         strcount = 1
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' + self.name + '.inlet' + ');\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.Out,' + self.name + '.In' + ');\n')
             
         for strm in self.OutputStms:
-            self.OM_data_eqn = self.OM_data_eqn + ('connect(' + strm.name + '.inlet,' + self.name + '.outlet'+str(strcount)+');\n')
+            self.OM_data_eqn = self.OM_data_eqn + ('connect(' + strm.name + '.In,' + self.name + '.Out'+str(strcount)+');\n')
             strcount += 1
         
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.outlet,' + self.name + '.energy);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.Out,' + self.name + '.En);\n')
         sepFac = str(self.SepFactValue).strip('[').strip(']')
 
         self.OM_data_eqn = self.OM_data_eqn + (self.name+'.sepFactVal= {'+ sepFac + '};\n')

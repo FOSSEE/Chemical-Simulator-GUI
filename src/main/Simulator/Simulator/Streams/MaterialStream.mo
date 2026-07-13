@@ -8,33 +8,42 @@ model MaterialStream "Model representing Material Stream"
   parameter Integer Nc "Number of components";
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
   Real P(unit = "Pa", min = 0, start = Pg) "Pressure";
-  Real T(unit = "K", start = Tg) "Temperature";
+  Real T(unit = "K", start = Tg, min = 1) "Temperature";
   Real Pbubl(unit = "Pa", min = 0, start = Pmin) "Bubble point pressure";
   Real Pdew(unit = "Pa", min = 0, start = Pmax) "dew point pressure";
-  Real xliq(unit = "-", start = xliqg, min = 0, max = 1) "Liquid Phase mole fraction";
-  Real xvap(unit = "-", start = xvapg, min = 0, max = 1) "Vapor Phase mole fraction";
-  Real xmliq(unit = "-", start = xliqg, min = 0, max = 1) "Liquid Phase mass fraction";
-  Real xmvap(unit = "-",start =xvapg, min = 0, max = 1) "Vapor Phase Mass fraction";
+  Real xliq(unit = "1", start = xliqg, min = 0, max = 1) "Liquid Phase mole fraction";
+  Real xvap(unit = "1", start = xvapg, min = 0, max = 1) "Vapor Phase mole fraction";
+  Real xmliq(unit = "1", start = xliqg, min = 0, max = 1) "Liquid Phase mass fraction";
+  Real xmvap(unit = "1",start =xvapg, min = 0, max = 1) "Vapor Phase Mass fraction";
   Real F_p[3](each unit = "mol/s", each min = 0, start={Fg,Fliqg,Fvapg}) "Total molar flow in phase";
   Real Fm_p[3](each unit = "kg/s", each min = 0, each start = Fg) "Total mass flow in phase";
-  Real MW_p[3](each unit = "-", each start = 0, each min = 0) "Average Molecular weight in phase";
-  Real x_pc[3, Nc](each unit = "-", each min = 0, each max = 1, start={xguess,xg,yg}) "Component mole fraction in phase";
-  Real xm_pc[3, Nc](each unit ="-", start={xguess,xg,yg}, each min = 0, each max = 1) "Component mass fraction in phase";
+  Real MW_p[3](each unit = "1", each start = 0, each min = 0) "Average Molecular weight in phase";
+  Real x_pc[3, Nc](each unit = "1", each min = 0, each max = 1, start={xguess,xg,yg}) "Component mole fraction in phase";
+  Real xm_pc[3, Nc](each unit = "1", start={xguess,xg,yg}, each min = 0, each max = 1) "Component mass fraction in phase";
   Real F_pc[3, Nc](each unit = "mol/s", each start = Fg, each min = 0) "Component molar flow in phase";
   Real Fm_pc[3, Nc](each unit = "kg/s", each min = 0, each start = Fg) "Component mass flow in phase";
-  Real Cp_p[3](each unit = "kJ/[kmol.K]",start={Hmixg,Hliqg,Hvapg}) "Phase molar specific heat";
-  Real Cp_pc[3, Nc](each unit = "kJ/[kmol.K]") "Component molar specific heat in phase";
+  Real Cp_p[3](each unit = "kJ/(kmol.K)",start={Hmixg,Hliqg,Hvapg}) "Phase molar specific heat";
+  Real Cp_pc[3, Nc](each unit = "kJ/(kmol.K)") "Component molar specific heat in phase";
   Real H_p[3](each unit = "kJ/kmol",start={Hmixg,Hliqg,Hvapg}) "Phase molar enthalpy";
   Real H_pc[3, Nc](each unit = "kJ/kmol") "Component molar enthalpy in phase";
-  Real S_p[3](each unit = "kJ/[kmol.K]") "Phase molar entropy";
-  Real S_pc[3, Nc](each unit = "kJ/[kmol.K]") "Component molar entropy in phase";
+  Real S_p[3](each unit = "kJ/(kmol.K)") "Phase molar entropy";
+  Real S_pc[3, Nc](each unit = "kJ/(kmol.K)") "Component molar entropy in phase";
   Simulator.Files.Interfaces.matConn In(Nc = Nc) annotation(
     Placement(visible = true, transformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {-100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
   Simulator.Files.Interfaces.matConn Out(Nc = Nc) annotation(
     Placement(visible = true, transformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0), iconTransformation(origin = {100, 0}, extent = {{-10, -10}, {10, 10}}, rotation = 0)));
 
   extends GuessModels.InitialGuess(Nc = Nc);
-
+  Real K_c[Nc];
+  Real Cpres_p[3];
+  Real Hres_p[3];
+  Real Sres_p[3];
+  Real gmabubl_c[Nc];
+  Real gmadew_c[Nc];
+  Real philiqbubl_c[Nc];
+  Real phivapdew_c[Nc];
+protected
+  Real T_safe;
 equation
 //Connector equations
   In.P = P;
@@ -75,10 +84,10 @@ equation
     xm_pc[3, :] = xm_pc[1, :];
   end if;
 //phase molar and mass fractions
-  xliq = F_p[2] / F_p[1];
-  xvap = F_p[3] / F_p[1];
-  xmliq = Fm_p[2] / Fm_p[1];
-  xmvap = Fm_p[3] / Fm_p[1];
+  xliq = F_p[2] / noEvent(max(F_p[1], 1e-12));
+  xvap = F_p[3] / noEvent(max(F_p[1], 1e-12));
+  xmliq = Fm_p[2] / noEvent(max(Fm_p[1], 1e-12));
+  xmvap = Fm_p[3] / noEvent(max(Fm_p[1], 1e-12));
 //Conversion between mole and mass flow
   for i in 1:Nc loop
     Fm_pc[:, i] = F_pc[:, i] * C[i].MW;
@@ -104,10 +113,11 @@ equation
   H_pc[1, :] = x_pc[1, :] .* H_p[1];
   S_p[1] = xliq * S_p[2] + xvap * S_p[3];
   S_pc[1, :] = x_pc[1, :] * S_p[1];
+  T_safe = max(T, 1);
 //Bubble point calculation
-  Pbubl = sum(gmabubl_c[:] .* x_pc[1, :] .* exp(C[:].VP[2] + C[:].VP[3] / T + C[:].VP[4] * log(T) + C[:].VP[5] .* T .^ C[:].VP[6]) ./ philiqbubl_c[:]);
+  Pbubl = sum(gmabubl_c[:] .* x_pc[1, :] .* exp(C[:].VP[2] + C[:].VP[3] / T_safe + C[:].VP[4] * log(T_safe) + C[:].VP[5] .* T_safe .^ C[:].VP[6]) ./ philiqbubl_c[:]);
 //Dew point calculation
-  Pdew = 1 / sum(x_pc[1, :] ./ (gmadew_c[:] .* exp(C[:].VP[2] + C[:].VP[3] / T + C[:].VP[4] * log(T) + C[:].VP[5] .* T .^ C[:].VP[6])) .* phivapdew_c[:]);
+  Pdew = 1 / noEvent(max(sum(x_pc[1, :] ./ (gmadew_c[:] .* exp(C[:].VP[2] + C[:].VP[3] / T_safe + C[:].VP[4] * log(T_safe) + C[:].VP[5] .* T_safe .^ C[:].VP[6])) .* phivapdew_c[:]), 1e-12));
   if P >= Pbubl then
 //below bubble point region
     x_pc[3, :] = zeros(Nc);
@@ -118,7 +128,7 @@ equation
 //VLE region
     for i in 1:Nc loop
       x_pc[3, i] = K_c[i] * x_pc[2, i];
-      x_pc[2, i] = x_pc[1, i] ./ (1 + xvap * (K_c[i] - 1));
+      x_pc[2, i] = x_pc[1, i] ./ noEvent(max(1 + xvap * (K_c[i] - 1), 1e-12));
     end for;
     sum(x_pc[3, :]) = 1;
 //sum y = 1
@@ -140,3 +150,6 @@ annotation(
 </div><div><br></div><div>For variables which are decalared as 1-D array, the array size represent the phase where the array element indices 1 represents mixed phase, 2 represents liquid phase and 3 represents vapor phase.</div><div><br></div><div>For example, variable <b>F_p[3]</b> represents <i>Total molar flow in different phase</i>. So when simulated, the variables in the results will be as follow:</div><div>F_p[1] is Molar flow in mixed phase</div><div>F_p[2] is Molar flow in liquid phase</div><div>F_p[3] is Molar flow in vapor phase</div><div><br></div><div><br></div><div>For variables which are decalared as 2-D array, the first indice represent phase and second indice represents components.<div><br></div><div>For example, variable&nbsp;<b>F_pc[3,Nc]</b>&nbsp;represents <i>Component&nbsp;molar flow in different phase</i>. So when simulated, the variables in the results will be as follow:</div><div>F_pc[1,Nc] is Molar flow of Nc<sup>th</sup> in mixed phase</div><div>F_pc[2,Nc] is Molar flow of Nc<sup>th</sup> in liquid phase</div><div>F_pc[3,Nc] is Molar flow of Nc<sup>th</sup> in vapor phase</div></div><div><br></div><div><br></div><div>For examples on simulating a material stream, go to <b><i>Examples</i></b> &gt;&gt; <i><b>MaterialStream</b></i></div></body></html>"));
     
     end MaterialStream;
+
+
+

@@ -9,6 +9,10 @@ import pyuac
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# Alias built-in open() to avoid collision with MainApp.open() method
+import builtins
+builtins_open = builtins.open
+
 current = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(current)
 sys.path.append(parentPath)
@@ -88,6 +92,7 @@ class DropFilter(QObject):
     MainApp class is responsible for all the main App Ui operations
 '''
 class MainApp(QMainWindow,ui):
+    closed = pyqtSignal()
     global compound_selected
     '''
         Initializing the application
@@ -190,19 +195,16 @@ class MainApp(QMainWindow,ui):
         self.selectedElementsDock.setWidget(sel_dock_container)
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.selectedElementsDock)
+        self.selectedElementsDock.hide()
 
-        self.dockWidget.setFeatures(QDockWidget.DockWidgetFloatable |
-                                    QDockWidget.DockWidgetMovable |
-                                    QDockWidget.DockWidgetClosable)
+        # ── Rebuild Component Selector dock with compact modern design ──
+        self._build_component_selector()
+
         self.dockWidget_2.setFeatures(QDockWidget.DockWidgetFloatable |
                                       QDockWidget.DockWidgetMovable |
                                       QDockWidget.DockWidgetClosable)
-
-        self.dockWidget.setMinimumSize(200, 200)
         self.dockWidget_2.setMinimumSize(200, 100)
-
-        self.dockWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.dockWidget_2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.dockWidget_2.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
         # Setting up interactive canvas        
         self.scene = self.container.graphics.get_scene()
@@ -218,6 +220,9 @@ class MainApp(QMainWindow,ui):
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget)
+        # Pin dock width AFTER addDockWidget — this is the only point where it sticks.
+        # setFixedWidth before addDockWidget gets overridden by Qt's layout engine.
+        self.dockWidget.setFixedWidth(240)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dockWidget_2)
 
         # Set initial dock sizes after the window has been shown
@@ -240,19 +245,249 @@ class MainApp(QMainWindow,ui):
             push('Undo', initial_snapshot)
         self._update_undo_redo_actions()
 
+    def _build_component_selector(self):
+        """Rebuild the Component Selector dock with collapse/expand toggle."""
+        ACCENT       = '#0a84ff'
+        ACCENT_LIGHT = '#3d9fff'
+        BG           = '#ffffff'
+        HEADER_BG    = '#f2f2f2'
+        BTN_BG       = '#ffffff'
+        BTN_BORDER   = '#e0e0e0'
+        TEXT         = '#333333'
+        ICON_SIZE    = 30
+        BTN_HEIGHT   = 50
+        HEADER_HEIGHT = 30
+
+        icons_base = os.path.join(parentPath, 'resources', 'base', 'icons')
+
+        sections = [
+            ('Streams', [
+                ('pushButton',    'MaterialStream',   'MaterialStream.png'),
+            ]),
+            ('Mixer/Splitter', [
+                ('pushButton_7',  'Mixer',            'Mixer.png'),
+                ('pushButton_10', 'Splitter',         'Splitter.png'),
+            ]),
+            ('Exchangers', [
+                ('pushButton_11', 'Heater',           'Heater.png'),
+                ('pushButton_12', 'Cooler',           'Cooler.png'),
+            ]),
+            ('Separator', [
+                ('pushButton_9',  'Flash',            'Flash.png'),
+                ('pushButton_13', 'Compound Sep.',    'CompoundSeparator.png'),
+            ]),
+            ('Pressure Changers', [
+                ('pushButton_25', 'Valve',            'Valve.png'),
+                ('pushButton_14', 'Centrifugal Pump', 'CentrifugalPump.png'),
+                ('pushButton_15', 'Adiab. Compressor','AdiabaticCompressor.png'),
+                ('pushButton_16', 'Adiab. Expander',  'AdiabaticExpander.png'),
+            ]),
+            ('Columns', [
+                ('pushButton_26', 'Distillation Col.','DistillationColumn.png'),
+                ('pushButton_18', 'Shortcut Col.',    'ShortcutColumn.png'),
+            ]),
+        ]
+
+        # ── State storage for toggle ──
+        self._panel_collapsed = False
+        self._comp_btn_data   = []   # list of (QPushButton, display_text)
+        self._comp_headers    = []   # section header QLabels
+
+        # Pre-build the two button stylesheets so toggle is instant
+        self._btn_style_expanded = f"""
+            QPushButton {{
+                background: {BTN_BG};
+                color: {TEXT};
+                font: bold 10pt 'Microsoft JhengHei';
+                border: 1px solid {BTN_BORDER};
+                border-radius: 4px;
+                text-align: left;
+                padding: 0 6px;
+            }}
+            QPushButton:hover {{
+                background: #e8f0fe;
+                border-color: {ACCENT};
+                color: {ACCENT};
+            }}
+            QPushButton:pressed {{
+                background: #d0e3ff;
+                border-color: {ACCENT};
+            }}
+        """
+        self._btn_style_collapsed = f"""
+            QPushButton {{
+                background: {BTN_BG};
+                border: 1px solid {BTN_BORDER};
+                border-radius: 4px;
+                text-align: center;
+                padding: 0;
+            }}
+            QPushButton:hover {{
+                background: #e8f0fe;
+                border-color: {ACCENT};
+            }}
+            QPushButton:pressed {{
+                background: #d0e3ff;
+                border-color: {ACCENT};
+            }}
+        """
+
+        # ── Configure dockWidget ──
+        self.dockWidget.setFeatures(
+            QDockWidget.DockWidgetFloatable |
+            QDockWidget.DockWidgetMovable |
+            QDockWidget.DockWidgetClosable
+        )
+        self.dockWidget.setWindowTitle('Components')
+        # Width pinned after addDockWidget in __init__
+
+        # ── content widget ──
+        content = QWidget()
+        content.setStyleSheet(f'background: {BG};')
+        main_layout = QVBoxLayout(content)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # ── Collapse / Expand toggle button ──
+        toggle_btn = QPushButton('▶')
+        toggle_btn.setFixedHeight(24)
+        toggle_btn.setCursor(Qt.PointingHandCursor)
+        toggle_btn.setToolTip('Collapse panel')
+        toggle_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: #f8f8f8;
+                color: #999999;
+                font: bold 11pt;
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                border-radius: 0;
+            }}
+            QPushButton:hover {{
+                background: #e8f0fe;
+                color: {ACCENT};
+            }}
+            QPushButton:pressed {{
+                background: #d0e3ff;
+            }}
+        """)
+        toggle_btn.clicked.connect(self._toggle_component_panel)
+        self._panel_toggle_btn = toggle_btn
+        main_layout.addWidget(toggle_btn)
+
+        # ── scroll area ──
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setStyleSheet(f"""
+            QScrollArea {{
+                background: {BG};
+                border: none;
+            }}
+            QScrollBar:vertical {{
+                background: {BG};
+                width: 6px;
+                margin: 0;
+                border: none;
+            }}
+            QScrollBar::handle:vertical {{
+                background: #c8c8c8;
+                min-height: 30px;
+                border-radius: 3px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {ACCENT_LIGHT};
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{
+                height: 0;
+            }}
+        """)
+
+        # ── scroll contents widget ──
+        scroll_widget = QWidget()
+        scroll_widget.setStyleSheet(f'background: {BG};')
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setContentsMargins(4, 4, 4, 4)
+        scroll_layout.setSpacing(2)
+
+        for section_name, buttons in sections:
+            header = QLabel(section_name.upper())
+            header.setFixedHeight(HEADER_HEIGHT)
+            header.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            header.setStyleSheet(f"""
+                QLabel {{
+                    color: #666666;
+                    font: bold 8pt 'Segoe UI';
+                    background: {HEADER_BG};
+                    border-radius: 3px;
+                    padding: 0 6px;
+                }}
+            """)
+            self._comp_headers.append(header)
+            scroll_layout.addWidget(header)
+
+            for attr_name, display_text, icon_file in buttons:
+                btn = QPushButton(f'     {display_text}')
+                btn.setFixedHeight(BTN_HEIGHT)
+                btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                btn.setCursor(Qt.PointingHandCursor)
+
+                icon_path = os.path.join(icons_base, icon_file)
+                if os.path.exists(icon_path):
+                    btn.setIcon(QIcon(icon_path))
+                    btn.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
+
+                btn.setStyleSheet(self._btn_style_expanded)
+
+                setattr(self, attr_name, btn)
+                self._comp_btn_data.append((btn, display_text))
+                scroll_layout.addWidget(btn)
+
+        scroll_layout.addStretch(1)
+        scroll.setWidget(scroll_widget)
+        main_layout.addWidget(scroll)
+        self.dockWidget.setWidget(content)
+
+    def _toggle_component_panel(self):
+        """Collapse to icon-only (48px) or expand to full text (240px)."""
+        COLLAPSED_W = 48
+        EXPANDED_W  = 240
+
+        if not self._panel_collapsed:
+            # ── Collapse ──
+            for btn, _ in self._comp_btn_data:
+                btn.setText('')
+                btn.setStyleSheet(self._btn_style_collapsed)
+            for h in self._comp_headers:
+                h.hide()
+            self._panel_toggle_btn.setText('◀')
+            self._panel_toggle_btn.setToolTip('Expand panel')
+            self.dockWidget.setFixedWidth(COLLAPSED_W)
+            self._panel_collapsed = True
+        else:
+            # ── Expand ──
+            for btn, text in self._comp_btn_data:
+                btn.setText(f'     {text}')
+                btn.setStyleSheet(self._btn_style_expanded)
+            for h in self._comp_headers:
+                h.show()
+            self._panel_toggle_btn.setText('▶')
+            self._panel_toggle_btn.setToolTip('Collapse panel')
+            # Set to target width then unlock so the user can still resize
+            self.dockWidget.setFixedWidth(EXPANDED_W)
+            self.dockWidget.setMinimumWidth(240)
+            self.dockWidget.setMaximumWidth(524287)
+            self._panel_collapsed = False
+
     def _apply_initial_layout(self):
-        # Component Selector: ~300px wide, Selected Compounds: ~130px wide
-        self.resizeDocks(
-            [self.selectedElementsDock, self.dockWidget],
-            [130, 300],
-            Qt.Horizontal
-        )
+        # Unlock the dock from its startup fixed width so the user can resize it.
+        self.dockWidget.setMinimumWidth(240)
+        self.dockWidget.setMaximumWidth(524287)
         # Message Browser: ~120px tall
-        self.resizeDocks(
-            [self.dockWidget_2],
-            [120],
-            Qt.Vertical
-        )
+        self.resizeDocks([self.dockWidget_2], [120], Qt.Vertical)
 
     def _style_dock_separators(self):
         self.setStyleSheet(self.styleSheet() + """
@@ -304,7 +539,7 @@ class MainApp(QMainWindow,ui):
         # View : Selected Compounds 
         self.actionViewSelectedElements = QAction("Selected Compounds", self)
         self.actionViewSelectedElements.setCheckable(True)
-        self.actionViewSelectedElements.setChecked(True)
+        self.actionViewSelectedElements.setChecked(False)
         self.actionViewSelectedElements.triggered.connect(self.toggle_selected_elements_view)
         self.menuView.addAction(self.actionViewSelectedElements)
 
@@ -436,7 +671,7 @@ class MainApp(QMainWindow,ui):
                 # update flowsheet contents from current container before generating file
                 self.container.flowsheet.add_compound_list([c[:c.index('(')] for c in getattr(self, 'compounds', self.comp.get_compounds() or [])])
                 # regenerate modelica file (implementations may vary)
-                self.container.flowsheet.generate_modelica_file()
+                #self.container.flowsheet.generate_modelica_file()
                 print("[DEBUG] Generated .mo file for simulation.")
             except Exception as e:
                 print("[DEBUG] .mo generation failed:", e)
@@ -458,20 +693,27 @@ class MainApp(QMainWindow,ui):
         Terminate the current running simulation
     '''
     def terminate(self):
-        os.chdir(self.container.flowsheet.root_dir)
-        if self.thrd:
+        try:
+            os.chdir(self.container.flowsheet.root_dir)
+        except Exception:
+            pass
+            
+        if self.thrd and self.thrd.is_alive():
             thread_id = self.thrd.ident
-            # print('____________________Going to terminate simulation thread with Thread ID:',thread_id,'____________________')
-            # print('____________________Going to terminate the new process created for omc____________________')
-            self.container.flowsheet.process.terminate()
-            print('____________________New process created for omc is terminated.____________________')
-            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit)) 
+            if hasattr(self.container, 'flowsheet') and hasattr(self.container.flowsheet, 'process') and self.container.flowsheet.process:
+                try:
+                    self.container.flowsheet.process.terminate()
+                    print('____________________New process created for omc is terminated.____________________')
+                except Exception:
+                    pass
+            
+            res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit)) 
             self.textBrowser.append("<span style=\"color:red\">["+str(self.current_time())+"]<b>Simulation Terminated.</b></span>")
             self.container.disableInterfaceforSimulation(False)
-            # print('____________________Simulation thread terminated____________________')
             if res > 1: 
-                ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0) 
-                # print('Exception raise (Thread termination) failure')
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
+        
+        self.thrd = None
 
     '''
         Resets the zoom level to default scaling
@@ -662,10 +904,13 @@ class MainApp(QMainWindow,ui):
                 if hasattr(cls, "counter"):
                     cls.counter = 1
 
-            # Clear old dock widgets
+            # Clear old dock widgets — guard against already-deleted C++ objects
             for dw in dock_widget_lst:
-                dw.hide()
-                dw.setParent(None)
+                try:
+                    dw.hide()
+                    dw.setParent(None)
+                except RuntimeError:
+                    pass  # C++ object already deleted — safe to skip
             dock_widget_lst.clear()
 
             # Reset compound selection
@@ -892,14 +1137,17 @@ class MainApp(QMainWindow,ui):
         return {"items": items, "connections": connections,
                 "compounds": list(compounds), "result": result}
 
-    def open(self):
+    def open(self, file_path=None):
         try:
-            file_format = 'sim'
-            initial_path = QDir.currentPath() + 'untitled.' + file_format
+            if file_path:
+                file_name = file_path
+            else:
+                file_format = 'sim'
+                initial_path = QDir.currentPath() + 'untitled.' + file_format
 
-            file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
-                                                      initial_path, "%s Files (*.%s);; All Files (*)" %
-                                                      (file_format.upper(), file_format))
+                file_name, _ = QFileDialog.getOpenFileName(self, "Open As",
+                                                          initial_path, "%s Files (*.%s);; All Files (*)" %
+                                                          (file_format.upper(), file_format))
             if file_name:
                 with open(file_name, 'rb') as f:
                     snapshot = pickle.load(f)
@@ -917,12 +1165,12 @@ class MainApp(QMainWindow,ui):
 
                 fileName = file_name.split('/')[-1].split('.')[0]
                 self.setWindowTitle(fileName+' - Chemical Simulator GUI')
+                self.last_saved_project = file_name
 
                 self.undo_redo_helper()
 
                 self.container.graphics.load_canvas_from_snapshot(snapshot, self.container)
                 self.container.result = snapshot.get("result", None)
-                self.last_saved_project = file_name
 
                 # Sync compound selector and side panel with loaded compounds
                 self.comp.set_compounds(compound_selected)
@@ -949,8 +1197,14 @@ class MainApp(QMainWindow,ui):
                     f"<span>[{self.current_time()}] Opened <b>{fileName}</b> ... </span>"
                 )
 
+                self.textBrowser.append(
+                    f"<span style='color:green'>[{self.current_time()}] Project <b>{fileName}</b> loaded successfully.</span>"
+                )
+
         except Exception as e:
-            print(e)
+            print(f"[ERROR] open() failed: {e}")
+            import traceback; traceback.print_exc()
+            QMessageBox.critical(self, "Error", f"Failed to load project:\n{str(e)}")
 
     '''
         Function for toggling the display of Component Selector 
@@ -993,6 +1247,21 @@ class MainApp(QMainWindow,ui):
     def _clear_selected_compounds_panel(self):
         self.selectedElementsList.clear()
         self._sel_status_label.setText("No compounds selected")
+
+    def closeEvent(self, event):
+        # Stop simulation thread if still running
+        try:
+            if self.thrd and self.thrd.is_alive():
+                self.terminate()
+        except Exception:
+            pass
+
+        # Drain any override cursors this window left on the stack
+        while QApplication.overrideCursor() is not None:
+            QApplication.restoreOverrideCursor()
+
+        event.accept()
+        self.closed.emit()
 
 from python.utils.ComponentSelectorWindow import ComponentSelectorWindow
 

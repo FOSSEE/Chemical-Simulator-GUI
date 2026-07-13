@@ -17,13 +17,15 @@ from python.utils.ComponentSelector import *
 from python.DockWidgets.DistillationColumnStagewiseResults import DistillationColumnStagewiseResults
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetDistillationColumn.ui')
 
 
-class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
+class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
@@ -57,7 +59,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
                 print(i)
                 l = QLineEdit()
                 l.setFixedWidth(80)
-                if len(self.obj.variables['InT_s']['value']) is not 0:
+                if len(self.obj.variables['InT_s']['value']) != 0:
                     l.setText(str(self.obj.variables['InT_s']['value'][i]))
                 self.lay1.addWidget(QLabel(self.obj.variables['InT_s']['name'] +" " + str(i+1) + " location :"),2*(i+1),0, alignment=Qt.AlignLeft)
                 self.lay1.addWidget(l,2*(i+1),1, alignment=Qt.AlignLeft)
@@ -138,6 +140,7 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             # self.input_dict = [self.le1, self.le2, self.le3, self.cb5, self.le5, self.cb1, self.cb2, self.le6, self.le7, self.cb3, self.cb4, self.le8]
              
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def update_compounds(self):
@@ -161,9 +164,6 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             self.cb4.setDisabled(False)
         else:
             self.cb4.setDisabled(True)
-    
-    def Show_Error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
@@ -202,12 +202,18 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
 
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def showStagewiseResults(self):
@@ -382,9 +388,5 @@ class DockWidgetDistillationColumn(QDockWidget, ui_dialog):
             for t in tables:
                 t.resizeColumnsToContents()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-    def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)

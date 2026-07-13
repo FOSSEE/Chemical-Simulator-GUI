@@ -1,4 +1,4 @@
-﻿import os
+import os
 import platform
 import csv
 from subprocess import Popen, PIPE
@@ -58,9 +58,13 @@ class Flowsheet():
 
     def get_omc_path(self, msg=None):
         import platform
+        import glob
 
         if platform.system() == "Windows":
-            omc_path = r"C:\Program Files\OpenModelica1.25.4-64bit\bin\omc.exe"
+            # Try to find the latest OpenModelica installation dynamically
+            pattern = r"C:\Program Files\OpenModelica*-64bit\bin\omc.exe"
+            candidates = sorted(glob.glob(pattern), reverse=True)
+            omc_path = candidates[0] if candidates else r"C:\Program Files\OpenModelica1.26.3-64bit\bin\omc.exe"
         else:
             omc_path = "/usr/bin/omc"
 
@@ -89,6 +93,9 @@ class Flowsheet():
         if self.sim_method == 'Eqn':
             simpath = self.eqn_mos_path
             os.chdir(self.sim_dir_path)
+            csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
+            if os.path.exists(csvpath):
+                os.remove(csvpath)
             if platform.system() == "Windows":
                 from subprocess import STARTUPINFO, STARTF_USESHOWWINDOW
 
@@ -108,17 +115,25 @@ class Flowsheet():
                     stderr=PIPE
                 )
             self.stdout, self.stderr = self.process.communicate()
+
+            print("===== STDOUT =====")
+            print(self.stdout.decode("utf-8"))
+
+            print("===== STDERR =====")
+            print(self.stderr.decode("utf-8"))
            
             os.chdir(self.root_dir)
-            if ('timeSimulation = 0.0,\n' in self.stdout.decode("utf-8")):
+            csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
+            stdout_text = self.stdout.decode("utf-8")
+            if 'timeSimulation = 0.0,\n' in stdout_text or not os.path.exists(csvpath):
                 self.result_data = []
             else:
-                csvpath = os.path.join(self.sim_dir_path,'Flowsheet_res.csv')
                 with open (csvpath,'r') as resultFile:
                     self.result_data = []
                     csvreader = csv.reader(resultFile,delimiter=',')
                     for row in csvreader:
                         self.result_data.append(row)
+                self.ext_data()
 
     def send_for_simulation_SM(self,unitop):
         self.result_data = []
@@ -138,14 +153,20 @@ class Flowsheet():
         self.ext_data()
 
     def ext_data(self):
+        if not self.result_data or len(self.result_data) < 2:
+            print("[DEBUG] ext_data: result_data has no data rows, skipping")
+            return
         for unit in self.unit_operations:
             unitop = unit[0] if isinstance(unit, list) else unit
             if unitop.type == 'MaterialStream':
-                for key, value in unitop.Prop.items():
+                for key in list(unitop.variables.keys()):
                     property_name = unitop.name + '.' + key
-                    if self.result_data and property_name in self.result_data[0]:
+                    if property_name in self.result_data[0]:
                         ind = self.result_data[0].index(property_name)
-                        unitop.Prop[key] = str(self.result_data[-1][ind])
+                        try:
+                            unitop.variables[key]['value'] = str(self.result_data[-1][ind])
+                        except (IndexError, KeyError) as e:
+                            print(f"[DEBUG] ext_data: failed to read {property_name}: {e}")
 
              
     def simulate_EQN(self, msg):
@@ -159,9 +180,10 @@ class Flowsheet():
                 main_unit = u
                 break
 
-        package_name = main_unit.name if main_unit else "Flowsheet"
+        package_name = "Flowsheet"
 
         # --- Start Package ---
+        self.data.append("within Simulator;\n\n")
         self.data.append(f"package {package_name}\n\n")
 
         # --- Define reusable ms model ---
@@ -200,9 +222,25 @@ class Flowsheet():
 
         # --- Equations section ---
         self.data.append("\n  equation\n")
+        
+        # Determine output streams to avoid overdetermining the system
+        output_stream_names = set()
+        for unitop in self.unit_operations:
+            if unitop.type != 'MaterialStream':
+                outstms = getattr(unitop, 'output_stms', None)
+                if isinstance(outstms, dict):
+                    outstms = outstms.values()
+                if outstms:
+                    for stm in outstms:
+                        if hasattr(stm, 'name'):
+                            output_stream_names.add(stm.name)
+
         for unitop in self.unit_operations:
             if unitop.type == 'MaterialStream':
-                self.data.append(unitop.OM_Flowsheet_Equation(norm_compounds, 'Eqn'))
+                if unitop.name in output_stream_names:
+                    self.data.append(f"    // Output Stream {unitop.name} property equations are skipped\n")
+                else:
+                    self.data.append(unitop.OM_Flowsheet_Equation(norm_compounds, 'Eqn'))
             else:
                 self.data.append(unitop.OM_Flowsheet_Equation())
 
@@ -219,12 +257,41 @@ class Flowsheet():
         # --- Generate the simulation .mos file ---
         with open(self.eqn_mos_path, 'w') as mosFile:
             mosFile.write('loadModel(Modelica);\n')
-            mosFile.write('loadFile("Simulator/package.mo");\n')
-            mosFile.write(f'loadFile("Simulator/Flowsheet.mo");\n')
-            mosFile.write(f'simulate({package_name}.{package_name}Simulation, outputFormat=\"csv\", stopTime=1.0, numberOfIntervals=1);\n')
+            mosFile.write('loadFile("package.mo");\n')
+            mosFile.write('loadFile("Flowsheet.mo");\n')
+            mosFile.write(f'simulate(Simulator.{package_name}.{package_name}Simulation, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n')
+            mosFile.write('getErrorString();\n')
+
+        # --- Ensure Flowsheet is listed in package.order ---
+        # OMC v1.26.3+ (Modelica 4.x) requires all .mo files in a package
+        # directory to be listed in package.order, otherwise the entire
+        # package fails to load.
+        order_path = os.path.join(self.sim_dir_path, 'package.order')
+        if os.path.exists(order_path):
+            with open(order_path, 'r') as f:
+                order_lines = [line.strip() for line in f if line.strip()]
+            if 'Flowsheet' not in order_lines:
+                order_lines.append('Flowsheet')
+                with open(order_path, 'w') as f:
+                    f.write('\n'.join(order_lines) + '\n')
+
+        # --- Clean up stray .mo files from previous runs ---
+        # Files not part of the Simulator library but left in the package
+        # directory will cause OMC to reject the entire package.
+        known_library_entries = set(order_lines) if os.path.exists(order_path) else set()
+        known_library_entries.update(['package.mo', 'package.order',
+                                      'Flowsheet.mo', 'simulateEQN.mos', 'simulateSM.mos'])
+        for stray in os.listdir(self.sim_dir_path):
+            stray_path = os.path.join(self.sim_dir_path, stray)
+            if (os.path.isfile(stray_path)
+                    and stray.endswith('.mo')
+                    and stray not in known_library_entries
+                    and stray.replace('.mo', '') not in known_library_entries):
+                os.remove(stray_path)
 
         # --- Run simulation ---
         self.send_for_simulation_Eqn(msg)
+
 
 
     def simulate_SM(self, ip, op):
@@ -271,8 +338,8 @@ class Flowsheet():
 
                 # --- Define compounds ---
                 for c in self.compounds:
-                    c_title = c.title()
-                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{c_title} {c_title};\n")
+                    norm = _normalize_compound_name(c)
+                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{norm} {norm};\n")
 
                 self.data.append(unitop.OM_Flowsheet_Initialize())
 

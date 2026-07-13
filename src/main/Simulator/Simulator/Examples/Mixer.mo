@@ -1,4 +1,4 @@
-within Simulator.Examples;
+﻿within Simulator.Examples;
 
 package Mixer
   extends Modelica.Icons.ExamplesPackage;
@@ -13,9 +13,9 @@ package Mixer
   model mix
     extends Modelica.Icons.Example;
     import data = Simulator.Files.ChemsepDatabase;
-    parameter data.Ethanol eth;
-    parameter data.Methanol meth;
-    parameter data.Water wat;
+    parameter data.Ethanol eth();
+    parameter data.Methanol meth();
+    parameter data.Water wat();
     parameter Integer Nc = 3;
     parameter data.GeneralProperties C[Nc] = {meth, eth, wat};
     ms ms1(Nc = Nc, C = C) annotation(

@@ -12,12 +12,14 @@ from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetShortcutColumn.ui')
 
-class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
+class DockWidgetShortcutColumn(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
@@ -76,6 +78,7 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.input_dict = [self.cb1, self.cb2, self.le3, self.le4, self.cb5, self.le6, self.le7, self.le8, self.cb6]
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def update_compounds(self):
@@ -86,9 +89,6 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
             self.cb2.addItem(str(i))
         self.cb1.setCurrentText(self.obj.compounds[int(self.obj.variables['HKey']['value']) - 1])
         self.cb2.setCurrentText(self.obj.compounds[int(self.obj.variables['LKey']['value']) - 1])
-    
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
@@ -97,24 +97,19 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
                         self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),
                         self.input_dict[8].currentText()]            
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-
-    @staticmethod
-    def show_result(lst):
-        for i in lst:
-            try:
-                i.results_category(i.name)
-            except AttributeError:
-                pass
-
-    def clear_results(self):
-        self.tableWidget.setRowCount(0)
 
     # result data tab
     def results_category(self,name):
@@ -141,8 +136,5 @@ class DockWidgetShortcutColumn(QDockWidget,ui_dialog):
                     self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(obj.variables[val]['unit']))
                     self.tableWidget.resizeColumnsToContents()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-    def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)

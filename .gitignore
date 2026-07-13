@@ -20,8 +20,19 @@ dist/
 .idea/
 .vscode/
 
-# Logs
+# Logs and temp files
 *.log
+*.bin
+*.bat
+*.c
+*.h
+*.o
+*.libs
+*.makefile
+Flowsheet.mo
+simulateEQN.mos
+src/main/Simulator/Simulator/Flowsheet.mo
+
 
 # OS files
 .DS_Store
@@ -29,8 +40,12 @@ Thumbs.db
 
 # Simulation outputs
 *.csv
+*.exe
+*_info.json
+*_init.xml
 
 # Generated Modelica files
+src/main/Simulator/Simulator/testFlowsheet.mos
 Flowsheet.mo
 simulateEQN.mos
 FlowsheetSEQ.csv__pycache__/
@@ -91,3 +106,4 @@ src/main/python/DockWidgets/__pycache__/DockWidgetCompoundSeparator.cpython-36.p
 src/main/python/DockWidgets/__pycache__/DockWidget.cpython-36.pyc
 Simulator/database.mo
 src/main/python/Chemical Simulator GUI.exe
+

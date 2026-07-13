@@ -34,11 +34,11 @@ class ConvReactor():
         self.OM_data_eqn = ''
         comp_count = len(addedcomp)
         strcount = 1
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' + self.name + '.inlet' + ');\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.Out,' + self.name + '.In' + ');\n')
             
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.OutputStms[0].name + '.inlet,' + self.name + '.outlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.OutputStms[0].name + '.In,' + self.name + '.Out);\n')
             
 
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.inlet,' + self.name + '.EnergyStream);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.EngStms.name + '.In,' + self.name + '.energy);\n')
 
         return self.OM_data_eqn

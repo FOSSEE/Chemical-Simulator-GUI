@@ -17,7 +17,7 @@ model HeatExchanger
   //      Inputs : Pdelh,deltap_cold,Heat_Loss,U,Eff,Flow Direction,Name of the calculation type
   
   import Simulator.Files.*;
-  import Simulator.Files.Thermodynamic_Functions.*;
+  import Simulator.Files.ThermodynamicFunctions.*;
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
   parameter Integer Nc "number of compounds ";
   Simulator.Files.Interfaces.matConn In_Hot(Nc = Nc) annotation(

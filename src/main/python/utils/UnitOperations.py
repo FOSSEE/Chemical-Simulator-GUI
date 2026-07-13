@@ -5,7 +5,7 @@ parent = os.path.dirname(current)
 parentPath = os.path.dirname(parent)
 sys.path.append(parentPath)
 
-from python.OMChem.Flowsheet import Flowsheet
+from python.OMChem.Flowsheet import Flowsheet, _normalize_compound_name
 from python.OMChem.EngStm import EngStm
 from python.utils.ComponentSelector import *
 from python.utils.Container import *
@@ -104,7 +104,7 @@ class UnitOperation():
         self.OM_data_init = ''
 
         if(self.thermo_pack_req):
-            if len(self.extra)>1:
+            if len(self.extra)>1:   
                 for i in range(len(self.extra)):
                     latest = ''
                     for j in range(self.extra[i]):
@@ -138,8 +138,7 @@ class UnitOperation():
 
                     self.OM_data_init += self.for_naming[i] + str(self.counter) + ' ' + self.for_naming + '(Nc = ' + str(len(self.compounds))
                  
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
+            C = ', '.join(_normalize_compound_name(c) for c in self.compounds)
             self.OM_data_init += ',C = {' + C + '}'  
 
             for k in self.parameters:
@@ -153,8 +152,7 @@ class UnitOperation():
 
         else: 
             self.OM_data_init += 'Simulator.UnitOperations.' + self.type + ' ' + self.name + '(Nc = ' + str(len(self.compounds))
-            C = str(self.compounds).strip('[').strip(']')
-            C = C.replace("'", "")  
+            C = ', '.join(_normalize_compound_name(c) for c in self.compounds)
             self.OM_data_init += ',C = {' + C + '}'
 
             for k in self.parameters:
@@ -167,6 +165,7 @@ class UnitOperation():
 
     
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input streams
@@ -262,11 +261,12 @@ class ShortcutColumn(UnitOperation):
         self.variables['thermo_package']['value'] = params[8]
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
@@ -397,6 +397,7 @@ class DistillationColumn(UnitOperation):
         return self.OM_data_init
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
         self.OM_data_eqn = self.OM_data_eqn + (
                 'connect(' + self.name + '.Dist' + ", " + self.output_stms[1].name + '.In);\n')
@@ -515,8 +516,7 @@ class CompoundSeparator(UnitOperation):
         self.OM_data_init = self.OM_data_init + (
         "Simulator.UnitOperations.CompoundSeparator " + self.name + "(Nc = " + str(comp_count))
         self.OM_data_init = self.OM_data_init + (", C = {")
-        comp = str(self.compounds).strip('[').strip(']')
-        comp = comp.replace("'", "")
+        comp = ', '.join(_normalize_compound_name(c) for c in self.compounds)
         self.OM_data_init = self.OM_data_init + comp + ("},")
         self.OM_data_init = self.OM_data_init + ("SepFact_c = " + SepFact + ",SepStrm = " + SepStrm + ");\n")
 
@@ -524,11 +524,12 @@ class CompoundSeparator(UnitOperation):
 
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
@@ -584,11 +585,12 @@ class Flash(UnitOperation):
         self.variables['Pdef']['value'] = params[4]        
 
     def OM_Flowsheet_Equation(self):
+        print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
         # Input connections
         if self.input_stms:
-            for i, st in enumerate(self.input_stms):
+            for i, st in enumerate(self.input_stms.values()):
                 if hasattr(st, 'name') and st.name:
                     self.OM_data_eqn += f'connect({self.name}.In[{i+1}], {st.name}.Out);\n'
 
@@ -660,6 +662,7 @@ class Splitter(UnitOperation):
     def param_setter(self,params):
         #print("param_setter ", params)
         self.variables['No']['value'] = int(params[0])
+        self.no_of_outputs = int(params[0])
         self.variables['CalcType']['value'] = params[1]
         self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]
         if self.variables['CalcType']['value'] == 'Molar_Flow':
@@ -691,6 +694,7 @@ class Mixer(UnitOperation):
 
     def param_setter(self, params):
         self.variables['NI']['value'] = int(params[0])
+        self.no_of_inputs = int(params[0])
         self.variables['outPress']['value'] = params[1]
         
 class Heater(UnitOperation):

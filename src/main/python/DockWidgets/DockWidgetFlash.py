@@ -12,18 +12,21 @@ from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetFlash.ui')
 
-class DockWidgetFlash(QDockWidget,ui_dialog):
+class DockWidgetFlash(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
-        QDockWidget.__init__(self,parent)
+        BaseDockWidget.__init__(self,parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
         self.input_dict = []
+        self.container = container
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = []  # a list
@@ -54,6 +57,7 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.input_dict = [self.cb1, self.check1, self.le2, self.check2, self.le3]
  
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def fun(self):
@@ -65,9 +69,6 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.le3.setDisabled(False)
         else:
             self.le3.setDisabled(True)
-    
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
 
     def param(self):
         try:
@@ -76,15 +77,16 @@ class DockWidgetFlash(QDockWidget,ui_dialog):
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].isChecked(), float(self.input_dict[2].text()), self.input_dict[3].isChecked(), float(self.input_dict[4].text())]
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
+            print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
+                except Exception:
+                    pass
             self.hide()
             
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-            
-    def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)

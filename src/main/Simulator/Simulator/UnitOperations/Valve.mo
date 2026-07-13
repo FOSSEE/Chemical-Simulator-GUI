@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model Valve "Model of a valve to regulate the pressure of a material stream"
   extends Simulator.Files.Icons.Valve;
@@ -9,8 +9,8 @@ model Valve "Model of a valve to regulate the pressure of a material stream"
   Real Pin(unit = "Pa", min = 0, start = Pg) "Inlet stream pressure"; 
   Real Tin(unit = "K", min = 0, start = Tg) "Inlet stream emperature";
   Real Hin(unit = "kJ/kmol",start=Htotg) "Inlet stream molar enthalpy"; 
-  Real Sin(unit = "kJ/[kmol.K]") "Inlet stream molar entropy";
-  Real xvapin(unit = "-", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction"; 
+  Real Sin(unit = "kJ/(kmol.K)") "Inlet stream molar entropy";
+  Real xvapin(unit = "1", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction"; 
   
   Real Tdel(unit = "K") "Temperature increase";
   Real Pdel(unit = "Pa") "Pressure drop"; 
@@ -19,9 +19,9 @@ model Valve "Model of a valve to regulate the pressure of a material stream"
   Real Pout(unit = "Pa", min = 0, start = Pg) "Outlet stream pressure";
   Real Tout(unit = "K", min = 0, start = Tg) "Outlet stream temperature";
   Real Hout(unit = "kJ/kmol",start=Htotg) "Outlet stream molar enthalpy";
-  Real Sout(unit = "kJ/[kmol.K]")  "Outlet stream molar entropy";
-  Real x_c[Nc](each unit = "-", each min = 0, each max = 1,  start = xg) "Component mole fraction";
-  Real xvapout(unit = "-", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
+  Real Sout(unit = "kJ/(kmol.K)")  "Outlet stream molar entropy";
+  Real x_c[Nc](each unit = "1", each min = 0, each max = 1,  start = xg) "Component mole fraction";
+  Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
   //========================================================================================
 
   //========================================================================================
@@ -61,3 +61,5 @@ annotation(
     Documentation(info = "<html><head></head><body><span style=\"font-size: 12px;\">The valve is used to simulate the pressure manipulation process of a material stream.</span><div style=\"font-size: 12px;\"><br></div><div style=\"font-size: 12px;\">To simulate a valve, one of the following calculation parameter must be provided:</div><div style=\"font-size: 12px;\"><div><ol><li>Outlet Pressure (Pout)</li><li>Pressure Drop (Pdel)</li></ol><div><br></div></div><div>For example on simulating a valve, go to&nbsp;<b><i>Examples</i></b>&nbsp;&gt;&gt; <b><i>Valve</i></b></div></div></body></html>"));
     
     end Valve;
+
+

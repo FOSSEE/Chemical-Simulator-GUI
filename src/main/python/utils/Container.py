@@ -1,9 +1,9 @@
-﻿from collections import defaultdict
+from collections import defaultdict
 import datetime
 import os, sys
 
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget
 from PyQt5.QtGui import QCursor
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -20,6 +20,7 @@ from python.DockWidgets.DockWidget import DockWidget
 # ----------------- Signals -----------------
 class SimulationSignals(QObject):
     msg_signal = pyqtSignal(str)  # Thread-safe message signal
+    results_ready = pyqtSignal()  # Emitted when simulation results are ready
 
 
 # ----------------- Container -----------------
@@ -28,6 +29,7 @@ class Container():
         self.signals = SimulationSignals()
         self.msg = msgbrowser
         self.signals.msg_signal.connect(self.msg.append)
+        self.signals.results_ready.connect(self._populate_results)
 
         self.unit_operations = []
         self.thermo_package = None
@@ -42,7 +44,7 @@ class Container():
         self.result = []
         self.graphics = Graphics(self, self.graphicsView)
         self.scene = self.graphics.get_scene()
-        print(f"[DEBUG] Scene check → container.scene id={id(self.scene)}, graphics.scene id={id(self.graphics.scene)}")
+        print(f"[DEBUG] Scene check -> container.scene id={id(self.scene)}, graphics.scene id={id(self.graphics.scene)}")
         
 
     # ----------------- Utility -----------------
@@ -210,14 +212,26 @@ class Container():
                             pass
 
                         show_warning = False
-                        for ip in getattr(item, "input", []):
-                            if len(getattr(ip, "in_lines", [])) == 0:
+                        
+                        # Calculate total connections
+                        total_in = sum(len(getattr(ip, "in_lines", [])) for ip in getattr(item, "input", []))
+                        total_out = sum(len(getattr(op, "out_lines", [])) for op in getattr(item, "output", []))
+                        
+                        if item.type in ['MaterialStream', 'EngStm']:
+                            # Streams only need to be connected on one side (feed or product)
+                            if total_in == 0 and total_out == 0:
                                 show_warning = True
-                                missing_connections.append((item.name, "input"))
-                        for op in getattr(item, "output", []):
-                            if len(getattr(op, "out_lines", [])) == 0:
-                                show_warning = True
-                                missing_connections.append((item.name, "output"))
+                                missing_connections.append((item.name, "unconnected"))
+                        else:
+                            # Standard operations must have all their created sockets connected
+                            for ip in getattr(item, "input", []):
+                                if len(getattr(ip, "in_lines", [])) == 0:
+                                    show_warning = True
+                                    missing_connections.append((item.name, "input"))
+                            for op in getattr(item, "output", []):
+                                if len(getattr(op, "out_lines", [])) == 0:
+                                    show_warning = True
+                                    missing_connections.append((item.name, "output"))
 
                         if show_warning:
                             warnings_html += f"<br><span style='color:#999900'>Warning: {item.name} - Missing Socket Connection(s).</span>"
@@ -343,26 +357,41 @@ class Container():
             # ----------------------------
             # Step 7: Success / Failure Report
             # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) == 4:
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] Simulation <b>Successful.</b></span>"
                 )
+                # Lock all dock widgets to read-only on success
+                for dw in dock_widget_lst:
+                    if hasattr(dw, 'set_read_only'):
+                        dw.set_read_only(True)
             else:
                 self.signals.msg_signal.emit(
                     f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
                 )
+                # Keep dock widgets editable on failure
+                for dw in dock_widget_lst:
+                    if hasattr(dw, 'set_read_only'):
+                        dw.set_read_only(False)
 
             # ----------------------------
-            # Step 8: Post-Simulation Updates
+            # Step 8: Post-Simulation Updates (only on success)
             # ----------------------------
-            for it in self.graphics.scene.items():
-                if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
-                    it.update_tooltip_selectedVar()
-                    try:
-                        if len(it.input[0].in_lines) > 0:
-                            it.obj.disableInputDataTab(it.dock_widget)
-                    except Exception:
-                        pass
+            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
+                for it in self.graphics.scene.items():
+                    if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
+                        try:
+                            it.update_tooltip_selectedVar()
+                        except Exception as tooltip_err:
+                            print(f"[DEBUG] update_tooltip_selectedVar failed for {it.name}: {tooltip_err}")
+                        try:
+                            if len(it.input[0].in_lines) > 0:
+                                it.obj.disableInputDataTab(it.dock_widget)
+                        except Exception:
+                            pass
+
+                # Step 9: Populate Results Tabs (via signal for thread-safety)
+                self.signals.results_ready.emit()
 
         except Exception as e:
             print("[DEBUG] Simulation crashed:", e)
@@ -376,6 +405,28 @@ class Container():
             print("[DEBUG] ==== Container.simulate finished ====")
 
 
+
+    # Results Population 
+    def _populate_results(self):
+        """Slot called on the main thread when simulation results are ready."""
+        try:
+            DockWidget.show_result(dock_widget_lst)
+            
+            # Re-apply read-only state because show_result recreates the input fields
+            for dw in dock_widget_lst:
+                if hasattr(dw, 'set_read_only'):
+                    dw.set_read_only(True)
+
+            # Make all result table items non-editable
+            for dw in dock_widget_lst:
+                for tw in dw.findChildren(QTableWidget):
+                    for row in range(tw.rowCount()):
+                        for col in range(tw.columnCount()):
+                            item = tw.item(row, col)
+                            if item:
+                                item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+        except Exception as e:
+            print(f"[DEBUG] _populate_results failed: {e}")
 
     # ----------------- Toolbar -----------------
     def enableToolbar(self, status):

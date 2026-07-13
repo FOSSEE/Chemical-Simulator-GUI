@@ -1,4 +1,4 @@
-within Simulator.UnitOperations;
+﻿within Simulator.UnitOperations;
 
 model AdiabaticExpander "Model of an adiabatic expander to extract energy from a vapor stream in form of pressure"
   //=====================================================================================
@@ -7,15 +7,15 @@ model AdiabaticExpander "Model of an adiabatic expander to extract energy from a
   extends Simulator.Files.Models.Flash;
   parameter Simulator.Files.ChemsepDatabase.GeneralProperties C[Nc];
   parameter Integer Nc "Number of components";
-  parameter Real Eff(unit = "-") "Expander efficiency";
+  parameter Real Eff(unit = "1") "Expander efficiency";
   //====================================================================================
   //Model Variables
   Real Fin(unit = "mol/s", min = 0, start = Fg) "Inlet stream molar flow rate";
   Real Tin(unit = "K", min = 0, start = Tg) "Inlet stream temperature";
   Real Hin(unit = "kJ/kmol",start=Htotg) "Inlet stream molar enthalpy";
-  Real xvapin(unit = "-", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction";
-  Real xin_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Component mole fraction";
-  Real Sin(unit = "kJ/[kmol.K]") "Inlet stream molar entropy";
+  Real xvapin(unit = "1", min = 0, max = 1, start = xvapg) "Inlet stream vapor phase mole fraction";
+  Real xin_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Component mole fraction";
+  Real Sin(unit = "kJ/(kmol.K)") "Inlet stream molar entropy";
   Real Pin(unit = "Pa", min = 0, start = Pg) "Inlet stream pressure";
   Real Q(unit = "W") "Generated Power";
   Real Pdel(unit = "Pa") "Pressure drop";
@@ -24,8 +24,8 @@ model AdiabaticExpander "Model of an adiabatic expander to extract energy from a
   Real Fout(unit = "mol/s", min = 0, start = Fg) "Outlet stream molar flow rate";
   Real Tout(unit = "K", min = 0, start = Tg) "Outlet stream temperature";
   Real Hout(unit = "kJ/kmol") "Outlet stream molar enthalpy";
-  Real Sout(unit = "kJ/[kmol.k]") "Outlet stream molar entropy";
-  Real xvapout(unit = "-", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
+  Real Sout(unit = "kJ/(kmol.K)") "Outlet stream molar entropy";
+  Real xvapout(unit = "1", min = 0, max = 1, start = xvapg) "Outlet stream vapor phase mole fraction";
   //========================================================================================
   //Instantiation of connectors
   Files.Interfaces.matConn In(Nc = Nc) annotation(
@@ -73,3 +73,5 @@ equation
   annotation(
     Documentation(info = "<html><head></head><body><div style=\"font-size: 12px;\">Adiabatic Expander is generally used to extract energy from a vapor material stream. The energy extracted is in form of pressure.</div><div style=\"font-size: 12px;\"><br></div><span style=\"font-size: 12px;\">To simulate an adiabatic expander, Efficiency of the expander should be provided as calculation parameter. Additionally, one of the following variables must be defined:</span><div style=\"font-size: 12px;\"><ol><li>Outlet Pressure</li><li>Pressure Drop</li><li>Power Required</li></ol><div><br></div></div><div style=\"font-size: 12px;\">For example on simulating an adiabatic expander, go to&nbsp;<i><b>Examples</b></i>&nbsp;&gt;&gt;&nbsp;<b><i>Expander</i></b></div></body></html>"));
 end AdiabaticExpander;
+
+

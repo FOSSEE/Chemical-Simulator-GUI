@@ -11,12 +11,14 @@ from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
+from python.DockWidgets.DockWidget import BaseDockWidget
+
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetMaterialStream.ui')
 
-class DockWidgetMaterialStream(QDockWidget, ui_dialog):
+class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
 
     def __init__(self, name, comptype, obj, container, parent=None):
-        QDockWidget.__init__(self, parent)
+        BaseDockWidget.__init__(self, parent)
         self.setupUi(self)
         self.setWindowTitle(obj.name)
 
@@ -51,10 +53,22 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
         self.name_type = None
         self.container = container
 
-        header = QTreeWidgetItem(['Compound', 'Value', 'Unit'])
-        self.mTreeWidget.setHeaderItem(header)
-        self.lTreeWidget.setHeaderItem(header)
-        self.vTreeWidget.setHeaderItem(header)
+        #  dropdown 
+        self._composition_basis_options = [
+            'Mole Fraction', 'Mass Fraction', 'Mole Flow', 'Mass Flow'
+        ]
+        for opt in self._composition_basis_options:
+            self.cbCompositionBasis.addItem(opt)
+        self.cbCompositionBasis.setCurrentIndex(0)
+        self.cbCompositionBasis.currentIndexChanged.connect(
+            self._on_composition_basis_changed
+        )
+
+        # Storage for amounts results: { basis_name: { phase_no: [(compound, value)] } }
+        # phase_no: 1=Mixture, 2=Liquid, 3=Vapour
+        self._amounts_data = {}
+        for basis in self._composition_basis_options:
+            self._amounts_data[basis] = {1: [], 2: [], 3: []}
 
         # --- Corrected Thermo Package file reading ---
         if getattr(sys, 'frozen', False):
@@ -163,6 +177,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             for i in reversed(range(self.formLayout.count())):
                 self.formLayout.removeRow(i)
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
         self.input_dict = self.obj.param_getter(self.comboBox.currentText())
         self.obj.mode = self.comboBox.currentText()
@@ -209,12 +224,10 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     self.formLayout.addRow(lay)
                     self.input_dict[i] = l
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     # ------------------- Remaining methods unchanged -------------------
-    def show_error(self):
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
-
     def update_compounds(self):
         try:
             noc = len(compound_selected)
@@ -230,8 +243,11 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             indexx = self.comboBox.currentIndex()
             self.comboBox.setCurrentIndex(1)
             self.comboBox.setCurrentIndex(indexx)
+            if hasattr(self.obj, 'update_compounds'):
+                self.obj.update_compounds()
             self.obj.init_variables()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def param(self):
@@ -265,6 +281,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
             self.obj.param_setter(self.dict)
 
+            print(f"[UI] Submit successful for {self.name}")
             for i in self.container.graphics.graphicsView.items():
                 try:
                     if i.name == self.name:
@@ -272,11 +289,16 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                 except:
                     pass
             if self.isVisible():
-                currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-                self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                #added try block to safely handle the errors
+                try:
+                    currentVal = self.container.graphics.graphicsView.horizontalScrollBar().value()
+                    self.container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal - 189)
+                except Exception:
+                    pass
             self.hide()
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def update_input_values(self):
@@ -288,12 +310,17 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             i.results_category(i.name)
 
     def clear_results(self):
-        self.mTreeWidget.clear()
+        # Clear amounts tables
+        self.amountsMixtureTable.setRowCount(0)
+        self.amountsLiquidTable.setRowCount(0)
+        self.amountsVapourTable.setRowCount(0)
+        # Clear phase properties tables
         self.mTableWidget.setRowCount(0)
-        self.lTreeWidget.clear()
         self.lTableWidget.setRowCount(0)
-        self.vTreeWidget.clear()
         self.vTableWidget.setRowCount(0)
+        # Reset stored amounts data
+        for basis in self._composition_basis_options:
+            self._amounts_data[basis] = {1: [], 2: [], 3: []}
 
     # result data tab
     def results_category(self,name):
@@ -301,6 +328,11 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             #print("Under result category name ", name)
             result=self.container.result
             obj = self.container.fetch_object(name)
+
+            def _safe_result(val):
+                if val.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit():
+                    return str(round(float(val), 4))
+                return val
 
 
             d = {"Mole Fraction":"x_pc", "Mass Fraction":"xm_pc", "Mole Flow":"F_pc", "Mass Flow":"Fm_pc"}
@@ -310,68 +342,52 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap", "Phase Molar Enthalpy":"H_p", 
             "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p"}
 
-            # Amounts Tab
+            # Amounts Tab — populate _amounts_data dict
             if obj.type == 'MaterialStream':
+                # Reset stored data
+                for basis in self._composition_basis_options:
+                    self._amounts_data[basis] = {1: [], 2: [], 3: []}
+
                 ll = []  # list for basis names
                 for basis in d:
                     propertyname = name + '.' + d[basis]
-                    #print("basis ", basis, propertyname)
                     for i in result[0]:
                         if (propertyname in i):
                             ll.append(i)
-                #print(ll)
-              
                 j = 0
                 namee = 'none'
-                #print("namee ", namee)
-                #initialization for treewidgets
-                lroot = 1
-                mroot = 1
-                vroot = 1
 
-
-                for i,k in enumerate(ll):
+                for i, k in enumerate(ll):
                     ind = result[0].index(k)
-                    #print("index ", ind)
-                    #print("str ", k)
                     resultval = str(result[-1][ind])
-                    #print("######Resultsfetch####",resultval)
-                    #print(k[k.find(".")+1:k.find("[")])
                     obj.variables[k.split('.')[1]]['value'] = resultval
 
                     if namee not in k:
-                        mroot = QTreeWidgetItem(self.mTreeWidget, [ms_lst[j]])
-                        lroot = QTreeWidgetItem(self.lTreeWidget, [ms_lst[j]])
-                        vroot = QTreeWidgetItem(self.vTreeWidget, [ms_lst[j]])
                         namee = klst[j]
 
-                    phase_no = int(k[k.index(',') - 1])  # phase no is from modelica list
-                    compound_no = int(k[k.index(',') + 1]) - 1  # compound is from python list
+                    phase_no = int(k[k.index(',') - 1])  # phase no from modelica list
+                    compound_no = int(k[k.index(',') + 1]) - 1  # compound from python list
 
-                    if phase_no == 1:
-                        child = QTreeWidgetItem(mroot, [compound_selected[compound_no], str(round(float(resultval),4)),
-                                                        obj.variables[k.split('.')[1]]['unit']])
-                    elif phase_no == 2:
-                        child = QTreeWidgetItem(lroot, [compound_selected[compound_no], str(round(float(resultval),4)),
-                                                        obj.variables[k.split('.')[1]]['unit']])
-                    elif phase_no == 3:
-                        child = QTreeWidgetItem(vroot, [compound_selected[compound_no], str(round(float(resultval),4)),
-                                                        obj.variables[k.split('.')[1]]['unit']])
-                        if (compound_no + 1) == len(compound_selected):
-                            j += 1
+                    self._amounts_data[ms_lst[j]][phase_no].append(
+                        (compound_selected[compound_no], _safe_result(resultval))
+                    )
 
+                    if phase_no == 3 and (compound_no + 1) == len(compound_selected):
+                        j += 1
 
-                
+                # Refresh the visible amounts tables for the currently selected basis
+                self._on_composition_basis_changed()
+
                 # Phase Properties Tab
                 phaseResLst = []
                 for phase in p:
                     propertyname = name + '.' + p[phase]
                     #print("phase ", phase, propertyname)
                     for i in result[0]:
-                        if i.find('['):
+                        if '[' in i:
                             if (propertyname == i[0:i.find('[')]):
                                 phaseResLst.append(i)
-                        if propertyname == i:
+                        elif propertyname == i:
                             phaseResLst.append(i)
                 #print(phaseResLst)
                 
@@ -393,7 +409,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                             mrowPosition = self.mTableWidget.rowCount()
                             self.mTableWidget.insertRow(mrowPosition)
                             self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.mTableWidget.resizeColumnsToContents() 
                                                  
@@ -401,14 +417,14 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                             lrowPosition = self.lTableWidget.rowCount()
                             self.lTableWidget.insertRow(lrowPosition)
                             self.lTableWidget.setItem(lrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.lTableWidget.setItem(lrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.lTableWidget.setItem(lrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.lTableWidget.setItem(lrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.lTableWidget.resizeColumnsToContents()                         
                         if '3' in val.split('.')[1]:   
                             vrowPosition = self.vTableWidget.rowCount()
                             self.vTableWidget.insertRow(vrowPosition)
                             self.vTableWidget.setItem(vrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                            self.vTableWidget.setItem(vrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                            self.vTableWidget.setItem(vrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.vTableWidget.setItem(vrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                             self.vTableWidget.resizeColumnsToContents()                                
                     if not '[' in val:
@@ -416,7 +432,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                         mrowPosition = self.mTableWidget.rowCount()
                         self.mTableWidget.insertRow(mrowPosition)
                         self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                        self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4))))
+                        self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4)) if resultval.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit() else resultval))
                         self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                         self.mTableWidget.resizeColumnsToContents() 
 
@@ -451,12 +467,9 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
 
 
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-    def closeEvent(self,event):
-        scrollHVal = self.parent().container.graphics.graphicsView.horizontalScrollBarVal
-        currentVal = self.parent().container.graphics.graphicsView.horizontalScrollBar().value()
-        self.parent().container.graphics.graphicsView.horizontalScrollBar().setValue(currentVal-189)
-
+        
     def equalize(self):
         try:
             noc = len(self.x_pclist)
@@ -469,6 +482,7 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
                     sum_val += v
                 self.x_pclist[-1].setText(str(round(1.0 - sum_val, 4)))
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
 
     def normalize(self):
@@ -496,5 +510,25 @@ class DockWidgetMaterialStream(QDockWidget, ui_dialog):
             else:
                 self.show_error()
         except Exception as e:
+            print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-    
+
+    # ------------------- Amounts: Composition Basis switching -------------------
+    def _on_composition_basis_changed(self, index=None):
+        """Refresh the three Amounts phase tables for the currently selected basis."""
+        basis = self.cbCompositionBasis.currentText()
+        data = self._amounts_data.get(basis, {1: [], 2: [], 3: []})
+        self._populate_amounts_table(self.amountsMixtureTable, data.get(1, []))
+        self._populate_amounts_table(self.amountsLiquidTable, data.get(2, []))
+        self._populate_amounts_table(self.amountsVapourTable, data.get(3, []))
+
+    @staticmethod
+    def _populate_amounts_table(table, rows):
+        """Fill a QTableWidget with (compound, value) rows."""
+        table.setRowCount(0)
+        for compound, value in rows:
+            row_pos = table.rowCount()
+            table.insertRow(row_pos)
+            table.setItem(row_pos, 0, QTableWidgetItem(compound))
+            table.setItem(row_pos, 1, QTableWidgetItem(str(value)))
+        table.resizeColumnsToContents()

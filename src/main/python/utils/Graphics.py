@@ -94,54 +94,119 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
             if isinstance(i, NodeItem):
                 i.update_compounds()
     
-    def load_canvas(self, snapshot, container):
+    def load_canvas(self, obj_list, container):
         """
-        Rebuilds scene from snapshot created by save_canvas().
+        Rebuilds scene from a list of saved unit-operation objects
+        (the format produced by mainApp.save() for .sim files).
+        Each object carries its own position (obj.pos) and connection
+        data (obj.input_stms / obj.output_stms).
         """
         try:
-            # Clear current scene
-            self.scene.clear()
-            self.unit_operations = []
+            name_to_item = {}   # obj.name → NodeItem
 
-            items = snapshot.get("items", [])
-
-            for data in items:
+            # --- Phase 1: recreate every node --------------------------------
+            for obj in obj_list:
                 try:
-                    comp_type = data.get("type")
-                    name = data.get("name")
-                    pos = data.get("pos", (0, 0))
+                    obj.saved = True
+                    box = self.create_node_item(obj, container)
+                    if box is None:
+                        print(f"[DEBUG] load_canvas: create_node_item returned None for {obj.name}")
+                        continue
+                    self.scene.addItem(box)
 
-                    # Create a new object based on its type
-                    # (Assumes global class available: python.utils.Streams, UnitOperations, etc.)
-                    module_path = f"python.utils.Streams.{comp_type}" if comp_type == "MaterialStream" else f"python.utils.UnitOperations.{comp_type}"
+                    # Restore position from the saved object
+                    if hasattr(obj, 'pos') and obj.pos is not None:
+                        box.setPos(obj.pos)
 
-                    cls = None
-                    try:
-                        module = __import__(module_path, fromlist=[comp_type])
-                        cls = getattr(module, comp_type)
-                    except Exception:
-                        print(f"[DEBUG] load_canvas: could not import {comp_type}")
-
-                    if cls:
-                        obj = cls()
-                        obj.name = name
-                        self.unit_operations.append(obj)
-
-                        # Create its graphical node
-                        box = self.create_node_item(obj, container)
-                        box.setPos(*pos)
-                        self.scene.addItem(box)
+                    container.unit_operations.append(obj)
+                    name_to_item[obj.name] = box
                 except Exception as e:
-                    print(f"[DEBUG] load_canvas: failed to rebuild {data.get('name', '?')} → {e}")
+                    print(f"[DEBUG] load_canvas: failed to rebuild {getattr(obj, 'name', '?')} → {e}")
 
-            # Restore optional data
-            container.compounds = snapshot.get("compounds", [])
-            container.result = snapshot.get("result", None)
+            # Let Qt finalize the scene layout before computing socket positions
+            from PyQt5.QtWidgets import QApplication
+            QApplication.processEvents()
 
-            print(f"[DEBUG] load_canvas: reloaded {len(items)} items successfully")
+            # --- Phase 2: rebuild visual connections --------------------------
+            def _socket_scene_center(socket):
+                """Compute socket center in scene coords without relying on mapToScene."""
+                r = socket.boundingRect()
+                local_center = QtCore.QPointF(r.x() + r.width() / 2, r.y() + r.height() / 2)
+                if socket.parentItem() is not None:
+                    return socket.parentItem().scenePos() + socket.pos() + local_center
+                return local_center
+
+            connected_pairs = set()  # avoid duplicate lines (src_name, src_id, tgt_name, tgt_id)
+
+            def _draw_connection(src_name, src_socket_id, tgt_name, tgt_socket_id):
+                pair_key = (src_name, src_socket_id, tgt_name, tgt_socket_id)
+                if pair_key in connected_pairs:
+                    return
+                
+                src_item = name_to_item.get(src_name)
+                tgt_item = name_to_item.get(tgt_name)
+                if not src_item or not tgt_item:
+                    return
+
+                src_socket = next((s for s in src_item.output if s.id == src_socket_id), None)
+                tgt_socket = next((s for s in tgt_item.input if s.id == tgt_socket_id), None)
+                if not src_socket or not tgt_socket:
+                    print(f"[DEBUG] load_canvas: socket not found {src_name}[out:{src_socket_id}] -> {tgt_name}[in:{tgt_socket_id}]")
+                    return
+
+                connected_pairs.add(pair_key)
+                pt_a = _socket_scene_center(src_socket)
+                pt_b = _socket_scene_center(tgt_socket)
+                line = NodeLine(pt_a, pt_b, 'op')
+                line.source = src_socket
+                line.target = tgt_socket
+                src_socket.out_lines.append(line)
+                tgt_socket.in_lines.append(line)
+                self.scene.addItem(line)
+                line.pointA = pt_a
+                line.pointB = pt_b
+
+            for obj in obj_list:
+                # 1. Forward connections (obj -> target)
+                out_stms = getattr(obj, 'output_stms', {})
+                if isinstance(out_stms, dict):
+                    for src_socket_id, target_obj in out_stms.items():
+                        tgt_name = getattr(target_obj, 'name', None)
+                        if not tgt_name: continue
+                        
+                        tgt_socket_id = 1
+                        tgt_in_stms = getattr(target_obj, 'input_stms', {})
+                        if isinstance(tgt_in_stms, dict):
+                            for tid, connected_obj in tgt_in_stms.items():
+                                if getattr(connected_obj, 'name', None) == obj.name:
+                                    tgt_socket_id = tid
+                                    break
+                        
+                        _draw_connection(obj.name, src_socket_id, tgt_name, tgt_socket_id)
+
+                # 2. Backward connections (source -> obj)
+                in_stms = getattr(obj, 'input_stms', {})
+                if isinstance(in_stms, dict):
+                    for tgt_socket_id, source_obj in in_stms.items():
+                        src_name = getattr(source_obj, 'name', None)
+                        if not src_name: continue
+                        
+                        src_socket_id = 1
+                        src_out_stms = getattr(source_obj, 'output_stms', {})
+                        if isinstance(src_out_stms, dict):
+                            for sid, connected_obj in src_out_stms.items():
+                                if getattr(connected_obj, 'name', None) == obj.name:
+                                    src_socket_id = sid
+                                    break
+                        
+                        _draw_connection(src_name, src_socket_id, obj.name, tgt_socket_id)
+
+            self._restore_counters(container.unit_operations)
+            print(f"[DEBUG] load_canvas: reloaded {len(obj_list)} items, {len(connected_pairs)} connections")
 
         except Exception as e:
             print("[DEBUG] load_canvas failed:", e)
+            import traceback; traceback.print_exc()
 
 
     def save_canvas(self):
@@ -782,16 +847,11 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.obj.no_of_inputs = self.nin
             self.obj.variables['NI']['value'] = self.nin
 
-        # ✅ Distillation Column: ask number of input(s)
+        # ✅ Distillation Column: use default 1 input for new components (no prompt)
         elif self.obj.type == 'DistillationColumn' and not getattr(self.obj, "saved", False):
-            combo_values = list(map(str, range(1, 9)))
-            text, self.ok = QInputDialog.getItem(
-                self.container.graphicsView, 'DistillationColumn', 'Select number of input(s):', combo_values, False
-            )
-            if self.ok:
-                self.nin = int(text)
-                self.obj.no_of_inputs = self.nin
-                self.obj.variables['Ni']['value'] = self.nin
+            self.nin = 1
+            self.obj.no_of_inputs = self.nin
+            self.obj.variables['Ni']['value'] = self.nin
 
         # ✅ Default input/output counts
         self.nin = getattr(self.obj, "no_of_inputs", 0)
@@ -1189,11 +1249,143 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.obj.set_pos(self.current_pos)
 
 
+    def update_input_ports(self, new_count):
+        """Dynamically adjust the number of input sockets for this node (e.g. Mixer)."""
+        old_count = len(self.input)
+        if new_count == old_count:
+            return
+
+        self.prepareGeometryChange()
+
+        # Remove excess sockets from the end
+        while len(self.input) > new_count:
+            socket = self.input.pop()
+            # Remove any connected lines from the scene
+            for line in list(socket.in_lines):
+                # Clean up the source side
+                if hasattr(line, 'source') and line.source is not None:
+                    if line in line.source.out_lines:
+                        line.source.out_lines.remove(line)
+                    # Remove logical connection on the source object
+                    try:
+                        line.source.parent.obj.remove_connection(0, line.source.id)
+                    except Exception as e:
+                        print(f"[DEBUG] update_input_ports: source cleanup error: {e}")
+                # Remove logical connection on this object
+                try:
+                    self.obj.remove_connection(1, socket.id)
+                except Exception as e:
+                    print(f"[DEBUG] update_input_ports: target cleanup error: {e}")
+                if self.scene() is not None:
+                    self.scene().removeItem(line)
+            socket.in_lines.clear()
+            if self.scene() is not None:
+                self.scene().removeItem(socket)
+
+        # Add new sockets if needed
+        while len(self.input) < new_count:
+            idx = len(self.input) + 1
+            socket = NodeSocket(
+                QtCore.QRect(
+                    int(-6.5),
+                    int(self.rect.height() * idx / (new_count + 1) - 6),
+                    12, 12
+                ),
+                self, 'in', idx
+            )
+            self.input.append(socket)
+
+        # Reposition all input sockets evenly
+        for i, socket in enumerate(self.input):
+            idx = i + 1
+            socket.prepareGeometryChange()
+            socket.rect = QtCore.QRectF(
+                -6.5,
+                self.rect.height() * idx / (new_count + 1) - 6,
+                12, 12
+            )
+            socket.id = idx
+            socket.update()
+
+        self.nin = new_count
+        self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
+        self._update_connected_lines()
+        self.update()
+        print(f"[DEBUG] update_input_ports: {old_count} → {new_count} ports")
+
+    def update_output_ports(self, new_count):
+        """Dynamically adjust the number of output sockets for this node (e.g. Splitter)."""
+        old_count = len(self.output)
+        if new_count == old_count:
+            return
+
+        self.prepareGeometryChange()
+
+        # Remove excess sockets from the end
+        while len(self.output) > new_count:
+            socket = self.output.pop()
+            # Remove any connected lines from the scene
+            for line in list(socket.out_lines):
+                # Clean up the target side
+                if hasattr(line, 'target') and line.target is not None:
+                    if line in line.target.in_lines:
+                        line.target.in_lines.remove(line)
+                    # Remove logical connection on the target object
+                    try:
+                        line.target.parent.obj.remove_connection(1, line.target.id)
+                    except Exception as e:
+                        print(f"[DEBUG] update_output_ports: target cleanup error: {e}")
+                # Remove logical connection on this object
+                try:
+                    self.obj.remove_connection(0, socket.id)
+                except Exception as e:
+                    print(f"[DEBUG] update_output_ports: source cleanup error: {e}")
+                if self.scene() is not None:
+                    self.scene().removeItem(line)
+            socket.out_lines.clear()
+            if self.scene() is not None:
+                self.scene().removeItem(socket)
+
+        # Add new sockets if needed
+        while len(self.output) < new_count:
+            idx = len(self.output) + 1
+            socket = NodeSocket(
+                QtCore.QRect(
+                    int(self.rect.width() - 6.5),
+                    int(self.rect.height() * idx / (new_count + 1) - 6),
+                    12, 12
+                ),
+                self, 'op', idx
+            )
+            self.output.append(socket)
+
+        # Reposition all output sockets evenly
+        for i, socket in enumerate(self.output):
+            idx = i + 1
+            socket.prepareGeometryChange()
+            socket.rect = QtCore.QRectF(
+                self.rect.width() - 6.5,
+                self.rect.height() * idx / (new_count + 1) - 6,
+                12, 12
+            )
+            socket.id = idx
+            socket.update()
+
+        self.nop = new_count
+        self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
+        self._update_connected_lines()
+        self.update()
+        print(f"[DEBUG] update_output_ports: {old_count} → {new_count} ports")
+
                 
     def mouseDoubleClickEvent(self, event):
 
         self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
         self.graphicsView.setInteractive(False)
+        # Purge any destroyed widgets from the stack before accessing
+        import sip
+        while stack and sip.isdeleted(stack[-1]):
+            stack.pop()
         if len(stack):
             stack[-1].hide()
         self.dock_widget.show()

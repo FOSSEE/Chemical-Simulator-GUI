@@ -49,7 +49,7 @@ class Flash():
     def OM_Flowsheet_Eqn(self, addedcomp):
         self.OM_data_eqn = ''
         comp_count = len(addedcomp)
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.outlet,' + self.name + '.feed' + ');\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.vapor,' + self.OutputStms[0].name + '.inlet);\n')
-        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.liquid,' + self.OutputStms[1].name + '.inlet);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.InputStms[0].name + '.Out,' + self.name + '.In' + ');\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.Out1,' + self.OutputStms[0].name + '.In);\n')
+        self.OM_data_eqn = self.OM_data_eqn + ('connect(' + self.name + '.Out2,' + self.OutputStms[1].name + '.In);\n')
         return self.OM_data_eqn

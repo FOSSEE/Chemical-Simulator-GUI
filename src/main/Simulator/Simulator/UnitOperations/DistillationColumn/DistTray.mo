@@ -1,4 +1,4 @@
-within Simulator.UnitOperations.DistillationColumn;
+﻿within Simulator.UnitOperations.DistillationColumn;
 
   model DistTray "Model of a tray used in distillation column"
     import Simulator.Files.*;
@@ -8,15 +8,15 @@ within Simulator.UnitOperations.DistillationColumn;
     Real P(unit = "Pa", min = 0, start = Pg) "Pressure";
     Real T(unit = "K", min = 0, start = Tg) "Temperature";
     Real Fin(unit = "mol/s", min = 0, start = Fg) "Feed molar flow";
-    Real xin_c[Nc](each unit = "-", each min = 0, each max = 1,start=xg) "Feed components mole fraction"; 
+    Real xin_c[Nc](each unit = "1", each min = 0, each max = 1,start=xg) "Feed components mole fraction"; 
     Real Hin(unit = "kJ/kmol",start=Htotg) "Feed molar enthalpy"; 
     
     Real Fout(unit = "mol/s", min = 0, start = Fg) "Sidedraw molar flow";
     Real Fvap_s[2](each unit = "mol/s", each min = 0,start={Fg,Fg}) "Vapor molar flow";
     Real Fliq_s[2](each unit = "mol/s", each min = 0,start={Fg,Fg}) "Liquid molar flow";  
-    Real xout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Components mole fraction at sidedraw";
-    Real xvap_sc[2, Nc](each unit = "-", each min = 0, each max = 1, start=yg) "Components vapor mole fraction";
-    Real xliq_sc[2, Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Components liquid mole fraction";
+    Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Components mole fraction at sidedraw";
+    Real xvap_sc[2, Nc](each unit = "1", each min = 0, each max = 1, start=yg) "Components vapor mole fraction";
+    Real xliq_sc[2, Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Components liquid mole fraction";
  
     Real Hvap_s[2](unit = "kJ/kmol",start=Hvapg) "Vapor molar enthalpy";
     Real Hliq_s[2](unit = "kJ/kmol",start=Hliqg) "Liquid molar enthalpy";
@@ -135,3 +135,4 @@ within Simulator.UnitOperations.DistillationColumn;
       Icon(coordinateSystem(extent = {{-100, -40}, {100, 40}})),
       __OpenModelica_commandLineOptions = "");
   end DistTray;
+

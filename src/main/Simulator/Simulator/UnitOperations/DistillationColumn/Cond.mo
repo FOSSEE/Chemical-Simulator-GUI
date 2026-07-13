@@ -1,4 +1,4 @@
-within Simulator.UnitOperations.DistillationColumn;
+﻿within Simulator.UnitOperations.DistillationColumn;
 
   model Cond "Model of a condenser used in distillation column"
     import Simulator.Files.*;
@@ -8,22 +8,22 @@ within Simulator.UnitOperations.DistillationColumn;
     Real P(unit = "K", min = 0, start = Pg) "Pressure";
     Real T(unit = "Pa", min = 0, start = Tg) "Temperature";
     Real Fin(unit = "mol/s", min = 0, start =Fg) "Feed molar flow rate";
-    Real xin_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Feed components mole fraction"; 
-    Real xvapin_c[Nc](each unit = "-", each min = 0, each max = 1, start=xvapg) "Inlet components vapor molar fraction"; 
+    Real xin_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Feed components mole fraction"; 
+    Real xvapin_c[Nc](each unit = "1", each min = 0, each max = 1, start=xvapg) "Inlet components vapor molar fraction"; 
     Real Hin(unit = "kJ/kmol",start=Htotg) "Feed inlet molar enthalpy";
    
     Real Fout(unit = "mol/s", min = 0, start = Fg) "Side draw molar flow";
     Real Fvapin(unit = "mol/s", min = 0, start = Fg) "Inlet vapor molar flow";
     Real Fliqout(unit = "mol/s", min = 0, start = Fg) "Outlet liquid molar flow";
-    Real xout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xg) "Side draw components mole fraction";
-    Real xliqout_c[Nc](each unit = "-", each min = 0, each max = 1, start=xliqg) "Outlet components liquid mole fraction";
+    Real xout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xg) "Side draw components mole fraction";
+    Real xliqout_c[Nc](each unit = "1", each min = 0, each max = 1, start=xliqg) "Outlet components liquid mole fraction";
     
     Real Hvapin(unit = "kJ/kmol",start=Hvapg) "Inlet vapor molar enthalpy";
     Real Hliqout(unit = "kJ/kmol",start=Hliqg) "Outlet liquid molar enthalpy";
     Real Q(unit = "W") "Heat load";
     Real Hout(unit = "kJ/kmol",start=Htotg) "Side draw molar enthalpy";
     Real Hliqout_c[Nc](each unit = "kJ/kmol") "Outlet liquid components molar enthalpy";
-    Real x_pc[3, Nc](each unit = "-", each min = 0, each max = 1,start={xguess,xguess,xguess}) "Component mole fraction";
+    Real x_pc[3, Nc](each unit = "1", each min = 0, each max = 1,start={xguess,xguess,xguess}) "Component mole fraction";
     Real Pdew(unit = "Pa", min = 0, start = Pmax) "Dew point pressure";
     Real Pbubl(unit = "Pa", min = 0,start=Pmin) "Bubble point pressure";
     
@@ -107,3 +107,4 @@ within Simulator.UnitOperations.DistillationColumn;
       Icon(coordinateSystem(extent = {{-100, -40}, {100, 40}})),
       __OpenModelica_commandLineOptions = "");
   end Cond;
+
