@@ -510,7 +510,7 @@ class MainApp(QMainWindow,ui):
         self.actionSelectCompounds.setShortcut('Ctrl+C')
         self.actionZoomIn.triggered.connect(self.zoom_in)
         self.actionZoomIn.setShortcut('Ctrl++')
-        self.actionNew.triggered.connect(self.new)
+        self.actionNew.triggered.connect(self.new_file)
         self.actionNew.setShortcut('Ctrl+N')
         self.actionZoomOut.triggered.connect(self.zoom_out)
         self.actionZoomOut.setShortcut('Ctrl+-')
@@ -865,8 +865,32 @@ class MainApp(QMainWindow,ui):
 
 
     '''
+        Handler for the "New File" menu action. Asks the user to save, discard
+        or cancel before wiping the current project. The startup flow calls
+        new()/new_project() directly, so no popup appears there.
+    '''
+    def new_file(self):
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("New File")
+        msg_box.setIcon(QMessageBox.Question)
+        msg_box.setText("Do you want to save the current project before creating a new one?")
+        save_btn = msg_box.addButton("Save", QMessageBox.AcceptRole)
+        dont_save_btn = msg_box.addButton("Don't Save", QMessageBox.DestructiveRole)
+        cancel_btn = msg_box.addButton("Cancel", QMessageBox.RejectRole)
+        msg_box.setDefaultButton(save_btn)
+        msg_box.exec_()
+
+        clicked = msg_box.clickedButton()
+        if clicked is cancel_btn:
+            return
+        if clicked is save_btn:
+            if not self.save():
+                return  # user cancelled the Save As dialog; keep current project
+        self.new()
+
+    '''
         New is used to delete all the existing work.
-    '''        
+    '''
     def new(self):
         try:
             # Reset window title
@@ -1037,31 +1061,81 @@ class MainApp(QMainWindow,ui):
     '''
 
     def save(self):
-        data = []
+        snapshot = self.container.graphics.save_canvas()
+        if snapshot is None:
+            self.textBrowser.append(
+                f"<span style='color:red'>[{self.current_time()}] Failed to capture the canvas for saving.</span>"
+            )
+            return False
+        snapshot["result"] = self.container.result
         for i in self.container.unit_operations:
-            data.append(i)
             i.saved = True
-        data.append(compound_selected)
-        data.append(self.container.result)
 
         file_format = 'sim'
         initial_path = QDir.currentPath() + ' untitled.' + file_format
         file_name, _ = QFileDialog.getSaveFileName(self, "Save As",
                                                   initial_path, "%s Files (*.%s);; All Files (*)" %
                                                   (file_format.upper(), file_format))
+        if not file_name:
+            return False  # user cancelled the Save As dialog
         try:
-            with open(file_name, 'wb') as f: 
-                pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-            self.last_saved_project = file_name 
+            with open(file_name, 'wb') as f:
+                pickle.dump(snapshot, f, pickle.HIGHEST_PROTOCOL)
+            self.last_saved_project = file_name
             fileName = file_name.split('/')[-1].split('.')[0]
             self.setWindowTitle(fileName+' - Chemical Simulator GUI')
+            return True
 
         except Exception as e:
-            pass
+            return False
 
     '''
         Function for loading previous saved canvas and simulation 
     '''
+
+    '''
+        Converts a .sim saved in the old format (a flat list of unit operation
+        objects followed by compound_selected and result) into the snapshot
+        dict format used by save_canvas()/load_canvas_from_snapshot().
+    '''
+    def _legacy_sim_to_snapshot(self, data):
+        data = list(data)
+        result = data.pop() if data else None
+        compounds = data.pop() if data else []
+
+        items = []
+        connections = []
+        streams = ('MaterialStream', 'EngStm')
+        for op in data:
+            pos = getattr(op, 'pos', None)
+            try:
+                pos_t = (pos.x(), pos.y()) if pos is not None else (0, 0)
+            except Exception:
+                pos_t = (0, 0)
+            items.append({"obj": op, "pos": pos_t})
+
+        # Old files stored connections as {socket_id: stream} dicts on each
+        # unit operation; streams themselves always use socket id 1.
+        for op in data:
+            if getattr(op, 'type', None) in streams:
+                continue
+            in_stms = getattr(op, 'input_stms', None)
+            if isinstance(in_stms, dict):
+                for sock_id, strm in in_stms.items():
+                    connections.append({
+                        "source_name": strm.name, "source_id": 1,
+                        "target_name": op.name, "target_id": sock_id,
+                    })
+            out_stms = getattr(op, 'output_stms', None)
+            if isinstance(out_stms, dict):
+                for sock_id, strm in out_stms.items():
+                    connections.append({
+                        "source_name": op.name, "source_id": sock_id,
+                        "target_name": strm.name, "target_id": 1,
+                    })
+
+        return {"items": items, "connections": connections,
+                "compounds": list(compounds), "result": result}
 
     def open(self, file_path=None):
         try:
@@ -1075,44 +1149,53 @@ class MainApp(QMainWindow,ui):
                                                           initial_path, "%s Files (*.%s);; All Files (*)" %
                                                           (file_format.upper(), file_format))
             if file_name:
+                with open(file_name, 'rb') as f:
+                    snapshot = pickle.load(f)
+
+                if isinstance(snapshot, list):
+                    # .sim saved by the old save() — convert on the fly
+                    snapshot = self._legacy_sim_to_snapshot(snapshot)
+
+                if not isinstance(snapshot, dict):
+                    self.textBrowser.append(
+                        f"<span style='color:red'>[{self.current_time()}] Cannot open '{file_name}': "
+                        f"unsupported or outdated file format.</span>"
+                    )
+                    return
+
                 fileName = file_name.split('/')[-1].split('.')[0]
                 self.setWindowTitle(fileName+' - Chemical Simulator GUI')
                 self.last_saved_project = file_name
 
                 self.undo_redo_helper()
 
-                with builtins_open(file_name, 'rb') as f:
-                    obj = pickle.load(f)
-                temp_result = obj[-1]
+                self.container.graphics.load_canvas_from_snapshot(snapshot, self.container)
+                self.container.result = snapshot.get("result", None)
 
-                obj.pop()
-                saved_compounds = obj[-1]
-                obj.pop()
-
-                # Update the global compound_selected list in-place
-                compound_selected.clear()
-                compound_selected.extend(saved_compounds)
-
-                self.comp.set_compounds(saved_compounds)
+                # Sync compound selector and side panel with loaded compounds
+                self.comp.set_compounds(compound_selected)
                 self.comp.hide()
                 self._refresh_selected_compounds()
 
-                self.container.graphics.load_canvas(obj, self.container)
-                self.container.result = temp_result
-                DockWidget.show_result(dock_widget_lst)
+                if self.container.result is not None:
+                    DockWidget.show_result(dock_widget_lst)
+                    for i in dock_widget_lst:
+                        #Submitting values
+                        i.param()
 
-                for i in dock_widget_lst:
-                    #Submitting values 
-                    i.param()
-                
-                #Disbaling input data tab for output stream
                 for i in self.container.graphics.scene.items():
                     if (isinstance(i, NodeItem) and i.type == 'MaterialStream'):
                         i.update_tooltip_selectedVar()
-                        no_input_lines = len(i.input[0].in_lines)
-                        no_output_lines = len(i.output[0].out_lines)
-                        if(no_input_lines>0): #Checks if material stream is input or output stream if it is output stream it continues
-                            i.obj.disableInputDataTab(i.dock_widget)
+
+                # Reset undo/redo history to the freshly opened state
+                clean_file('Undo')
+                clean_file('Redo')
+                push('Undo', snapshot)
+                self._update_undo_redo_actions()
+
+                self.textBrowser.append(
+                    f"<span>[{self.current_time()}] Opened <b>{fileName}</b> ... </span>"
+                )
 
                 self.textBrowser.append(
                     f"<span style='color:green'>[{self.current_time()}] Project <b>{fileName}</b> loaded successfully.</span>"
