@@ -58,6 +58,14 @@ class MaterialStream():
             'F_p[3]'  : {'name':'Vapour Molar Flow',            'value':None,       'unit':'mol/s'},
             'Fm_p[3]' : {'name':'Vapour Mass Flow',             'value':None,       'unit':'g/s'},
 
+            'Cp_p[1]' : {'name':'Mixture Molar Specific Heat',  'value':None,       'unit':'kJ/kmol.K'},
+            'Cp_p[2]' : {'name':'Liquid Molar Specific Heat',   'value':None,       'unit':'kJ/kmol.K'},
+            'Cp_p[3]' : {'name':'Vapour Molar Specific Heat',   'value':None,       'unit':'kJ/kmol.K'},
+
+            'MW_p[1]' : {'name':'Mixture Molecular Weight',     'value':None,       'unit':'kg/kmol'},
+            'MW_p[2]' : {'name':'Liquid Molecular Weight',      'value':None,       'unit':'kg/kmol'},
+            'MW_p[3]' : {'name':'Vapour Molecular Weight',      'value':None,       'unit':'kg/kmol'},
+
             'x_pc'  : {'name':'Mole Fraction',    'value':[],      'unit':''},
             'xm_pc' : {'name':'Mass Fraction',    'value':None,     'unit':''},
             
@@ -86,6 +94,8 @@ class MaterialStream():
             self.variables['xm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Fraction'], 'value':None, 'unit':''}
             self.variables['F_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mole Flow'], 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Flow'], 'value':None, 'unit':'g/s'}
+
+            self.variables['Pvap_c['+ str(i+1)+']'] = {'name': val + ' Vapor Pressure', 'value':None, 'unit':'Pa'}
 
         for i in self.compound_names:
             self.variables[i] = {'value':''}
@@ -276,7 +286,10 @@ class MaterialStream():
             self.variables['x_pc[3,'+str(i+1)+']']['value'] = None
             self.variables['xm_pc[3,'+str(i+1)+']']['value'] = None
             self.variables['F_pc[3,'+str(i+1)+']']['value'] = None
-            self.variables['Fm_pc[3,'+str(i+1)+']']['value'] = None 
+            self.variables['Fm_pc[3,'+str(i+1)+']']['value'] = None
+
+            self.variables['Pvap_c['+str(i+1)+']']['value'] = None
+
     
     def set_pos(self,pos):
         self.pos = pos
@@ -420,6 +433,16 @@ class MaterialStream():
                 Fm_pStr = Fm_pStr.replace(']','}')
                 Fm_pStr = Fm_pStr.replace('"','')
                 self.start_dict['Fm_p'] = Fm_pStr
+
+            if self.variables.get('Pvap_c[1]', {}).get('value') != None:
+                Pvap_cArr = []
+                for i in range(1, len(self.compound_names) + 1):
+                    Pvap_cArr.append(self.variables['Pvap_c['+str(i)+']']['value'])
+                Pvap_cStr = json.dumps(Pvap_cArr)
+                Pvap_cStr = Pvap_cStr.replace('[','{')
+                Pvap_cStr = Pvap_cStr.replace(']','}')
+                Pvap_cStr = Pvap_cStr.replace('"','')
+                self.start_dict['Pvap_c'] = Pvap_cStr
 
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
