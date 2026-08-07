@@ -342,7 +342,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap",
             "Molar Specific Heat":"Cp_p", "Phase Molar Enthalpy":"H_p", 
             "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p",
-            "Average Molecular Weight":"MW_p", "Vapor Pressure":"Pvap_c"}
+            "Average Molecular Weight":"MW_p"}
 
             # Amounts Tab — populate _amounts_data dict
             if obj.type == 'MaterialStream':
