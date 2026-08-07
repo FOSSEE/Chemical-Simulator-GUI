@@ -95,7 +95,8 @@ class MaterialStream():
             self.variables['F_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mole Flow'], 'value':None, 'unit':'mol/s'}
             self.variables['Fm_pc[3,'+ str(i+1)+']'] = {'name':[val + ' Vapour Mass Flow'], 'value':None, 'unit':'g/s'}
 
-            self.variables['Pvap_c['+ str(i+1)+']'] = {'name': val + ' Vapor Pressure', 'value':None, 'unit':'Pa'}
+            clean_name = val.replace('(chemsep)', '').strip()
+            self.variables['Pvap_c['+ str(i+1)+']'] = {'name': 'Vapor Pressure(' + clean_name + ')', 'value':None, 'unit':'Pa'}
 
         for i in self.compound_names:
             self.variables[i] = {'value':''}

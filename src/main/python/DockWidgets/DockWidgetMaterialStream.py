@@ -342,7 +342,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap",
             "Molar Specific Heat":"Cp_p", "Phase Molar Enthalpy":"H_p", 
             "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p",
-            "Average Molecular Weight":"MW_p", "Vapor Pressure":"Pvap_c"}
+            "Average Molecular Weight":"MW_p"}
 
             # Amounts Tab — populate _amounts_data dict
             if obj.type == 'MaterialStream':
@@ -437,6 +437,23 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                         self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4)) if resultval.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit() else resultval))
                         self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                         self.mTableWidget.resizeColumnsToContents() 
+
+                # Vapor Pressure (Pvap_c) — per-compound
+                for i in result[0]:
+                    pvap_prefix = name + '.Pvap_c['
+                    if i.startswith(pvap_prefix):
+                        ind = result[0].index(i)
+                        resultval = str(result[-1][ind])
+                        var_key = i.split('.')[1]  # e.g. 'Pvap_c[1]'
+                        if var_key in obj.variables:
+                            obj.variables[var_key]['value'] = resultval
+                            mrowPosition = self.mTableWidget.rowCount()
+                            self.mTableWidget.insertRow(mrowPosition)
+                            self.mTableWidget.setItem(mrowPosition, 0, QTableWidgetItem(obj.variables[var_key]['name']))
+                            self.mTableWidget.setItem(mrowPosition, 1, QTableWidgetItem(_safe_result(resultval)))
+                            self.mTableWidget.setItem(mrowPosition, 2, QTableWidgetItem(obj.variables[var_key]['unit']))
+                self.mTableWidget.resizeColumnsToContents()
+
 
 
             # updating the input data from fetched results from simulation
