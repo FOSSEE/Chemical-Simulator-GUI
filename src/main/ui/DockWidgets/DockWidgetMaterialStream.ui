@@ -347,37 +347,19 @@
          </attribute>
          <layout class="QVBoxLayout" name="phasePropsMainLayout">
           <item>
-           <widget class="QToolBox" name="phasePropsToolBox">
+           <widget class="QTabWidget" name="phasePropsPhaseTabWidget">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QToolBox{
-	background: white;
-	border: 1px solid gray;
-	selection-background-color: rgb(255, 170, 127);
-}
-</string>
-            </property>
             <property name="currentIndex">
              <number>0</number>
             </property>
             <!-- Mixture Phase Properties -->
-            <widget class="QWidget" name="phasePropsM">
-             <property name="styleSheet">
-              <string notr="true">QWidget{ background: white; }</string>
-             </property>
-             <attribute name="label">
+            <widget class="QWidget" name="phasePropsMixtureTab">
+             <attribute name="title">
               <string>Mixture</string>
              </attribute>
              <layout class="QVBoxLayout" name="phasePropsMLayout">
@@ -386,11 +368,23 @@
                 <property name="columnCount">
                  <number>3</number>
                 </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
                 <attribute name="horizontalHeaderDefaultSectionSize">
                  <number>100</number>
                 </attribute>
                 <attribute name="horizontalHeaderStretchLastSection">
                  <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
                 </attribute>
                 <column>
                  <property name="text">
@@ -412,11 +406,8 @@
              </layout>
             </widget>
             <!-- Liquid Phase Properties -->
-            <widget class="QWidget" name="phasePropsL">
-             <property name="styleSheet">
-              <string notr="true">QWidget{ background: white; }</string>
-             </property>
-             <attribute name="label">
+            <widget class="QWidget" name="phasePropsLiquidTab">
+             <attribute name="title">
               <string>Liquid</string>
              </attribute>
              <layout class="QVBoxLayout" name="phasePropsLLayout">
@@ -425,11 +416,23 @@
                 <property name="columnCount">
                  <number>3</number>
                 </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
                 <attribute name="horizontalHeaderDefaultSectionSize">
                  <number>100</number>
                 </attribute>
                 <attribute name="horizontalHeaderStretchLastSection">
                  <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
                 </attribute>
                 <column>
                  <property name="text">
@@ -451,11 +454,8 @@
              </layout>
             </widget>
             <!-- Vapour Phase Properties -->
-            <widget class="QWidget" name="phasePropsV">
-             <property name="styleSheet">
-              <string notr="true">QWidget{ background: white; }</string>
-             </property>
-             <attribute name="label">
+            <widget class="QWidget" name="phasePropsVapourTab">
+             <attribute name="title">
               <string>Vapour</string>
              </attribute>
              <layout class="QVBoxLayout" name="phasePropsVLayout">
@@ -464,11 +464,23 @@
                 <property name="columnCount">
                  <number>3</number>
                 </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
                 <attribute name="horizontalHeaderDefaultSectionSize">
                  <number>100</number>
                 </attribute>
                 <attribute name="horizontalHeaderStretchLastSection">
                  <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
                 </attribute>
                 <column>
                  <property name="text">
