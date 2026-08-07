@@ -438,6 +438,23 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                         self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                         self.mTableWidget.resizeColumnsToContents() 
 
+                # Vapor Pressure (Pvap_c) — per-compound
+                for i in result[0]:
+                    pvap_prefix = name + '.Pvap_c['
+                    if i.startswith(pvap_prefix):
+                        ind = result[0].index(i)
+                        resultval = str(result[-1][ind])
+                        var_key = i.split('.')[1]  # e.g. 'Pvap_c[1]'
+                        if var_key in obj.variables:
+                            obj.variables[var_key]['value'] = resultval
+                            mrowPosition = self.mTableWidget.rowCount()
+                            self.mTableWidget.insertRow(mrowPosition)
+                            self.mTableWidget.setItem(mrowPosition, 0, QTableWidgetItem(obj.variables[var_key]['name']))
+                            self.mTableWidget.setItem(mrowPosition, 1, QTableWidgetItem(_safe_result(resultval)))
+                            self.mTableWidget.setItem(mrowPosition, 2, QTableWidgetItem(obj.variables[var_key]['unit']))
+                self.mTableWidget.resizeColumnsToContents()
+
+
 
             # updating the input data from fetched results from simulation
             #print(self.comboBox.currentText())
