@@ -64,6 +64,18 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             self._on_composition_basis_changed
         )
 
+        self._phase_props_basis_options = [
+            'Vapor Pressure', 'Thermodynamic Properties', 'Molecular Weight', 'Mole Flow', 'Mass Flow'
+        ]
+        for opt in self._phase_props_basis_options:
+            self.cbPhasePropsBasis.addItem(opt)
+        
+        # Default to 'Basic Properties'
+        self.cbPhasePropsBasis.setCurrentIndex(0) 
+        self.cbPhasePropsBasis.currentIndexChanged.connect(
+            self._on_phase_props_basis_changed
+        )
+
         # Storage for amounts results: { basis_name: { phase_no: [(compound, value)] } }
         # phase_no: 1=Mixture, 2=Liquid, 3=Vapour
         self._amounts_data = {}
@@ -339,8 +351,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             ms_lst = list(d.keys())
             klst = list(d.values())
 
-            p = {"Pressure":"P", "Temperature":"T","Vapour Phase Mole Fraction":"xvap",
-            "Molar Specific Heat":"Cp_p", "Phase Molar Enthalpy":"H_p", 
+            p = {"Molar Specific Heat":"Cp_p", "Phase Molar Enthalpy":"H_p", 
             "Phase Molar Entropy":"S_p", "Molar Flow Rate":"F_p","Mass Flow Rate":"Fm_p",
             "Average Molecular Weight":"MW_p"}
 
@@ -454,6 +465,9 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                             self.mTableWidget.setItem(mrowPosition, 2, QTableWidgetItem(obj.variables[var_key]['unit']))
                 self.mTableWidget.resizeColumnsToContents()
 
+                # Apply the dropdown filter to the newly populated tables
+                self._on_phase_props_basis_changed()
+
 
 
             # updating the input data from fetched results from simulation
@@ -540,6 +554,34 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
         self._populate_amounts_table(self.amountsMixtureTable, data.get(1, []))
         self._populate_amounts_table(self.amountsLiquidTable, data.get(2, []))
         self._populate_amounts_table(self.amountsVapourTable, data.get(3, []))
+
+    def _on_phase_props_basis_changed(self, index=None):
+        """Show/hide rows in Phase Properties based on the selected dropdown basis."""
+        basis = self.cbPhasePropsBasis.currentText()
+        
+        def filter_table(tableWidget):
+            for row in range(tableWidget.rowCount()):
+                item = tableWidget.item(row, 0)
+                if not item: continue
+                attr_name = item.text().lower()
+                
+                show = False
+                if basis == "Vapor Pressure":
+                    show = "pressure" in attr_name
+                elif basis == "Thermodynamic Properties":
+                    show = any(x in attr_name for x in ["enthalpy", "entropy", "specific heat"])
+                elif basis == "Molecular Weight":
+                    show = "molecular weight" in attr_name
+                elif basis == "Mole Flow":
+                    show = "molar flow" in attr_name or "mole flow" in attr_name
+                elif basis == "Mass Flow":
+                    show = "mass flow" in attr_name
+                
+                tableWidget.setRowHidden(row, not show)
+
+        filter_table(self.mTableWidget)
+        filter_table(self.lTableWidget)
+        filter_table(self.vTableWidget)
 
     @staticmethod
     def _populate_amounts_table(table, rows):
