@@ -347,33 +347,6 @@
          </attribute>
          <layout class="QVBoxLayout" name="phasePropsMainLayout">
           <item>
-           <layout class="QHBoxLayout" name="phasePropsBasisLayout">
-            <item>
-             <widget class="QLabel" name="lblPhasePropsBasis">
-              <property name="text">
-               <string>Composition Basis:</string>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="cbPhasePropsBasis">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
            <widget class="QTabWidget" name="phasePropsPhaseTabWidget">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
