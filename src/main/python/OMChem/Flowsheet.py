@@ -7,18 +7,53 @@ import pandas as pd
 # ===============================
 # Helper: Normalize compound name
 # ===============================
+_CHEMSEP_DB_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'Simulator', 'Simulator', 'Files', 'ChemsepDatabase')
+)
+_chemsep_canonical_map = {}
+if os.path.exists(_CHEMSEP_DB_DIR):
+    for _fname in os.listdir(_CHEMSEP_DB_DIR):
+        if _fname.endswith('.mo'):
+            _base = _fname[:-3]
+            _chemsep_canonical_map[_base.lower()] = _base
+
+
 def _normalize_compound_name(name: str) -> str:
     """
-    Converts any user-entered compound name into a valid Modelica identifier.
+    Converts any compound name into the corresponding Modelica identifier
+    matching the ChemSep database model names in Simulator.Files.ChemsepDatabase.
     Example: 'Hydrogen cyanide' -> 'Hydrogencyanide'
-             'Carbon-tetrachloride' -> 'Carbontetrachloride'
+             '1-Butanol' -> 'Onebutanol'
+             '1,2-Dichloroethane' -> 'OneTwodichloroethane'
     """
     n = name.strip()
+    if '(' in n and n.endswith(')'):
+        n = n[:n.rfind('(')].strip()
+
+    # Strip common punctuation/delimiters
     for ch in [' ', '-', ',', '/', '(', ')', '+', '.']:
         n = n.replace(ch, '')
-    # remove extra special chars
+
+    # Replace digits 1-5 with words matching ChemsepDatabase generation
+    digit_map = {
+        '1': 'One',
+        '2': 'Two',
+        '3': 'Three',
+        '4': 'Four',
+        '5': 'Five',
+    }
+    for digit, word in digit_map.items():
+        n = n.replace(digit, word)
+
+    # Remove any other non-alphanumeric characters
     n = ''.join(c for c in n if c.isalnum() or c == '_')
-    # make sure it starts with a letter
+
+    # Match exact canonical casing from ChemsepDatabase if present
+    canonical = _chemsep_canonical_map.get(n.lower())
+    if canonical:
+        return canonical
+
+    # Ensure it starts with a letter
     if not n or not n[0].isalpha():
         n = 'C' + n
     return n
