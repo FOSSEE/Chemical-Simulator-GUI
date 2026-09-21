@@ -1,6 +1,5 @@
 from collections import defaultdict
 import datetime
-import html
 import os, sys
 
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
@@ -296,24 +295,24 @@ class Container():
             self.op = defaultdict(list)
 
             def try_get_other_node_from_line(ln, this_item):
-                for a, b in [
-                    ("start_item", "end_item"), ("end_item", "start_item"),
-                    ("source", "target"), ("target", "source"),
-                    ("from_node", "to_node"), ("to_node", "from_node"),
-                ]:
-                    try:
-                        if hasattr(ln, a) and hasattr(ln, b):
-                            a_val, b_val = getattr(ln, a), getattr(ln, b)
-                            if a_val is this_item:
-                                other = b_val
-                            elif b_val is this_item:
-                                other = a_val
-                            else:
-                                continue
-                            if other:
-                                return getattr(getattr(other, "obj", other), "name", getattr(other, "name", None))
-                    except Exception:
-                        continue
+                src_socket = getattr(ln, "source", None)
+                tgt_socket = getattr(ln, "target", None)
+
+                src_node = getattr(src_socket, "parent", None) if src_socket else None
+                tgt_node = getattr(tgt_socket, "parent", None) if tgt_socket else None
+
+                other_node = None
+                if src_node is this_item:
+                    other_node = tgt_node
+                elif tgt_node is this_item:
+                    other_node = src_node
+
+                if other_node is not None:
+                    if hasattr(other_node, "obj") and hasattr(other_node.obj, "name"):
+                        return other_node.obj.name
+                    if hasattr(other_node, "name"):
+                        return other_node.name
+
                 return getattr(ln, "name", "UnknownLine")
 
             for it in self.graphics.scene.items():
@@ -338,10 +337,10 @@ class Container():
             print("[DEBUG] Calling Flowsheet simulate.")
             if mode == 'SM':
                 self.signals.msg_signal.emit(
-                    f"<span>[{self.current_time()}] Simulating in <b>Sequential</b> mode ... </span>"
+                    f"<span>[{self.current_time()}] Simulating in <b>Sequential (SQ)</b> mode ... </span>"
                 )
                 try:
-                    self.flowsheet.simulate(self.msg)  # ✅ Actual Sequential simulation
+                    self.flowsheet.simulate_SM(self.ip, self.op)
                     self.result = getattr(self.flowsheet, "result_data", [])
                 except Exception as e:
                     print("[DEBUG] Sequential Mode Simulation failed:", e)
@@ -367,18 +366,11 @@ class Container():
                     if hasattr(dw, 'set_read_only'):
                         dw.set_read_only(True)
             else:
+                last_err = getattr(self.flowsheet, "last_error", "")
+                err_detail = f"<br><small style='color:#cc3333'>{last_err}</small>" if last_err else ""
                 self.signals.msg_signal.emit(
-                    f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
+                    f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b>{err_detail}</span>"
                 )
-                try:
-                    error_detail = getattr(self.flowsheet, "last_error", "")
-                    if error_detail:
-                        safe_error = html.escape(error_detail).replace("\n", "<br/>")
-                        self.signals.msg_signal.emit(
-                            f"<span style='color:red'><b>OpenModelica Error:</b><br/>{safe_error}</span>"
-                        )
-                except Exception as msg_err:
-                    print("[DEBUG] Failed to display simulation error detail:", msg_err)
                 # Keep dock widgets editable on failure
                 for dw in dock_widget_lst:
                     if hasattr(dw, 'set_read_only'):

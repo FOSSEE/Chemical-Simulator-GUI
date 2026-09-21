@@ -168,30 +168,54 @@ class UnitOperation():
         print("Generating equations for:", self.name)
         self.OM_data_eqn = ''
 
-        # Input streams
-        input_stms = self.input_stms.values() if isinstance(self.input_stms, dict) else self.input_stms
-        if input_stms:
-            if len(input_stms) > 1 or self.type == 'Mixer':
-                for idx, strm in enumerate(input_stms, start=1):
-                    if hasattr(strm, 'name'):
-                        self.OM_data_eqn += f'connect({strm.name}.Out, {self.name}.In[{idx}]);\n'
-            else:
-                strm = list(input_stms)[0]
-                if hasattr(strm, 'name'):
+        # --- Input streams mapping ---
+        if isinstance(self.input_stms, dict):
+            inp_items = list(self.input_stms.items())
+        elif isinstance(self.input_stms, list):
+            inp_items = list(enumerate(self.input_stms, start=1))
+        else:
+            inp_items = []
+
+        if inp_items:
+            for socket_idx, strm in inp_items:
+                if not hasattr(strm, 'name'):
+                    continue
+                if self.type == 'Mixer':
+                    self.OM_data_eqn += f'connect({strm.name}.Out, {self.name}.In[{socket_idx}]);\n'
+                elif self.type == 'DistillationColumn':
+                    self.OM_data_eqn += f'connect({strm.name}.Out, {self.name}.In_s[{socket_idx}]);\n'
+                elif self.type == 'HeatExchanger':
+                    port_name = "In_Hot" if socket_idx == 1 else "In_Cold"
+                    self.OM_data_eqn += f'connect({strm.name}.Out, {self.name}.{port_name});\n'
+                else:
                     self.OM_data_eqn += f'connect({self.name}.In, {strm.name}.Out);\n'
         else:
             self.OM_data_eqn += f'// Warning: {self.name} has no input streams\n'
 
-        # Output streams
-        output_stms = self.output_stms.values() if isinstance(self.output_stms, dict) else self.output_stms
-        if output_stms:
-            if len(output_stms) > 1:
-                for idx, strm in enumerate(output_stms, start=1):
-                    if hasattr(strm, 'name'):
-                        self.OM_data_eqn += f'connect({strm.name}.In, {self.name}.Out[{idx}]);\n'
-            else:
-                strm = list(output_stms)[0]
-                if hasattr(strm, 'name'):
+        # --- Output streams mapping ---
+        if isinstance(self.output_stms, dict):
+            out_items = list(self.output_stms.items())
+        elif isinstance(self.output_stms, list):
+            out_items = list(enumerate(self.output_stms, start=1))
+        else:
+            out_items = []
+
+        if out_items:
+            for socket_idx, strm in out_items:
+                if not hasattr(strm, 'name'):
+                    continue
+                if self.type in ['Flash', 'ShortcutColumn', 'CompoundSeparator']:
+                    port_name = f"Out{socket_idx}"
+                    self.OM_data_eqn += f'connect({strm.name}.In, {self.name}.{port_name});\n'
+                elif self.type == 'DistillationColumn':
+                    port_name = "Dist" if socket_idx == 1 else ("Bot" if socket_idx == 2 else f"Out_s[{socket_idx-2}]")
+                    self.OM_data_eqn += f'connect({strm.name}.In, {self.name}.{port_name});\n'
+                elif self.type == 'HeatExchanger':
+                    port_name = "Out_Hot" if socket_idx == 1 else "Out_Cold"
+                    self.OM_data_eqn += f'connect({strm.name}.In, {self.name}.{port_name});\n'
+                elif self.type == 'Splitter':
+                    self.OM_data_eqn += f'connect({strm.name}.In, {self.name}.Out[{socket_idx}]);\n'
+                else:
                     self.OM_data_eqn += f'connect({self.name}.Out, {strm.name}.In);\n'
         else:
             self.OM_data_eqn += f'// Warning: {self.name} has no output streams\n'

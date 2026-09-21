@@ -411,10 +411,4 @@ def run():
 
 
 if __name__ == "__main__":
-    if platform.system() == "Windows":
-        if not pyuac.isUserAdmin():
-            pyuac.runAsAdmin()
-        else:
-            run()
-    else:
-        run()
+    run()
