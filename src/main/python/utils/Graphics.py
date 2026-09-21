@@ -1209,41 +1209,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
     def mouseMoveEvent(self, event):
         super(NodeItem, self).mouseMoveEvent(event)
 
-        # --- Update this node's own input socket lines ---
-        for inp in self.input:
-            for line in inp.in_lines:
-                line.pointB = inp.get_center()
-            if inp.other_line:
-                inp.other_line.pointB = inp.get_center()
-
-        # --- Update this node's own output socket lines ---
-        for op in self.output:
-            for line in op.out_lines:
-                line.pointA = op.get_center()
-            if op.other_line:
-                op.other_line.pointA = op.get_center()
-
-        # --- Update all other NodeItem lines in the scene (safety) ---
-        items = self.graphicsView.items()
-        for i in items:
-            if isinstance(i, NodeItem):
-                # Update output lines of other nodes
-                for op in i.output:
-                    for line in op.out_lines:
-                        if line.source is not None:
-                            line.pointA = line.source.get_center()
-                        if line.target is not None:
-                            line.pointB = line.target.get_center()
-
-                # Update input lines of other nodes
-                for ip in i.input:
-                    for line in ip.in_lines:
-                        if line.source is not None:
-                            line.pointA = line.source.get_center()
-                        if line.target is not None:
-                            line.pointB = line.target.get_center()
-
-        # --- Update node position in model object (if linked) ---
+        # Update node position in model object (if linked)
         self.current_pos = event.scenePos()
         if hasattr(self, "obj") and self.obj is not None:
             self.obj.set_pos(self.current_pos)
@@ -1434,18 +1400,23 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     op.hide()
 
     def itemChange(self, change, value):
-        newPos = value
         if change == self.ItemPositionChange and self.scene():
+            newPos = value
             rect = self.container.graphicsView.sceneRect()
             width = self.boundingRect().width()
             height = self.boundingRect().height()
-            eWH1 = QPointF(newPos.x()+width,newPos.y()+height)
-            eWH2 = QPointF(newPos.x()-width,newPos.y()-height)
-            if not rect.__contains__(eWH1) or not rect.__contains__(eWH2) :
-                newPos.setX(min(rect.right()-width-40, max(newPos.x(), rect.left())))
-                newPos.setY(min(rect.bottom()-height-35, max(newPos.y(), rect.top())))
+            eWH1 = QPointF(newPos.x() + width, newPos.y() + height)
+            eWH2 = QPointF(newPos.x() - width, newPos.y() - height)
+            if not rect.__contains__(eWH1) or not rect.__contains__(eWH2):
+                newPos.setX(min(rect.right() - width - 40, max(newPos.x(), rect.left())))
+                newPos.setY(min(rect.bottom() - height - 35, max(newPos.y(), rect.top())))
                 self.obj.set_pos(newPos)
-        return super(NodeItem,self).itemChange(change, newPos)
+            return super(NodeItem, self).itemChange(change, newPos)
+
+        if change == self.ItemPositionHasChanged and self.scene():
+            self._update_connected_lines()
+
+        return super(NodeItem, self).itemChange(change, value)
 
     def contextMenuEvent(self, event):
         menu = QMenu()
