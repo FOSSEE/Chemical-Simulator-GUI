@@ -1,5 +1,6 @@
 from collections import defaultdict
 import datetime
+import html
 import os, sys
 
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
@@ -369,6 +370,15 @@ class Container():
                 self.signals.msg_signal.emit(
                     f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
                 )
+                try:
+                    error_detail = getattr(self.flowsheet, "last_error", "")
+                    if error_detail:
+                        safe_error = html.escape(error_detail).replace("\n", "<br/>")
+                        self.signals.msg_signal.emit(
+                            f"<span style='color:red'><b>OpenModelica Error:</b><br/>{safe_error}</span>"
+                        )
+                except Exception as msg_err:
+                    print("[DEBUG] Failed to display simulation error detail:", msg_err)
                 # Keep dock widgets editable on failure
                 for dw in dock_widget_lst:
                     if hasattr(dw, 'set_read_only'):
