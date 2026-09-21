@@ -90,6 +90,39 @@ class Flowsheet():
         self.result_data = []
         self.stdout = None
         self.stderr = None
+        self.last_error = ''
+
+    def _decode_process_output(self, output):
+        if not output:
+            return ''
+        try:
+            return output.decode("utf-8", errors="replace")
+        except Exception:
+            return str(output)
+
+    def _extract_omc_error(self, stdout_text='', stderr_text=''):
+        combined = "\n".join(text for text in [stderr_text, stdout_text] if text)
+        if not combined.strip():
+            return ''
+
+        lines = [line.strip() for line in combined.splitlines() if line.strip()]
+        error_lines = []
+        for index, line in enumerate(lines):
+            if any(marker in line.lower() for marker in ['error', 'failed', 'exception']):
+                for detail_line in lines[index:index + 4]:
+                    if detail_line.lower().startswith('geterrorstring()') and detail_line.endswith('""'):
+                        continue
+                    if detail_line not in error_lines:
+                        error_lines.append(detail_line)
+                    if len(error_lines) >= 6:
+                        break
+            if len(error_lines) >= 6:
+                break
+
+        if not error_lines:
+            return ''
+
+        return "\n".join(error_lines[:6])
 
     def get_omc_path(self, msg=None):
         import platform
@@ -122,6 +155,7 @@ class Flowsheet():
     
     def send_for_simulation_Eqn(self,msg):
         self.result_data = []
+        self.last_error = ''
         self.omc_path = self.get_omc_path(msg)
         #print(self.omc_path)
         
@@ -152,16 +186,18 @@ class Flowsheet():
             self.stdout, self.stderr = self.process.communicate()
 
             print("===== STDOUT =====")
-            print(self.stdout.decode("utf-8"))
+            stdout_text = self._decode_process_output(self.stdout)
+            print(stdout_text)
 
             print("===== STDERR =====")
-            print(self.stderr.decode("utf-8"))
+            stderr_text = self._decode_process_output(self.stderr)
+            print(stderr_text)
            
             os.chdir(self.root_dir)
             csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
-            stdout_text = self.stdout.decode("utf-8")
             if 'timeSimulation = 0.0,\n' in stdout_text or not os.path.exists(csvpath):
                 self.result_data = []
+                self.last_error = self._extract_omc_error(stdout_text, stderr_text)
             else:
                 with open (csvpath,'r') as resultFile:
                     self.result_data = []
@@ -172,15 +208,23 @@ class Flowsheet():
 
     def send_for_simulation_SM(self,unitop):
         self.result_data = []
+        self.last_error = ''
         self.omc_path = self.get_omc_path()
         os.chdir(self.sim_dir_path)
         self.process = Popen([self.omc_path, '-s',unitop.name,'.mos'], stdout=PIPE, stderr=PIPE)
         stdout, stderr = self.process.communicate()
+        stdout_text = self._decode_process_output(stdout)
+        stderr_text = self._decode_process_output(stderr)
+        self.stdout = stdout
+        self.stderr = stderr
         # print("############### StdOut ################")
         # print(stdout)
         self.result_data = []
         #print('Simulating '+unitop.name+'...')
         csvpath = os.path.join(self.sim_dir_path,unitop.name+'_res.csv')
+        if not os.path.exists(csvpath):
+            self.last_error = self._extract_omc_error(stdout_text, stderr_text)
+            return
         with open(csvpath,'r') as resultFile:
             csvreader = csv.reader(resultFile,delimiter=',')
             for row in csvreader:
