@@ -7,18 +7,53 @@ import pandas as pd
 # ===============================
 # Helper: Normalize compound name
 # ===============================
+_CHEMSEP_DB_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'Simulator', 'Simulator', 'Files', 'ChemsepDatabase')
+)
+_chemsep_canonical_map = {}
+if os.path.exists(_CHEMSEP_DB_DIR):
+    for _fname in os.listdir(_CHEMSEP_DB_DIR):
+        if _fname.endswith('.mo'):
+            _base = _fname[:-3]
+            _chemsep_canonical_map[_base.lower()] = _base
+
+
 def _normalize_compound_name(name: str) -> str:
     """
-    Converts any user-entered compound name into a valid Modelica identifier.
+    Converts any compound name into the corresponding Modelica identifier
+    matching the ChemSep database model names in Simulator.Files.ChemsepDatabase.
     Example: 'Hydrogen cyanide' -> 'Hydrogencyanide'
-             'Carbon-tetrachloride' -> 'Carbontetrachloride'
+             '1-Butanol' -> 'Onebutanol'
+             '1,2-Dichloroethane' -> 'OneTwodichloroethane'
     """
     n = name.strip()
+    if '(' in n and n.endswith(')'):
+        n = n[:n.rfind('(')].strip()
+
+    # Strip common punctuation/delimiters
     for ch in [' ', '-', ',', '/', '(', ')', '+', '.']:
         n = n.replace(ch, '')
-    # remove extra special chars
+
+    # Replace digits 1-5 with words matching ChemsepDatabase generation
+    digit_map = {
+        '1': 'One',
+        '2': 'Two',
+        '3': 'Three',
+        '4': 'Four',
+        '5': 'Five',
+    }
+    for digit, word in digit_map.items():
+        n = n.replace(digit, word)
+
+    # Remove any other non-alphanumeric characters
     n = ''.join(c for c in n if c.isalnum() or c == '_')
-    # make sure it starts with a letter
+
+    # Match exact canonical casing from ChemsepDatabase if present
+    canonical = _chemsep_canonical_map.get(n.lower())
+    if canonical:
+        return canonical
+
+    # Ensure it starts with a letter
     if not n or not n[0].isalpha():
         n = 'C' + n
     return n
@@ -55,7 +90,39 @@ class Flowsheet():
         self.result_data = []
         self.stdout = None
         self.stderr = None
-        self.last_error = ""
+        self.last_error = ''
+
+    def _decode_process_output(self, output):
+        if not output:
+            return ''
+        try:
+            return output.decode("utf-8", errors="replace")
+        except Exception:
+            return str(output)
+
+    def _extract_omc_error(self, stdout_text='', stderr_text=''):
+        combined = "\n".join(text for text in [stderr_text, stdout_text] if text)
+        if not combined.strip():
+            return ''
+
+        lines = [line.strip() for line in combined.splitlines() if line.strip()]
+        error_lines = []
+        for index, line in enumerate(lines):
+            if any(marker in line.lower() for marker in ['error', 'failed', 'exception']):
+                for detail_line in lines[index:index + 4]:
+                    if detail_line.lower().startswith('geterrorstring()') and detail_line.endswith('""'):
+                        continue
+                    if detail_line not in error_lines:
+                        error_lines.append(detail_line)
+                    if len(error_lines) >= 6:
+                        break
+            if len(error_lines) >= 6:
+                break
+
+        if not error_lines:
+            return ''
+
+        return "\n".join(error_lines[:6])
 
     def get_omc_path(self, msg=None):
         import platform
@@ -88,7 +155,7 @@ class Flowsheet():
     
     def send_for_simulation_Eqn(self,msg):
         self.result_data = []
-        self.last_error = ""
+        self.last_error = ''
         self.omc_path = self.get_omc_path(msg)
         #print(self.omc_path)
         
@@ -118,25 +185,19 @@ class Flowsheet():
                 )
             self.stdout, self.stderr = self.process.communicate()
 
-            stdout_text = self.stdout.decode("utf-8", errors="replace") if self.stdout else ""
-            stderr_text = self.stderr.decode("utf-8", errors="replace") if self.stderr else ""
-
             print("===== STDOUT =====")
+            stdout_text = self._decode_process_output(self.stdout)
             print(stdout_text)
 
             print("===== STDERR =====")
+            stderr_text = self._decode_process_output(self.stderr)
             print(stderr_text)
            
             os.chdir(self.root_dir)
             csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
             if 'timeSimulation = 0.0,\n' in stdout_text or not os.path.exists(csvpath):
                 self.result_data = []
-                # Extract clean error message from OMC output
-                if "Error:" in stdout_text or "Error:" in stderr_text:
-                    err_lines = [l.strip() for l in (stdout_text + "\n" + stderr_text).splitlines() if "Error:" in l or "Underdetermined" in l or "Overdetermined" in l]
-                    self.last_error = " | ".join(err_lines[:3]) if err_lines else "OpenModelica compilation failed."
-                else:
-                    self.last_error = "Simulation produced no results. Check unit operation specifications and connections."
+                self.last_error = self._extract_omc_error(stdout_text, stderr_text)
             else:
                 with open (csvpath,'r') as resultFile:
                     self.result_data = []
@@ -147,15 +208,23 @@ class Flowsheet():
 
     def send_for_simulation_SM(self,unitop):
         self.result_data = []
+        self.last_error = ''
         self.omc_path = self.get_omc_path()
         os.chdir(self.sim_dir_path)
         self.process = Popen([self.omc_path, '-s',unitop.name,'.mos'], stdout=PIPE, stderr=PIPE)
         stdout, stderr = self.process.communicate()
+        stdout_text = self._decode_process_output(stdout)
+        stderr_text = self._decode_process_output(stderr)
+        self.stdout = stdout
+        self.stderr = stderr
         # print("############### StdOut ################")
         # print(stdout)
         self.result_data = []
         #print('Simulating '+unitop.name+'...')
         csvpath = os.path.join(self.sim_dir_path,unitop.name+'_res.csv')
+        if not os.path.exists(csvpath):
+            self.last_error = self._extract_omc_error(stdout_text, stderr_text)
+            return
         with open(csvpath,'r') as resultFile:
             csvreader = csv.reader(resultFile,delimiter=',')
             for row in csvreader:
@@ -345,18 +414,11 @@ class Flowsheet():
                 engstms = safe_streams(getattr(unitop, 'EngStms', None))
 
                 self.data.append(f"model {unitop.name.lower()}\n")
-                self.data.append("  import data = Simulator.Files.ChemsepDatabase;\n")
 
                 # --- Define compounds ---
-                norm_compounds = []
                 for c in self.compounds:
                     norm = _normalize_compound_name(c)
-                    norm_compounds.append(norm)
-                    self.data.append(f"  parameter data.{norm} {norm};\n")
-
-                Nc = len(norm_compounds)
-                self.data.append(f"  parameter Integer Nc = {Nc};\n")
-                self.data.append(f"  parameter data.GeneralProperties C[Nc] = {{{', '.join(norm_compounds)}}};\n")
+                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{norm} {norm};\n")
 
                 self.data.append(unitop.OM_Flowsheet_Initialize())
 
@@ -369,7 +431,7 @@ class Flowsheet():
 
                 # --- Stream equations ---
                 for stm in inpstms + outstms + engstms:
-                    self.data.append(stm.OM_Flowsheet_Equation(norm_compounds, 'SM') if hasattr(stm, 'OM_Flowsheet_Equation') and callable(getattr(stm, 'OM_Flowsheet_Equation')) else "")
+                    self.data.append(stm.OM_Flowsheet_Equation())
 
                 # --- Write unit .mo file ---
                 unitmofile = os.path.join(self.sim_dir_path, f"{unitop.name.lower()}.mo")
@@ -382,10 +444,9 @@ class Flowsheet():
                 unitmosfile = os.path.join(self.sim_dir_path, f"{unitop.name.lower()}.mos")
                 with open(unitmosfile, 'w') as mosFile:
                     mosFile.write('loadModel(Modelica);\n')
-                    mosFile.write('loadFile("package.mo");\n')
+                    mosFile.write('loadFile("Simulator/package.mo");\n')
                     mosFile.write(f'loadFile("{unitop.name.lower()}.mo");\n')
                     mosFile.write(f'simulate({unitop.name.lower()}, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n')
-                    mosFile.write('getErrorString();\n')
 
                 # --- Run simulation ---
                 self.omc_path = self.get_omc_path()
