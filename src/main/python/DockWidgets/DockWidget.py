@@ -27,9 +27,9 @@ class BaseDockWidget(QDockWidget):
         # Standardized list/dict to hold final parameter values for simulation
         self.dict = []
         
-    def show_error(self):
+    def show_error(self, message="Please fill all fields with data"):
         """Standard error popup for missing or invalid data."""
-        QMessageBox.about(self, 'Important', "Please fill all fields with data")
+        QMessageBox.warning(self, 'Input Warning', str(message))
 
     def closeEvent(self, event):
         """Standard close event that resets horizontal scrollbar on closing."""
