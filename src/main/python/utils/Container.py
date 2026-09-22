@@ -336,18 +336,20 @@ class Container():
             # Step 6: Simulation
             # ----------------------------
             print("[DEBUG] Calling Flowsheet simulate.")
+            self.result = None
             if mode == 'SM':
                 self.signals.msg_signal.emit(
                     f"<span>[{self.current_time()}] Simulating in <b>Sequential</b> mode ... </span>"
                 )
                 try:
-                    self.flowsheet.simulate(self.msg)  # ✅ Actual Sequential simulation
+                    self.flowsheet.simulate_SM(self.ip, self.op)
                     self.result = getattr(self.flowsheet, "result_data", [])
                 except Exception as e:
                     print("[DEBUG] Sequential Mode Simulation failed:", e)
                     self.signals.msg_signal.emit(
                         f"<span style='color:red'>[{self.current_time()}] Sequential Mode failed: {e}</span>"
                     )
+                    self.result = None
             else:
                 self.signals.msg_signal.emit(
                     f"<span>[{self.current_time()}] Simulating in <b>Equation</b> mode ... </span>"

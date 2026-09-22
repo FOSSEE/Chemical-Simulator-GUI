@@ -379,6 +379,7 @@ class Flowsheet():
         self.result_data = []
         self.unit = []
         self.csvlist = []
+        self.last_error = ''
 
         # --- Determine execution order based on ip and op ---
         for i in ip:
@@ -395,96 +396,135 @@ class Flowsheet():
                         self.unit.append(k)
                         self.unit.append(i)
 
-        # --- Helper function to safely handle streams ---
+        # Build lookup table to resolve string names to unit operation objects
+        unit_map = {getattr(uo, 'name', None): uo for uo in self.unit_operations}
+
+        # --- Helper function to safely extract stream lists ---
         def safe_streams(stms):
             if stms is None:
                 return []
-            if not isinstance(stms, list):
+            if isinstance(stms, dict):
+                stms = list(stms.values())
+            elif not isinstance(stms, list):
                 stms = [stms]
             return [s for s in stms if s is not None]
 
-        # --- Loop over each unit operation ---
-        for unitop in self.unit:
+        # --- Normalize compound names once ---
+        orig_compounds = self.compounds.copy() if self.compounds else []
+        norm_compounds = [_normalize_compound_name(c) for c in orig_compounds]
+        nc = len(norm_compounds)
+
+        # --- Loop over each unit operation in topological order ---
+        for item in self.unit:
+            unitop = unit_map.get(item, item)
+            if not hasattr(unitop, 'type') or unitop.type in ['MaterialStream', 'EngStm']:
+                continue
+
             os.chdir(self.root_dir)
             self.data = []
 
-            if unitop.type not in ['MaterialStream', 'EngStm']:
-                inpstms = safe_streams(getattr(unitop, 'input_stms', None))
-                outstms = safe_streams(getattr(unitop, 'output_stms', None))
-                engstms = safe_streams(getattr(unitop, 'EngStms', None))
+            inpstms = safe_streams(getattr(unitop, 'input_stms', None))
+            outstms = safe_streams(getattr(unitop, 'output_stms', None))
+            engstms = safe_streams(getattr(unitop, 'EngStms', None))
+            all_stms = inpstms + outstms + engstms
 
-                self.data.append(f"model {unitop.name.lower()}\n")
+            model_name = unitop.name.lower()
 
-                # --- Define compounds ---
-                for c in self.compounds:
-                    norm = _normalize_compound_name(c)
-                    self.data.append(f"parameter Simulator.Files.Chemsep_Database.{norm} {norm};\n")
+            # --- Modelica Header & Definitions ---
+            self.data.append("within Simulator;\n\n")
+            self.data.append(f"model {model_name}\n")
+            self.data.append("  import data = Simulator.Files.ChemsepDatabase;\n")
+            self.data.append("  model ms\n")
+            self.data.append("    extends Simulator.Streams.MaterialStream;\n")
+            self.data.append("    extends Simulator.Files.ThermodynamicPackages.RaoultsLaw;\n")
+            self.data.append("  end ms;\n\n")
 
-                self.data.append(unitop.OM_Flowsheet_Initialize())
+            # --- Define compounds & parameters ---
+            for norm in norm_compounds:
+                self.data.append(f"  parameter data.{norm} {norm};\n")
+            self.data.append(f"  parameter Integer Nc = {nc};\n")
+            self.data.append(f"  parameter data.GeneralProperties C[Nc] = {{{', '.join(norm_compounds)}}};\n\n")
 
-                # --- Initialize streams safely ---
-                for stm in outstms + inpstms + engstms:
-                    self.data.append(stm.OM_Flowsheet_Initialize())
+            # --- Initialize Unit Operation ---
+            self.data.append(f"  {unitop.OM_Flowsheet_Initialize()}\n")
 
-                self.data.append('equation\n')
-                self.data.append(unitop.OM_Flowsheet_Equation())
+            # --- Initialize Streams ---
+            for stm in all_stms:
+                if getattr(stm, 'type', '') == 'MaterialStream':
+                    self.data.append(f"  ms {stm.name}(Nc = {nc}, C = {{{', '.join(norm_compounds)}}});\n")
+                else:
+                    self.data.append(f"  {stm.OM_Flowsheet_Initialize()}\n")
 
-                # --- Stream equations ---
-                for stm in inpstms + outstms + engstms:
-                    self.data.append(stm.OM_Flowsheet_Equation())
+            # --- Equations Section ---
+            self.data.append("\nequation\n")
+            self.data.append(f"  {unitop.OM_Flowsheet_Equation()}\n")
 
-                # --- Write unit .mo file ---
-                unitmofile = os.path.join(self.sim_dir_path, f"{unitop.name.lower()}.mo")
-                with open(unitmofile, 'w') as unitFile:
-                    for d in self.data:
-                        unitFile.write(str(d))
-                    unitFile.write(f'end {unitop.name.lower()};\n')
+            # Output streams have their state determined by the unit; only input streams get feed equations
+            out_names = {s.name for s in outstms if hasattr(s, 'name')}
+            for stm in all_stms:
+                if stm.name not in out_names:
+                    self.data.append(f"  {stm.OM_Flowsheet_Equation(norm_compounds, 'SM')}\n")
 
-                # --- Write unit .mos file ---
-                unitmosfile = os.path.join(self.sim_dir_path, f"{unitop.name.lower()}.mos")
-                with open(unitmosfile, 'w') as mosFile:
-                    mosFile.write('loadModel(Modelica);\n')
-                    mosFile.write('loadFile("Simulator/package.mo");\n')
-                    mosFile.write(f'loadFile("{unitop.name.lower()}.mo");\n')
-                    mosFile.write(f'simulate({unitop.name.lower()}, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n')
+            self.data.append(f"end {model_name};\n")
 
-                # --- Run simulation ---
-                self.omc_path = self.get_omc_path()
-                os.chdir(self.sim_dir_path)
-                self.process = Popen([self.omc_path, '-s', unitmosfile], stdout=PIPE, stderr=PIPE)
-                self.stdout, self.stderr = self.process.communicate()
-                os.chdir(self.root_dir)
+            # --- Write Unit .mo File ---
+            unitmofile = os.path.join(self.sim_dir_path, f"{model_name}.mo")
+            with open(unitmofile, 'w', encoding='utf-8') as unitFile:
+                for line in self.data:
+                    unitFile.write(str(line))
 
-                # --- Read CSV results ---
-                csvpath = os.path.join(self.sim_dir_path, f"{unitop.name.lower()}_res.csv")
+            # --- Write Unit .mos Simulation Script ---
+            unitmosfile = os.path.join(self.sim_dir_path, f"{model_name}.mos")
+            with open(unitmosfile, 'w', encoding='utf-8') as mosFile:
+                mosFile.write('loadModel(Modelica);\n')
+                mosFile.write('loadFile("package.mo");\n')
+                mosFile.write(f'loadFile("{model_name}.mo");\n')
+                mosFile.write(f'simulate(Simulator.{model_name}, outputFormat="csv", stopTime=1.0, numberOfIntervals=1);\n')
+                mosFile.write('getErrorString();\n')
+
+            # --- Run OMC Simulation Process ---
+            self.omc_path = self.get_omc_path()
+            os.chdir(self.sim_dir_path)
+            self.process = Popen([self.omc_path, '-s', f"{model_name}.mos"], stdout=PIPE, stderr=PIPE)
+            self.stdout, self.stderr = self.process.communicate()
+            os.chdir(self.root_dir)
+
+            stdout_text = self._decode_process_output(self.stdout)
+            stderr_text = self._decode_process_output(self.stderr)
+
+            # --- Process CSV Results ---
+            csvpath = os.path.join(self.sim_dir_path, f"Simulator.{model_name}_res.csv")
+            if not os.path.exists(csvpath):
+                # Fallback to alternate naming convention
+                csvpath = os.path.join(self.sim_dir_path, f"{model_name}_res.csv")
+
+            if os.path.exists(csvpath):
                 self.csvlist.append(csvpath)
+                with open(csvpath, 'r', encoding='utf-8') as resultFile:
+                    csvreader = csv.reader(resultFile, delimiter=',')
+                    self.result_data = list(csvreader)
+            else:
+                self.last_error = self._extract_omc_error(stdout_text, stderr_text)
+                print(f"[DEBUG] Sequential unit {model_name} simulation produced no CSV.")
+                return
 
-                if os.path.exists(csvpath):
-                    with open(csvpath, 'r') as resultFile:
-                        csvreader = csv.reader(resultFile, delimiter=',')
-                        for row in csvreader:
-                            self.result_data.append(row)
+            # --- Transfer Output Properties to Successor Streams ---
+            for stm in all_stms:
+                if not hasattr(stm, 'Prop') or stm.Prop is None:
+                    continue
+                for key in list(stm.Prop.keys()):
+                    property_name = f"{stm.name}.{key}"
+                    if self.result_data and property_name in self.result_data[0]:
+                        ind = self.result_data[0].index(property_name)
+                        stm.Prop[key] = str(self.result_data[-1][ind])
 
-                # --- Update stream properties safely ---
-                all_streams = inpstms + outstms + engstms
-                for stm in all_streams:
-                    if not hasattr(stm, 'Prop') or stm.Prop is None:
-                        continue
-                    for key in stm.Prop.keys():
-                        property_name = f"{stm.name}.{key}"
-                        if self.result_data and property_name in self.result_data[0]:
-                            ind = self.result_data[0].index(property_name)
-                            stm.Prop[key] = str(self.result_data[-1][ind])
-
-        # --- Merge CSV files and update result_data ---
-        self.dataframes = [pd.read_csv(i) for i in self.csvlist if os.path.exists(i)]
+        # --- Aggregate All Results into FlowsheetSEQ.csv ---
+        self.dataframes = [pd.read_csv(f) for f in self.csvlist if os.path.exists(f)]
         os.chdir(self.sim_dir_path)
         if self.dataframes:
             dffinal = pd.concat(self.dataframes, axis=1)
             dffinal.to_csv('FlowsheetSEQ.csv', index=False)
             self.result_data.clear()
-            with open(os.path.join(self.sim_dir_path, 'FlowsheetSEQ.csv'), 'r') as resultFile:
+            with open(os.path.join(self.sim_dir_path, 'FlowsheetSEQ.csv'), 'r', encoding='utf-8') as resultFile:
                 csvreader = csv.reader(resultFile, delimiter=',')
-                for row in csvreader:
-                    self.result_data.append(row)
-
+                self.result_data = list(csvreader)
