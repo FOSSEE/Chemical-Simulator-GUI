@@ -107,3 +107,10 @@ src/main/python/DockWidgets/__pycache__/DockWidget.cpython-36.pyc
 Simulator/database.mo
 src/main/python/Chemical Simulator GUI.exe
 
+# Simulation generated files
+*.mo
+!src/main/Simulator/Simulator/package.mo
+*.mos
+*.csv
+*_external_functions.json
+FlowsheetSEQ.csv
