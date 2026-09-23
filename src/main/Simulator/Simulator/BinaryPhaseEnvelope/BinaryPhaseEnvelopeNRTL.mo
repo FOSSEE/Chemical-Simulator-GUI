@@ -2,8 +2,11 @@ within Simulator.BinaryPhaseEnvelope;
 
 package BinaryPhaseEnvelopeNRTL
   extends Modelica.Icons.ExamplesPackage;
-  model NRTLmodel
+  partial model NRTLmodel
     import Simulator.Files.ThermodynamicFunctions.*;
+    parameter Integer Nc;
+    parameter Simulator.Files.ChemsepDatabase.GeneralProperties comp[Nc];
+    Real x[Nc], T, P, gamma[Nc], K[Nc];
     gammaNRTLmodel Gamma(Nc = Nc, comp = comp, molFrac = x[:], T = T);
     Real density[Nc], BIPS[Nc, Nc, 2];
   equation
@@ -45,11 +48,9 @@ package BinaryPhaseEnvelopeNRTL
 
   model base
     import data = Simulator.Files.ChemsepDatabase;
-    parameter Integer Nc;
     parameter Real BIP[Nc, Nc, 2];
-    parameter data.GeneralProperties comp[Nc];
     extends NRTLmodel(BIPS = BIP);
-    Real P, T(start = 300), gamma[Nc], K[Nc], x[Nc](each start = 0.5), y[Nc];
+    Real y[Nc];
   equation
     y[:] = K[:] .* x[:];
     sum(x[:]) = 1;
