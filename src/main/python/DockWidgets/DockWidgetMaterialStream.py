@@ -421,14 +421,22 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                             self.lTableWidget.setItem(lrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
                             self.lTableWidget.setItem(lrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.lTableWidget.setItem(lrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
-                            self.lTableWidget.resizeColumnsToContents()                         
+                            self.lTableWidget.resizeColumnsToContents()                
+                            header = self.lTableWidget.horizontalHeader()
+                            header.setSectionResizeMode(0, QHeaderView.Stretch)
+                            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+                            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)         
                         if '3' in val.split('.')[1]:   
                             vrowPosition = self.vTableWidget.rowCount()
                             self.vTableWidget.insertRow(vrowPosition)
                             self.vTableWidget.setItem(vrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
                             self.vTableWidget.setItem(vrowPosition , 1, QTableWidgetItem(_safe_result(resultval)))
                             self.vTableWidget.setItem(vrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
-                            self.vTableWidget.resizeColumnsToContents()                                
+                            self.vTableWidget.resizeColumnsToContents()         
+                            header = self.vTableWidget.horizontalHeader()
+                            header.setSectionResizeMode(0, QHeaderView.Stretch)
+                            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+                            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)                       
                     if not '[' in val:
                         #print(obj.variables[val.split('.')[1]]['name'])
                         mrowPosition = self.mTableWidget.rowCount()
@@ -453,6 +461,10 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                             self.mTableWidget.setItem(mrowPosition, 1, QTableWidgetItem(_safe_result(resultval)))
                             self.mTableWidget.setItem(mrowPosition, 2, QTableWidgetItem(obj.variables[var_key]['unit']))
                 self.mTableWidget.resizeColumnsToContents()
+                header = self.mTableWidget.horizontalHeader()
+                header.setSectionResizeMode(0, QHeaderView.Stretch)
+                header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
 
 
