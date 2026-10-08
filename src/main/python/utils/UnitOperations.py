@@ -636,41 +636,139 @@ class Valve(UnitOperation):
         }
 
 class Splitter(UnitOperation):
-    def __init__(self,name='Splitter'):
+    def __init__(self, name='Splitter'):
         UnitOperation.__init__(self)
-        self.name = name + str(Splitter.counter) 
+
+        self.name = name + str(Splitter.counter)
         self.type = 'Splitter'
+
         self.no_of_outputs = 2
-        
-        self.CalcType_modes = ['Split_Ratio', 'Molar_Flow', 'Mass_Flow']
+
+        self.CalcType_modes = [
+            'Split_Ratio',
+            'Molar_Flow',
+            'Mass_Flow'
+        ]
 
         self.parameters = ['No', 'CalcType', 'SpecVal_s']
-        type(self).counter += 1 
+
+        type(self).counter += 1
 
         self.variables = {
-            'No'       : {'name':'No. of Output',          'value':2,                          'unit':''},
-            'CalcType'  : {'name':'Calculation Type',       'value':self.CalcType_modes[0],     'unit':''},
-            'SpecVal_s' : {'name':'Specification Value',    'value':[0.5,0.5],                    'unit':''}
+            'No': {
+                'name': 'No. of Output',
+                'value': 2,
+                'unit': ''
+            },
+
+            'CalcType': {
+                'name': 'Calculation Type',
+                'value': self.CalcType_modes[0],
+                'unit': ''
+            },
+
+            'SpecVal_s': {
+                'name': 'Specification Value',
+                'value': [0.5, 0.5],
+                'unit': ''
+            }
         }
-        
-        specval = self.variables['SpecVal_s']['value'] 
-        self.specval = json.dumps(specval).replace('[','{').replace(']','}')
+
+        self._update_specval_string()
+
+    def _update_specval_string(self):
+        specval = self.variables['SpecVal_s']['value']
+        self.specval = json.dumps(specval).replace('[', '{').replace(']', '}')
 
     def update_compounds(self):
-        self.compounds = [c[:c.index('(')] for c in compound_selected]
+        self.compounds = [
+            c[:c.index('(')]
+            for c in compound_selected
+        ]
 
-    def param_setter(self,params):
-        #print("param_setter ", params)
-        self.variables['No']['value'] = int(params[0])
-        self.no_of_outputs = int(params[0])
-        self.variables['CalcType']['value'] = params[1]
-        self.variables['SpecVal_s']['value'] = [float(params[2]), float(params[3])]
-        if self.variables['CalcType']['value'] == 'Molar_Flow':
-            self.variables['SpecVal_s']['unit'] = 'mol/s'
-        elif self.variables['CalcType']['value'] == 'Mass_Flow':
-            self.variables['SpecVal_s']['unit'] = 'g/s'
-        else:
+    def param_setter(self, params):
+        """
+        params:
+            [number_of_outputs, calculation_type,
+            stream1, stream2, ... streamN]
+        """
+
+        new_no = int(params[0])
+
+        # Keep number of outputs between 2 and 6
+        new_no = max(2, min(6, new_no))
+
+        calc_type = params[1]
+
+        spec_values = [
+            float(value)
+            for value in params[2:2 + new_no]
+        ]
+
+        # Make sure exactly N values exist
+        if len(spec_values) < new_no:
+
+            old_values = self.variables['SpecVal_s']['value']
+
+            for i in range(len(spec_values), new_no):
+
+                if i < len(old_values):
+
+                    spec_values.append(
+                        float(old_values[i])
+                    )
+
+                else:
+
+                    if calc_type == 'Split_Ratio':
+                        spec_values.append(
+                            1.0 / new_no
+                        )
+
+                    else:
+                        spec_values.append(0.0)
+
+        spec_values = spec_values[:new_no]
+
+        # --------------------------------------------------
+        # Split Ratio validation
+        # --------------------------------------------------
+
+        if calc_type == 'Split_Ratio':
+
+            total = sum(spec_values)
+
+            # Allow small floating point/display error
+            if abs(total - 1.0) > 1e-5:
+
+                raise ValueError(
+                    "Split ratios must sum to 1.0. "
+                    f"Current sum = {total:.6f}"
+                )
+
             self.variables['SpecVal_s']['unit'] = ''
+
+        elif calc_type == 'Molar_Flow':
+
+            self.variables['SpecVal_s']['unit'] = 'mol/s'
+
+        elif calc_type == 'Mass_Flow':
+
+            self.variables['SpecVal_s']['unit'] = 'g/s'
+
+        # --------------------------------------------------
+        # Save values
+        # --------------------------------------------------
+
+        self.variables['No']['value'] = new_no
+
+        self.no_of_outputs = new_no
+
+        self.variables['CalcType']['value'] = calc_type
+
+        self.variables['SpecVal_s']['value'] = spec_values
+
+        self._update_specval_string()
 
 class Mixer(UnitOperation):
 
