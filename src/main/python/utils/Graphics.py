@@ -1449,6 +1449,304 @@ class NodeItem(QtWidgets.QGraphicsItem):
         )
 
 
+    def update_output_ports(self, new_count):
+        """
+        Dynamically change the number of output sockets.
+
+        Existing connections are preserved whenever possible.
+        If output count is reduced, connections attached to
+        removed outputs are removed cleanly.
+        """
+
+        old_count = len(self.output)
+
+        if new_count < 2:
+            new_count = 2
+
+        if new_count > 6:
+            new_count = 6
+
+        if new_count == old_count:
+            self.nop = new_count
+            self.obj.no_of_outputs = new_count
+            return
+
+        # ---------------------------------------------------------
+        # 1. Save existing output connections
+        # ---------------------------------------------------------
+
+        saved_connections = []
+
+        for socket in self.output:
+
+            for line in list(socket.out_lines):
+
+                target_socket = getattr(
+                    line,
+                    "target",
+                    None
+                )
+
+                if target_socket is not None:
+
+                    saved_connections.append({
+                        "source_socket": socket,
+                        "target_socket": target_socket,
+                        "target_obj": target_socket.parent.obj
+                    })
+
+                    break
+
+        print(
+            f"[DEBUG] update_output_ports: "
+            f"{old_count} -> {new_count}, "
+            f"connected outputs={len(saved_connections)}"
+        )
+
+        # ---------------------------------------------------------
+        # 2. Remove existing output connections
+        # ---------------------------------------------------------
+
+        for socket in self.output:
+
+            for line in list(socket.out_lines):
+
+                target_socket = getattr(
+                    line,
+                    "target",
+                    None
+                )
+
+                # Remove from target socket
+                if target_socket is not None:
+
+                    if line in target_socket.in_lines:
+                        target_socket.in_lines.remove(line)
+
+                    # Remove logical connection
+                    try:
+
+                        if getattr(
+                            target_socket.parent.obj,
+                            "type",
+                            None
+                        ) not in [
+                            "MaterialStream",
+                            "EngStm"
+                        ]:
+
+                            target_socket.parent.obj.remove_connection(
+                                1,
+                                target_socket.id
+                            )
+
+                    except Exception as e:
+
+                        print(
+                            "[DEBUG] "
+                            "update_output_ports target cleanup failed:",
+                            e
+                        )
+
+                # Remove logical connection from source
+                try:
+
+                    if getattr(
+                        self.obj,
+                        "type",
+                        None
+                    ) not in [
+                        "MaterialStream",
+                        "EngStm"
+                    ]:
+
+                        self.obj.remove_connection(
+                            0,
+                            socket.id
+                        )
+
+                except Exception as e:
+
+                    print(
+                        "[DEBUG] "
+                        "update_output_ports source cleanup failed:",
+                        e
+                    )
+
+                # Remove line from scene
+                if self.scene() is not None:
+
+                    self.scene().removeItem(
+                        line
+                    )
+
+            socket.out_lines.clear()
+
+        # ---------------------------------------------------------
+        # 3. Remove old output sockets
+        # ---------------------------------------------------------
+
+        for socket in self.output:
+
+            if self.scene() is not None:
+
+                self.scene().removeItem(
+                    socket
+                )
+
+        self.output.clear()
+
+        # ---------------------------------------------------------
+        # 4. Create new output sockets
+        # ---------------------------------------------------------
+
+        for idx in range(1, new_count + 1):
+
+            socket = NodeSocket(
+                QtCore.QRect(
+                    int(self.rect.width() - 6.5),
+                    int(
+                        self.rect.height()
+                        * idx
+                        / (new_count + 1)
+                        - 6
+                    ),
+                    12,
+                    12
+                ),
+                self,
+                "op",
+                idx
+            )
+
+            self.output.append(
+                socket
+            )
+
+        # ---------------------------------------------------------
+        # 5. Update output count
+        # ---------------------------------------------------------
+
+        self.nop = new_count
+
+        self.obj.no_of_outputs = new_count
+
+        if hasattr(self.obj, "variables"):
+
+            if "No" in self.obj.variables:
+
+                self.obj.variables["No"]["value"] = new_count
+
+        # ---------------------------------------------------------
+        # 6. Restore old connections
+        # ---------------------------------------------------------
+
+        for connection in saved_connections:
+
+            source_socket = self.output[
+                connection["source_socket"].id - 1
+            ] if connection["source_socket"].id <= new_count else None
+
+            target_socket = connection[
+                "target_socket"
+            ]
+
+            if source_socket is None:
+
+                continue
+
+            # Create new line
+            line = NodeLine(
+                source_socket.get_center(),
+                target_socket.get_center(),
+                "op"
+            )
+
+            line.source = source_socket
+            line.target = target_socket
+
+            source_socket.out_lines.append(
+                line
+            )
+
+            target_socket.in_lines.append(
+                line
+            )
+
+            if self.scene() is not None:
+
+                self.scene().addItem(
+                    line
+                )
+
+            line.pointA = source_socket.get_center()
+            line.pointB = target_socket.get_center()
+
+            # Restore logical connection
+            try:
+
+                if getattr(
+                    source_socket.parent.obj,
+                    "type",
+                    None
+                ) not in [
+                    "MaterialStream",
+                    "EngStm"
+                ]:
+
+                    source_socket.parent.obj.add_connection(
+                        0,
+                        source_socket.id,
+                        target_socket.parent.obj
+                    )
+
+                if getattr(
+                    target_socket.parent.obj,
+                    "type",
+                    None
+                ) not in [
+                    "MaterialStream",
+                    "EngStm"
+                ]:
+
+                    target_socket.parent.obj.add_connection(
+                        1,
+                        target_socket.id,
+                        source_socket.parent.obj
+                    )
+
+            except Exception as e:
+
+                print(
+                    "[DEBUG] "
+                    "update_output_ports connection restore failed:",
+                    e
+                )
+
+        # ---------------------------------------------------------
+        # 7. Update original socket geometry
+        # ---------------------------------------------------------
+
+        self._orig_output_rects = [
+            QtCore.QRectF(socket.rect)
+            for socket in self.output
+        ]
+
+        # ---------------------------------------------------------
+        # 8. Update connected lines
+        # ---------------------------------------------------------
+
+        self._update_connected_lines()
+
+        self.update()
+
+        print(
+            f"[DEBUG] update_output_ports complete: "
+            f"{old_count} -> {new_count}"
+        )
+
+
+
     def mouseDoubleClickEvent(self, event):
 
         self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
