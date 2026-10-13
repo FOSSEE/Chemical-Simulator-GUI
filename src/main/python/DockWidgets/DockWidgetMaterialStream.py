@@ -311,9 +311,10 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
 
     def clear_results(self):
         # Clear amounts tables
-        self.amountsMixtureTable.setRowCount(0)
-        self.amountsLiquidTable.setRowCount(0)
-        self.amountsVapourTable.setRowCount(0)
+        for tbl in (self.amountsMixtureTable, self.amountsLiquidTable, self.amountsVapourTable):
+            tbl.setRowCount(0)
+            tbl.setColumnCount(2)
+            tbl.setHorizontalHeaderLabels(['Compound', 'Value'])
         # Clear phase properties tables
         self.mTableWidget.setRowCount(0)
         self.lTableWidget.setRowCount(0)
@@ -362,7 +363,9 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                 for i, k in enumerate(ll):
                     ind = result[0].index(k)
                     resultval = str(result[-1][ind])
-                    obj.variables[k.split('.')[1]]['value'] = resultval
+                    var_key = k.split('.')[1]
+                    obj.variables[var_key]['value'] = resultval
+                    unit_str = obj.variables.get(var_key, {}).get('unit', '')
 
                     if namee not in k:
                         namee = klst[j]
@@ -371,7 +374,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                     compound_no = int(k[k.index(',') + 1]) - 1  # compound from python list
 
                     self._amounts_data[ms_lst[j]][phase_no].append(
-                        (compound_selected[compound_no], _safe_result(resultval))
+                        (compound_selected[compound_no], _safe_result(resultval), unit_str)
                     )
 
                     if phase_no == 3 and (compound_no + 1) == len(compound_selected):
@@ -549,17 +552,38 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
         """Refresh the three Amounts phase tables for the currently selected basis."""
         basis = self.cbCompositionBasis.currentText()
         data = self._amounts_data.get(basis, {1: [], 2: [], 3: []})
-        self._populate_amounts_table(self.amountsMixtureTable, data.get(1, []))
-        self._populate_amounts_table(self.amountsLiquidTable, data.get(2, []))
-        self._populate_amounts_table(self.amountsVapourTable, data.get(3, []))
+        self._populate_amounts_table(self.amountsMixtureTable, data.get(1, []), basis)
+        self._populate_amounts_table(self.amountsLiquidTable, data.get(2, []), basis)
+        self._populate_amounts_table(self.amountsVapourTable, data.get(3, []), basis)
 
     @staticmethod
-    def _populate_amounts_table(table, rows):
-        """Fill a QTableWidget with (compound, value) rows."""
+    def _populate_amounts_table(table, rows, basis):
+        """Fill a QTableWidget with (compound, value, unit) or (compound, value) rows."""
         table.setRowCount(0)
-        for compound, value in rows:
+        show_unit = basis in ['Mole Flow', 'Mass Flow']
+
+        if show_unit:
+            table.setColumnCount(3)
+            table.setHorizontalHeaderLabels(['Compound', 'Value', 'Unit'])
+        else:
+            table.setColumnCount(2)
+            table.setHorizontalHeaderLabels(['Compound', 'Value'])
+
+        for item in rows:
+            compound = item[0]
+            value = item[1]
+            unit = item[2] if len(item) > 2 else ""
+
             row_pos = table.rowCount()
             table.insertRow(row_pos)
-            table.setItem(row_pos, 0, QTableWidgetItem(compound))
+            table.setItem(row_pos, 0, QTableWidgetItem(str(compound)))
             table.setItem(row_pos, 1, QTableWidgetItem(str(value)))
+            if show_unit:
+                table.setItem(row_pos, 2, QTableWidgetItem(str(unit)))
+
         table.resizeColumnsToContents()
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        if show_unit:
+            header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
