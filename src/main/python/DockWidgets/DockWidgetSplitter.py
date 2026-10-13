@@ -28,6 +28,8 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
         BaseDockWidget.__init__(self, parent)
 
+        self._has_autosized = False
+
         self.setupUi(self)
 
         self.setWindowTitle(obj.name)
@@ -729,3 +731,67 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
             import traceback
             traceback.print_exc()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+
+        if not self._has_autosized:
+            QTimer.singleShot(0, self._autosize)
+
+    def _autosize(self):
+
+        if self._has_autosized:
+            return
+
+        try:
+
+            QApplication.processEvents()
+
+            self.layout().activate()
+            self.adjustSize()
+
+            screen = QApplication.primaryScreen().availableGeometry()
+
+            hint = self.sizeHint()
+
+            width = min(
+                max(380, hint.width() + 30),
+                int(screen.width() * 0.4)
+            )
+
+            height = min(
+                max(450, hint.height() + 50),
+                int(screen.height() * 0.85)
+            )
+
+
+            mw = self.parent()
+
+            if isinstance(mw, QMainWindow) and not self.isFloating():
+
+                mw.resizeDocks(
+                    [self],
+                    [width],
+                    Qt.Horizontal
+                )
+
+                mw.resizeDocks(
+                    [self],
+                    [height],
+                    Qt.Vertical
+                )
+
+            else:
+
+                self.resize(
+                    width,
+                    height
+                )
+
+
+            self._has_autosized = True
+
+
+        except Exception as e:
+
+            print("[Splitter] autosize failed:", e)
