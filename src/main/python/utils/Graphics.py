@@ -680,6 +680,18 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 except Exception as e:
                     print("[DEBUG] socket connection push error (Case 1):", e)
 
+                try:
+                    source_node = self.new_line.source.parent
+
+                    if hasattr(source_node, "dock_widget"):
+
+                        if hasattr(source_node.dock_widget, "update_connected_component_names"):
+
+                            source_node.dock_widget.update_connected_component_names()
+
+                except Exception as e:
+                    print("[DEBUG] Splitter live update failed:", e)
+
             # Case 2: self.type == 'in' and item is operation socket
             elif item is not None and self.type == 'in' and item_type == 'op' and len(item_out_lines) == 0:
                 self.new_line.source = item
@@ -706,6 +718,18 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     print("[DEBUG] Snapshot pushed after socket connection (Case 2)")
                 except Exception as e:
                     print("[DEBUG] socket connection push error (Case 2):", e)
+
+                try:
+                    source_node = self.new_line.source.parent
+
+                    if hasattr(source_node, "dock_widget"):
+
+                        if hasattr(source_node.dock_widget, "update_connected_component_names"):
+
+                            source_node.dock_widget.update_connected_component_names()
+
+                except Exception as e:
+                    print("[DEBUG] Splitter live update failed:", e)
 
             # Case 3: clicked empty space or invalid target
             else:
