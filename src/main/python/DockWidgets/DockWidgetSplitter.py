@@ -45,6 +45,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         self.stream_labels = []
         self.stream_edits = []
         self.stream_units = []
+        self.stream_names = []
 
         # Build initial UI
         self.input_params_list()
@@ -116,9 +117,14 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             grid.removeWidget(widget)
             widget.deleteLater()
 
+        for widget in self.stream_names:
+            grid.removeWidget(widget)
+            widget.deleteLater()
+
         self.stream_labels.clear()
         self.stream_edits.clear()
         self.stream_units.clear()
+        self.stream_names.clear()
 
         # --------------------------------------------------
         # Remove old hard-coded Stream 1 / Stream 2 widgets
@@ -177,6 +183,26 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
                 f"Stream {i + 1} :"
             )
 
+            name_label = QLabel("Not Connected")
+
+            name_label.setMinimumWidth(180)
+            name_label.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Fixed
+            )
+
+            name_label.setAlignment(
+                Qt.AlignLeft | Qt.AlignVCenter
+            )
+            name_label.setMinimumWidth(140)
+            name_label.setMaximumWidth(170)
+
+            name_label.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Fixed
+            )
+            name_label.setMinimumWidth(120)
+
             # ------------------------------
             # Value field
             # ------------------------------
@@ -220,6 +246,12 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             )
 
             grid.addWidget(
+                name_label,
+                row,
+                1
+            )
+
+            grid.addWidget(
                 edit,
                 row,
                 2
@@ -247,6 +279,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             self.stream_labels.append(label)
             self.stream_edits.append(edit)
             self.stream_units.append(unit)
+            self.stream_names.append(name_label)
 
         # --------------------------------------------------
         # Make columns behave properly
@@ -254,12 +287,12 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
         grid.setColumnMinimumWidth(
             0,
-            135
+            70
         )
 
         grid.setColumnMinimumWidth(
             1,
-            10
+            220
         )
 
         grid.setColumnMinimumWidth(
@@ -306,7 +339,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         # GroupBox sizing
         # --------------------------------------------------
 
-        group_width = 341
+        group_width = 360
 
         self.groupBox.setMinimumWidth(
             group_width
@@ -698,6 +731,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             if node_item is not None:
 
                 node_item.update_output_ports(new_no)
+                self.update_connected_component_names()
 
                 print(
                     f"[UI] Updated Splitter outputs to {new_no}"
@@ -732,11 +766,14 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             import traceback
             traceback.print_exc()
 
-    def showEvent(self, event):
+    def showEvent(self,event):
+
         super().showEvent(event)
 
+        self.update_connected_component_names()
+
         if not self._has_autosized:
-            QTimer.singleShot(0, self._autosize)
+            QTimer.singleShot(0,self._autosize)
 
     def _autosize(self):
 
@@ -795,3 +832,37 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         except Exception as e:
 
             print("[Splitter] autosize failed:", e)
+
+
+    def update_connected_component_names(self):
+
+        node_item = None
+
+        graphics_view = self.container.graphics.graphicsView
+
+        for item in graphics_view.items():
+
+            if hasattr(item, "obj") and item.obj is self.obj:
+                node_item = item
+                break
+
+        if node_item is None:
+            return
+
+        for i, socket in enumerate(node_item.output):
+
+            if i >= len(self.stream_names):
+                break
+
+            if socket.out_lines:
+
+                line = socket.out_lines[0]
+
+                component_name = line.target.parent.obj.name
+
+            else:
+
+                component_name = "Not Connected"
+
+            self.stream_names[i].setText(component_name)
+            self.stream_names[i].setToolTip(component_name)
