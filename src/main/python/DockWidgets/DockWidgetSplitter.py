@@ -39,6 +39,10 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         self.type = comptype
         self.container = container
 
+        _name_widget = self.setup_name_editor()
+        _name_widget.setParent(self)
+        _name_widget.setGeometry(10, 5, 341, 30)
+
         self.input_dict = []
         self.dict = {}
 
@@ -631,6 +635,9 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
     def param(self):
 
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
 
             new_no = int(
                 self.no_combo.currentText()

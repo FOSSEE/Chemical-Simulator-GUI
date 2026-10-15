@@ -20,14 +20,29 @@ class DockWidgetMixer(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
         BaseDockWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
+        self.container = container
+        self.setupUi(self)
+        self.setWindowTitle(obj.name)
+
+        _container = QWidget()
+        _layout = QVBoxLayout(_container)
+        _layout.setContentsMargins(6, 6, 6, 6)
+        _layout.setSpacing(8)
+        _layout.addWidget(self.setup_name_editor())
+        if hasattr(self, 'groupBox'):
+            self.groupBox.setParent(_container)
+            _layout.addWidget(self.groupBox)
+        if hasattr(self, 'btn'):
+            self.btn.setParent(_container)
+            _layout.addWidget(self.btn)
+        _layout.addStretch()
+        self.setWidget(_container)
+
         self.input_dict = []
         self.x_pclist = []
-        self.container = container
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = {}
@@ -75,6 +90,9 @@ class DockWidgetMixer(BaseDockWidget,ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict={}
             new_ni = int(self.input_dict[0].currentText())
             self.dict = [new_ni, self.input_dict[1].currentText()]

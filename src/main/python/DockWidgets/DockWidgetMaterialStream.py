@@ -93,6 +93,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
         # No inner QScrollArea: the controls live straight in the tab's layout
         # so they always fill the whole panel instead of a small sub-region.
         widgets_to_move = []
+        widgets_to_move.append(self.setup_name_editor())
         if hasattr(self, 'groupBox'): widgets_to_move.append(self.groupBox)
         if hasattr(self, 'groupBox_2'): widgets_to_move.append(self.groupBox_2)
         if hasattr(self, 'groupBox_3'): widgets_to_move.append(self.groupBox_3)
@@ -252,6 +253,9 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict = {}
             for i in self.input_dict:
                 if i == "x_pc":

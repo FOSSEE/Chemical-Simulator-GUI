@@ -895,13 +895,14 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self.dock_widget = DockWidget(self.obj.name, self.obj.type, self.obj, self.container)
 
         dock_widget_lst.append(self.dock_widget)
+        self.dock_widget.node_item = self
         self.main_window = findMainWindow(self)
         # self.dock_widget.setFixedWidth(360)
         # self.dock_widget.setFixedHeight(640)
         self.dock_widget.setMinimumSize(220, 250)
         self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.dock_widget.setFeatures(QDockWidget.AllDockWidgetFeatures)
-        if self.main_window is not None:
+        if self.main_window is not None and hasattr(self.main_window, 'addDockWidget'):
             self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
 
         # ✅ Update parameters safely (skip MaterialStream)

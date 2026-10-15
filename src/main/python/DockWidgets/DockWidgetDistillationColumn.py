@@ -26,17 +26,19 @@ class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
         BaseDockWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
+        self.container = container
+        self.setupUi(self)
+        self.setWindowTitle(obj.name)
+        if hasattr(self, 'verticalLayout_2'):
+            self.verticalLayout_2.insertWidget(0, self.setup_name_editor())
         self.input_dict = []
         self.pushButton_2.clicked.connect(self.param)
         self.dict = []
         self.input_params_list()
         self.name_type = None
-        self.container = container
         self.stage_res_table = DistillationColumnStagewiseResults()
         self.stageResultsButton.clicked.connect(self.showStagewiseResults)
 
@@ -167,6 +169,9 @@ class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict= []
             temp = 0
             print("param.input_dict ", self.input_dict)
