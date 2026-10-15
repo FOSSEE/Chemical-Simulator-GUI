@@ -20,11 +20,44 @@ class DockWidgetCompressorExpander(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container, parent=None):
         BaseDockWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
+        self.container = container
+        self.setupUi(self)
+        self.setWindowTitle(obj.name)
+
+        # Make dock content resizable
+        content = self.widget()
+        if content is not None and content.layout() is None:
+            layout = QVBoxLayout(content)
+            layout.setContentsMargins(4, 4, 4, 4)
+            if hasattr(self, 'tabWidget'):
+                self.tabWidget.setParent(None)
+                layout.addWidget(self.tabWidget)
+            content.setLayout(layout)
+
+        if hasattr(self, 'tab') and self.tab.layout() is None:
+            tab_layout = QVBoxLayout(self.tab)
+            tab_layout.setContentsMargins(6, 6, 6, 6)
+            tab_layout.setSpacing(8)
+            tab_layout.addWidget(self.setup_name_editor())
+            if hasattr(self, 'groupBox'):
+                self.groupBox.setParent(None)
+                tab_layout.addWidget(self.groupBox)
+            if hasattr(self, 'groupBox_2'):
+                self.groupBox_2.setParent(None)
+                tab_layout.addWidget(self.groupBox_2, 1)
+            if hasattr(self, 'pushButton_2'):
+                self.pushButton_2.setParent(None)
+                tab_layout.addWidget(self.pushButton_2)
+            self.tab.setLayout(tab_layout)
+        elif hasattr(self, 'tab') and self.tab.layout() is not None:
+            self.tab.layout().insertWidget(0, self.setup_name_editor())
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMinimumSize(250, 200)
+
         self.input_dict = {}
         self.x_pclist = []
         self.modes()
@@ -34,7 +67,6 @@ class DockWidgetCompressorExpander(BaseDockWidget,ui_dialog):
         self.dict = {}
 
         self.name_type = None
-        self.container = container
         
     # input data tab
     def modes(self):
@@ -92,6 +124,9 @@ class DockWidgetCompressorExpander(BaseDockWidget,ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict={}
             for i in self.input_dict:
                 if (self.input_dict[i] == None):

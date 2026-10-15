@@ -20,18 +20,35 @@ class DockWidgetShortcutColumn(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
         BaseDockWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
+        self.container = container
+        self.setupUi(self)
+        self.setWindowTitle(obj.name)
+
+        if hasattr(self, 'tab') and self.tab.layout() is None:
+            tab_layout = QVBoxLayout(self.tab)
+            tab_layout.setContentsMargins(6, 6, 6, 6)
+            tab_layout.setSpacing(8)
+            tab_layout.addWidget(self.setup_name_editor())
+            if hasattr(self, 'groupBox'):
+                self.groupBox.setParent(None)
+                tab_layout.addWidget(self.groupBox)
+            if hasattr(self, 'btn'):
+                self.btn.setParent(None)
+                tab_layout.addWidget(self.btn)
+            tab_layout.addStretch()
+            self.tab.setLayout(tab_layout)
+        elif hasattr(self, 'tab') and self.tab.layout() is not None:
+            self.tab.layout().insertWidget(0, self.setup_name_editor())
+
         self.input_dict = []
         self.input_params_list()
         self.btn.clicked.connect(self.param)
         self.dict = []
 
         self.name_type = None
-        self.container = container
 
     # input data tab
     def input_params_list(self):
@@ -92,6 +109,9 @@ class DockWidgetShortcutColumn(BaseDockWidget,ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict=[]
             self.dict = [self.input_dict[0].currentText(),self.input_dict[1].currentText(),float(self.input_dict[2].text()), float(self.input_dict[3].text()),
                         self.input_dict[4].currentText(), float(self.input_dict[5].text()), float(self.input_dict[6].text()), float(self.input_dict[7].text()),

@@ -23,14 +23,16 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
 
     def __init__(self,name,comptype,obj,container,parent=None):
         BaseDockWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.setWindowTitle(obj.name)
         self.name=name
         self.obj=obj
         self.type = comptype
+        self.container = container
+        self.setupUi(self)
+        self.setWindowTitle(obj.name)
         self.input_dict = []
         self.lst = []
-        self.container = container
+        if hasattr(self, 'gridLayout'):
+            self.gridLayout.addWidget(self.setup_name_editor(), 0, 0)
         self.input_params_list()
         self.dict = []
             
@@ -81,8 +83,8 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
                 btn.clicked.connect(self.param)
                 
                 self.gridLayout.setVerticalSpacing(5)
-                self.gridLayout.addWidget(self.calculationGroupBox,0,0)
-                self.gridLayout.addWidget(btn,1,0)
+                self.gridLayout.addWidget(self.calculationGroupBox,1,0)
+                self.gridLayout.addWidget(btn,2,0)
 
                 self.input_dict = self.lst            
                         
@@ -111,6 +113,9 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
 
     def param(self):
         try:
+            if hasattr(self, 'check_and_rename_if_needed'):
+                if not self.check_and_rename_if_needed():
+                    return
             self.dict=[]
            
             self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
