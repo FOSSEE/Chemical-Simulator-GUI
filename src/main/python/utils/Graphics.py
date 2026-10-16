@@ -6,6 +6,7 @@ import PyQt5.QtCore as QtCore
 import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5 import QtSvg
+from PyQt5.QtCore import QTimer
 import os, sys
 import copy
 
@@ -692,6 +693,22 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 except Exception as e:
                     print("[DEBUG] Splitter flow auto-update failed:", e)
 
+                # Update Splitter output names immediately after connection
+                try:
+                    source_node = self.new_line.source.parent
+
+                    if (
+                        getattr(source_node.obj, "type", None) == "Splitter"
+                        and hasattr(source_node.dock_widget, "update_connected_component_names")
+                    ):
+                        QTimer.singleShot(
+                            0,
+                            source_node.dock_widget.update_connected_component_names
+                        )
+
+                except Exception as e:
+                    print("[DEBUG] Splitter output name update failed:", e)
+
 
             # Case 2: self.type == 'in' and item is operation socket
             elif item is not None and self.type == 'in' and item_type == 'op' and len(item_out_lines) == 0:
@@ -731,6 +748,22 @@ class NodeSocket(QtWidgets.QGraphicsItem):
 
                 except Exception as e:
                     print("[DEBUG] Splitter flow auto-update failed:", e)
+
+                # Update Splitter output names immediately after connection
+                try:
+                    source_node = self.new_line.source.parent
+
+                    if (
+                        getattr(source_node.obj, "type", None) == "Splitter"
+                        and hasattr(source_node.dock_widget, "update_connected_component_names")
+                    ):
+                        QTimer.singleShot(
+                            0,
+                            source_node.dock_widget.update_connected_component_names
+                        )
+
+                except Exception as e:
+                    print("[DEBUG] Splitter output name update failed:", e)
 
 
             # Case 3: clicked empty space or invalid target
