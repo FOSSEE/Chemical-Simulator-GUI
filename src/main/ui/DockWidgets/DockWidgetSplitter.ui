@@ -175,13 +175,43 @@
     </item>
    </layout>
   </widget>
+  <widget class="QPushButton" name="equalize_btn">
+ <property name="geometry">
+  <rect>
+   <x>10</x>
+   <y>250</y>
+   <width>341</width>
+   <height>30</height>
+  </rect>
+ </property>
+ <property name="text">
+  <string>Equalize</string>
+ </property>
+</widget>
+
+
+<widget class="QPushButton" name="normalize_btn">
+ <property name="geometry">
+  <rect>
+   <x>10</x>
+   <y>290</y>
+   <width>341</width>
+   <height>30</height>
+  </rect>
+ </property>
+ <property name="text">
+  <string>Normalize</string>
+ </property>
+</widget>
+
+
   <widget class="QPushButton" name="btn">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>210</y>
+     <y>330</y>
      <width>341</width>
-     <height>23</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="sizePolicy">

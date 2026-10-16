@@ -41,7 +41,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
         _name_widget = self.setup_name_editor()
         _name_widget.setParent(self)
-        _name_widget.setGeometry(10, 5, 341, 30)
+        _name_widget.setGeometry(10, 25, 341, 30)
 
         self.input_dict = []
         self.dict = {}
@@ -55,6 +55,13 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         self.input_params_list()
 
         self.btn.clicked.connect(self.param)
+        self.equalize_btn.clicked.connect(
+            self.equalize_streams
+        )
+
+        self.normalize_btn.clicked.connect(
+            self.normalize_streams
+        )
 
     # ---------------------------------------------------------
     # Build / rebuild Stream fields
@@ -377,45 +384,47 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         )
 
         # --------------------------------------------------
-        # Submit button
-        # --------------------------------------------------
-
-        self.btn.show()
-
-        self.btn.setEnabled(
-            True
-        )
 
         # --------------------------------------------------
-        # Get actual GroupBox geometry
+        # Position Equalize, Normalize and Submit buttons
         # --------------------------------------------------
 
-        group_rect = (
-            self.groupBox.geometry()
+        self.groupBox.move(
+            self.groupBox.x(),
+            60
         )
 
-        # Submit X = GroupBox X
-        button_x = (
-            group_rect.x()
-        )
+        group_rect = self.groupBox.geometry()
 
-        # Submit Y = GroupBox bottom + 10 px
-        button_y = (
-            group_rect.y()
-            + group_rect.height()
-            + 10
-        )
-
-        # Same width as GroupBox
-        button_width = (
-            group_rect.width()
-        )
-
+        button_x = group_rect.x()
+        button_width = group_rect.width()
         button_height = 30
+        button_gap = 8
 
-        # --------------------------------------------------
-        # Move Submit button below GroupBox
-        # --------------------------------------------------
+        # Equalize button: below GroupBox
+        button_y = group_rect.y() + group_rect.height() + 12
+
+        self.equalize_btn.setGeometry(
+            button_x,
+            button_y,
+            button_width,
+            button_height
+        )
+        self.equalize_btn.show()
+
+        # Normalize button: below Equalize
+        button_y += button_height + button_gap
+
+        self.normalize_btn.setGeometry(
+            button_x,
+            button_y,
+            button_width,
+            button_height
+        )
+        self.normalize_btn.show()
+
+        # Submit button: below Normalize
+        button_y += button_height + button_gap
 
         self.btn.setGeometry(
             button_x,
@@ -423,42 +432,29 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             button_width,
             button_height
         )
+        self.btn.show()
+        self.btn.setEnabled(True)
 
         # --------------------------------------------------
-        # Calculate complete window size
+        # Resize window to fit all buttons
         # --------------------------------------------------
 
         total_width = max(
-            365,
-            button_x
-            + button_width
-            + 10
+            380,
+            button_x + button_width + 15
         )
 
-        total_height = (
-            button_y
-            + button_height
-            + 15
-        )
-
-        # --------------------------------------------------
-        # Set minimum window size
-        # --------------------------------------------------
+        total_height = button_y + button_height + 20
 
         self.setMinimumSize(
             total_width,
             total_height
         )
 
-        # Don't restrict maximum size
         self.setMaximumSize(
             16777215,
             16777215
         )
-
-        # --------------------------------------------------
-        # Resize complete properties window
-        # --------------------------------------------------
 
         self.resize(
             total_width,
@@ -466,15 +462,14 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
         )
 
         # --------------------------------------------------
-        # Force Qt layout updates
+        # Refresh Qt geometry
         # --------------------------------------------------
 
         grid.activate()
-
         self.groupBox.updateGeometry()
-
+        self.equalize_btn.updateGeometry()
+        self.normalize_btn.updateGeometry()
         self.btn.updateGeometry()
-
         self.updateGeometry()
                 
 
@@ -580,7 +575,83 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
     # Number of output changed
     # ---------------------------------------------------------
 
+
     def on_output_count_changed(self):
+        try:
+            count = int(self.no_combo.currentText())
+
+            self.rebuild_stream_fields(count)
+
+            self.input_dict = [
+                self.no_combo,
+                self.cb2
+            ]
+            self.input_dict.extend(self.stream_edits)
+
+            # Recalculate outlet flows after changing output count.
+            calc_type = self.cb2.currentText()
+
+            if calc_type in ("Molar_Flow", "Mass_Flow"):
+                QTimer.singleShot(
+                    0,
+                    self.auto_distribute_from_input
+                )
+
+            elif calc_type == "Split_Ratio":
+                values = self.get_default_split_values(count)
+
+                for edit, value in zip(self.stream_edits, values):
+                    edit.setText(f"{value:.6f}")
+
+        except Exception as e:
+            print("[UI] Output count update failed:", e)
+
+
+    # ---------------------------------------------------------
+    # Calculation type changed
+    # ---------------------------------------------------------
+
+
+    def fun(self):
+        try:
+            calc_type = self.cb2.currentText()
+
+            # Update unit labels
+            if calc_type == "Molar_Flow":
+                unit = "mol/s"
+            elif calc_type == "Mass_Flow":
+                unit = "g/s"
+            else:
+                unit = ""
+
+            for label in self.stream_units:
+                label.setText(unit)
+
+            # Split ratio should always initialize with valid ratios.
+            if calc_type == "Split_Ratio":
+                values = self.get_default_split_values(
+                    len(self.stream_edits)
+                )
+
+                for edit, value in zip(self.stream_edits, values):
+                    edit.setText(f"{value:.6f}")
+
+            # For flow modes, recalculate from the connected inlet.
+            elif calc_type in ("Molar_Flow", "Mass_Flow"):
+                QTimer.singleShot(
+                    0,
+                    self.auto_distribute_from_input
+                )
+
+        except Exception as e:
+            print("[Splitter] Calculation type update failed:", e)
+
+
+    # ---------------------------------------------------------
+    # Submit
+    # ---------------------------------------------------------
+
+    def equalize_streams(self):
 
         try:
 
@@ -588,49 +659,255 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
                 self.no_combo.currentText()
             )
 
-            self.rebuild_stream_fields(
-                count
-            )
+            calc_type = self.cb2.currentText()
 
-            self.input_dict = [
-                self.no_combo,
-                self.cb2
-            ]
 
-            self.input_dict.extend(
-                self.stream_edits
-            )
+            if calc_type == "Split_Ratio":
+
+                value = 1.0 / count
+
+                for edit in self.stream_edits:
+
+                    edit.setText(
+                        f"{value:.6f}"
+                    )
+
+
+            else:
+
+                inlet_flow = self.get_input_flow(calc_type)
+
+
+                if inlet_flow is None:
+
+                    QMessageBox.warning(
+                        self,
+                        "Input Missing",
+                        "Connect Material Stream to Splitter input."
+                    )
+
+                    return
+
+
+                value = inlet_flow / count
+
+
+                for edit in self.stream_edits:
+
+                    edit.setText(
+                        f"{value:.6f}"
+                    )
+                
+
 
         except Exception as e:
 
             print(
-                "[UI] Output count update failed:",
+                "Equalize failed:",
                 e
             )
 
-    # ---------------------------------------------------------
-    # Calculation type changed
-    # ---------------------------------------------------------
 
-    def fun(self):
 
-        calc_type = self.cb2.currentText()
+    def normalize_streams(self):
 
-        if calc_type == 'Molar_Flow':
-            unit = 'mol/s'
+        try:
 
-        elif calc_type == 'Mass_Flow':
-            unit = 'g/s'
+            calc_type = self.cb2.currentText()
 
-        else:
-            unit = ''
+            values = []
 
-        for label in self.stream_units:
-            label.setText(unit)
+            for edit in self.stream_edits:
 
-    # ---------------------------------------------------------
-    # Submit
-    # ---------------------------------------------------------
+                values.append(
+                    float(edit.text())
+                )
+
+
+            total = sum(values)
+
+
+            if total == 0:
+
+                QMessageBox.warning(
+                    self,
+                    "Invalid",
+                    "Cannot normalize zero values."
+                )
+
+                return
+
+
+            if calc_type == "Split_Ratio":
+
+                for i,value in enumerate(values):
+
+                    self.stream_edits[i].setText(
+                        f"{value/total:.6f}"
+                    )
+
+
+            else:
+
+                inlet_flow = self.get_input_flow(calc_type)
+
+
+                if inlet_flow is None:
+
+                    QMessageBox.warning(
+                        self,
+                        "Input Missing",
+                        "Connect Material Stream to Splitter input."
+                    )
+
+                    return
+
+
+                factor = inlet_flow / total
+
+
+                for i,value in enumerate(values):
+
+                    self.stream_edits[i].setText(
+                        f"{value * factor:.6f}"
+                    )
+
+
+        except Exception as e:
+
+            print(
+                "Normalize failed:",
+                e
+            )
+
+
+
+    def auto_distribute_from_input(self):
+
+        try:
+            calc_type = self.cb2.currentText()
+
+            # Split Ratio has its own calculation.
+            if calc_type not in ("Molar_Flow", "Mass_Flow"):
+                return
+
+            count = len(self.stream_edits)
+
+            if count == 0:
+                return
+
+            inlet_flow = self.get_input_flow(calc_type)
+
+            # No connected input: keep flow values at zero.
+            if inlet_flow is None:
+                for edit in self.stream_edits:
+                    edit.setText("0.000000")
+                return
+
+            if inlet_flow < 0:
+                print("[Splitter] Invalid negative inlet flow.")
+                return
+
+            # Distribute the inlet flow equally.
+            value = inlet_flow / count
+
+            values = [
+                round(value, 6)
+                for _ in range(count)
+            ]
+
+            # Adjust the last outlet to preserve the total
+            # as closely as possible at six decimal places.
+            values[-1] = round(
+                inlet_flow - sum(values[:-1]),
+                6
+            )
+
+            for edit, flow in zip(self.stream_edits, values):
+                edit.setText(f"{flow:.6f}")
+
+            print(
+                f"[Splitter] Auto-distributed {calc_type}: "
+                f"inlet={inlet_flow}, outlets={values}, "
+                f"sum={sum(values)}"
+            )
+
+        except Exception as e:
+            print("[Splitter] Automatic distribution failed:", e)
+
+
+
+    def get_input_flow(self, flow_type):
+
+        try:
+
+            node_item = None
+
+            graphics_view = self.container.graphics.graphicsView
+
+            for item in graphics_view.items():
+
+                if hasattr(item, "obj") and item.obj is self.obj:
+                    node_item = item
+                    break
+
+
+            if node_item is None:
+                return None
+
+
+            if len(node_item.input) == 0:
+                return None
+
+
+            input_socket = node_item.input[0]
+
+
+            if not input_socket.in_lines:
+                return None
+
+
+            line = input_socket.in_lines[0]
+
+
+            source_stream = line.source.parent.obj
+
+
+            if flow_type == "Molar_Flow":
+
+                print("SOURCE STREAM:", source_stream.name)
+
+                print(
+                    "F_p[1]:",
+                    source_stream.variables['F_p[1]']['value']
+                )
+
+                print(
+                    "ALL FLOW VARIABLES:",
+                    source_stream.variables
+                )
+
+                return float(
+                    source_stream.variables['F_p[1]']['value']
+                )
+
+
+            elif flow_type == "Mass_Flow":
+
+                return float(
+                    source_stream.variables['Fm_p[1]']['value']
+                )
+
+
+        except Exception as e:
+
+            print(
+                "[Splitter] Input flow fetch failed:",
+                e
+            )
+
+            return None        
+        
 
     def param(self):
 
@@ -698,6 +975,50 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
                     return
 
+            elif calc_type in ["Molar_Flow","Mass_Flow"]:
+
+                inlet_flow = self.get_input_flow(calc_type)
+
+                if inlet_flow is None:
+                    QMessageBox.warning(
+                        self,
+                        "Input Missing",
+                        "Connect Material Stream to Splitter input."
+                    )
+                    return
+
+                total = sum(spec_values)
+
+                # Auto distribute if all outlets are zero
+                if total == 0:
+
+                    value = inlet_flow / new_no
+
+                    spec_values = [
+                        round(value,6)
+                        for _ in range(new_no)
+                    ]
+
+                    print(
+                        "[Splitter] Auto calculated outlet flow:",
+                        spec_values
+                    )
+
+                    total = sum(spec_values)
+
+
+                if abs(total - inlet_flow) > 1e-5:
+
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Flow",
+                        f"Outlet flow must equal inlet flow.\n\n"
+                        f"Inlet = {inlet_flow}\n"
+                        f"Outlet Sum = {total}"
+                    )
+
+                    return
+
             # --------------------------------------------------
             # Send parameters to UnitOperation
             # --------------------------------------------------
@@ -738,7 +1059,11 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             if node_item is not None:
 
                 node_item.update_output_ports(new_no)
-                self.update_connected_component_names()
+
+                QTimer.singleShot(
+                    100,
+                    self.update_connected_component_names
+                )
 
                 print(
                     f"[UI] Updated Splitter outputs to {new_no}"
@@ -772,6 +1097,7 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
             import traceback
             traceback.print_exc()
+
 
     def showEvent(self,event):
 
@@ -843,6 +1169,8 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
 
     def update_connected_component_names(self):
 
+        print("========== UPDATE NAMES ==========")
+
         node_item = None
 
         graphics_view = self.container.graphics.graphicsView
@@ -854,22 +1182,80 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
                 break
 
         if node_item is None:
+            print("Splitter node not found")
             return
+
+
+        print("OUTPUT COUNT:", len(node_item.output))
+        print("STREAM LABEL COUNT:", len(self.stream_names))
+
 
         for i, socket in enumerate(node_item.output):
 
-            if i >= len(self.stream_names):
-                break
+            print(
+                f"OUTPUT {i} ID: {socket.id} LINES: {len(socket.out_lines)}"
+            )
+
+            component_name = "Not Connected"
+
 
             if socket.out_lines:
 
                 line = socket.out_lines[0]
 
-                component_name = line.target.parent.obj.name
 
-            else:
+                try:
 
-                component_name = "Not Connected"
+                    target_socket = line.target
 
-            self.stream_names[i].setText(component_name)
-            self.stream_names[i].setToolTip(component_name)
+                    print(
+                        "TARGET SOCKET:",
+                        target_socket
+                    )
+
+
+                    target_node = target_socket.parent
+
+
+                    print(
+                        "TARGET NODE:",
+                        target_node
+                    )
+
+
+                    if hasattr(target_node, "obj"):
+
+                        component_name = target_node.obj.name
+
+
+                    elif hasattr(target_node, "parent"):
+
+                        if hasattr(target_node.parent, "obj"):
+
+                            component_name = (
+                                target_node.parent.obj.name
+                            )
+
+
+                except Exception as e:
+
+                    print(
+                        "Name fetch error:",
+                        e
+                    )
+
+
+            print(
+                f"OUTPUT {i+1}: {component_name}"
+            )
+
+
+            if i < len(self.stream_names):
+
+                self.stream_names[i].setText(
+                    component_name
+                )
+
+                self.stream_names[i].setToolTip(
+                    component_name
+                )
