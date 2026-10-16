@@ -262,34 +262,62 @@ class MaterialStream():
         return dict
 
     def param_setter(self,dict):
-        self.variables['x_pc']['value'] = dict['x_pc'].split(",")
-        #print('xpc is :' + str(self.variables['x_pc']['value']))
+
+        # Basic values
+        self.variables['x_pc']['value'] = [
+            x.strip() for x in dict['x_pc'].split(",") if x.strip()
+        ]
+
         self.thermo_package = dict['Thermo Package']
+
         self.variables['F_p[1]']['value'] = dict['MolFlow']
+
         self.variables[self.mode1]['value'] = dict[self.mode1]
         self.variables[self.mode2]['value'] = dict[self.mode2]
-        
+
+
+        # Set inlet composition
         for i in range(len(self.compound_names)):
-            if self.variables['x_pc']['value'][i]:
-                self.variables['x_pc[1,'+str(i+1)+']']['value'] = self.variables['x_pc']['value'][i]
+
+            if i < len(self.variables['x_pc']['value']):
+
+                self.variables[
+                    'x_pc[1,'+str(i+1)+']'
+                ]['value'] = self.variables['x_pc']['value'][i]
+
             else:
-                self.variables['x_pc[1,'+str(i+1)+']']['value'] = None
-            self.variables['xm_pc[1,'+str(i+1)+']']['value'] = self.variables['xm_pc']['value']
 
-            self.variables['F_pc[1,'+str(i+1)+']']['value'] = None
-            self.variables['Fm_pc[1,'+str(i+1)+']']['value'] = None
-        for i in range(0,len(self.compound_names)):
-            self.variables['x_pc[2,'+str(i+1)+']']['value'] = None
-            self.variables['xm_pc[2,'+str(i+1)+']']['value'] = None
-            self.variables['F_pc[2,'+str(i+1)+']']['value'] = None
-            self.variables['Fm_pc[2,'+str(i+1)+']']['value'] = None
+                self.variables[
+                    'x_pc[1,'+str(i+1)+']'
+                ]['value'] = None
 
-            self.variables['x_pc[3,'+str(i+1)+']']['value'] = None
-            self.variables['xm_pc[3,'+str(i+1)+']']['value'] = None
-            self.variables['F_pc[3,'+str(i+1)+']']['value'] = None
-            self.variables['Fm_pc[3,'+str(i+1)+']']['value'] = None
 
-            self.variables['Pvap_c['+str(i+1)+']']['value'] = None
+            self.variables[
+                'xm_pc[1,'+str(i+1)+']'
+            ]['value'] = self.variables['xm_pc']['value']
+
+
+        # Calculate component molar flow
+        total_flow = self.variables['F_p[1]']['value']
+
+        for i in range(len(self.compound_names)):
+
+            x_val = self.variables[
+                'x_pc[1,'+str(i+1)+']'
+            ]['value']
+
+
+            if x_val is not None and total_flow is not None:
+
+                self.variables[
+                    'F_pc[1,'+str(i+1)+']'
+                ]['value'] = float(total_flow) * float(x_val)
+
+            else:
+
+                self.variables[
+                    'F_pc[1,'+str(i+1)+']'
+                ]['value'] = None
 
     
     def set_pos(self,pos):

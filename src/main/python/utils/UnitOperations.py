@@ -768,7 +768,58 @@ class Splitter(UnitOperation):
 
         self.variables['SpecVal_s']['value'] = spec_values
 
+        
+        print("SPLITTER PARAMS:", params)
+        print("CALC TYPE:", calc_type)
+        print("SPEC VALUES:", spec_values)
+
         self._update_specval_string()
+        
+
+    def OM_Flowsheet_Equation(self):
+
+        print("Generating equations for:", self.name)
+
+        self.OM_data_eqn = ''
+
+        # Input connection
+        if self.input_stms:
+            for st in self.input_stms.values():
+                self.OM_data_eqn += (
+                    f'connect({st.name}.Out, {self.name}.In);\n'
+                )
+
+
+        # Output connection + specification
+        count = 1
+
+        for st in self.output_stms.values():
+
+            self.OM_data_eqn += (
+                f'connect({self.name}.Out[{count}], {st.name}.In);\n'
+            )
+
+
+            if self.variables['CalcType']['value'] == "Molar_Flow":
+
+                self.OM_data_eqn += (
+                    f'{st.name}.F_p[1] = '
+                    f'{self.variables["SpecVal_s"]["value"][count-1]};\n'
+                )
+
+
+            elif self.variables['CalcType']['value'] == "Mass_Flow":
+
+                self.OM_data_eqn += (
+                    f'{st.name}.Fm_p[1] = '
+                    f'{self.variables["SpecVal_s"]["value"][count-1]};\n'
+                )
+
+
+            count += 1
+
+
+        return self.OM_data_eqn
 
 class Mixer(UnitOperation):
 

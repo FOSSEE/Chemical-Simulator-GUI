@@ -681,16 +681,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     print("[DEBUG] socket connection push error (Case 1):", e)
 
                 try:
-                    source_node = self.new_line.source.parent
+                    target_node = self.new_line.target.parent
 
-                    if hasattr(source_node, "dock_widget"):
-
-                        if hasattr(source_node.dock_widget, "update_connected_component_names"):
-
-                            source_node.dock_widget.update_connected_component_names()
+                    if (
+                        getattr(target_node.obj, "type", None) == "Splitter"
+                        and hasattr(target_node.dock_widget, "auto_distribute_from_input")
+                    ):
+                        target_node.dock_widget.auto_distribute_from_input()
 
                 except Exception as e:
-                    print("[DEBUG] Splitter live update failed:", e)
+                    print("[DEBUG] Splitter flow auto-update failed:", e)
+
 
             # Case 2: self.type == 'in' and item is operation socket
             elif item is not None and self.type == 'in' and item_type == 'op' and len(item_out_lines) == 0:
@@ -720,16 +721,17 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     print("[DEBUG] socket connection push error (Case 2):", e)
 
                 try:
-                    source_node = self.new_line.source.parent
+                    target_node = self.new_line.target.parent
 
-                    if hasattr(source_node, "dock_widget"):
-
-                        if hasattr(source_node.dock_widget, "update_connected_component_names"):
-
-                            source_node.dock_widget.update_connected_component_names()
+                    if (
+                        getattr(target_node.obj, "type", None) == "Splitter"
+                        and hasattr(target_node.dock_widget, "auto_distribute_from_input")
+                    ):
+                        target_node.dock_widget.auto_distribute_from_input()
 
                 except Exception as e:
-                    print("[DEBUG] Splitter live update failed:", e)
+                    print("[DEBUG] Splitter flow auto-update failed:", e)
+
 
             # Case 3: clicked empty space or invalid target
             else:
@@ -1475,6 +1477,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
 
     def update_output_ports(self, new_count):
+
+
         """
         Dynamically change the number of output sockets.
 
@@ -1482,6 +1486,19 @@ class NodeItem(QtWidgets.QGraphicsItem):
         If output count is reduced, connections attached to
         removed outputs are removed cleanly.
         """
+
+        print("OUTPUT DEBUG")
+
+        for i, socket in enumerate(self.output):
+
+            print(
+                "socket",
+                i+1,
+                "id=",
+                socket.id,
+                "out_lines=",
+                len(socket.out_lines)
+            )
 
         old_count = len(self.output)
 
@@ -1515,7 +1532,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 if target_socket is not None:
 
                     saved_connections.append({
-                        "source_socket": socket,
+                        "source_id": socket.id,
                         "target_socket": target_socket,
                         "target_obj": target_socket.parent.obj
                     })
@@ -1669,8 +1686,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
         for connection in saved_connections:
 
             source_socket = self.output[
-                connection["source_socket"].id - 1
-            ] if connection["source_socket"].id <= new_count else None
+                connection["source_id"] - 1
+            ] if connection["source_id"] <= new_count else None
 
             target_socket = connection[
                 "target_socket"
