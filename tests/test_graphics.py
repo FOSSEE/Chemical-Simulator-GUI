@@ -62,37 +62,32 @@ class MockEvent:
 class TestGraphicsAndNodes(unittest.TestCase):
     """Unit tests for Graphics canvas, NodeItem rendering, sockets, lines, and resizing."""
 
-    _instances_alive = []
-
-    @classmethod
-    def setUpClass(cls):
-        cls.browser = QTextBrowser()
-        cls.view = QGraphicsView()
-        cls.container = Container(cls.browser, cls.view)
-        cls.graphics = Graphics(cls.container, cls.view)
-        cls.container.graphics = cls.graphics
-        cls.scene = cls.graphics.scene
-        # Keep instances referenced to prevent multiple-inheritance C++ wrapper GC issues
-        cls._instances_alive.extend([cls.browser, cls.view, cls.container, cls.graphics])
-
     def setUp(self):
+        compound_selected.clear()
+        compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
         lst.clear()
         dock_widget_lst.clear()
+        Mixer.counter = 1
+        Splitter.counter = 1
+        Heater.counter = 1
+        MaterialStream.counter = 1
+
+        self.browser = QTextBrowser()
+        self.view = QGraphicsView()
+        self.container = Container(self.browser, self.view)
+        self.graphics = self.container.graphics
+        self.scene = self.graphics.scene
+
         undo_manager.clean_file("Undo")
         undo_manager.clean_file("Redo")
-        self.scene.clear()
 
     def tearDown(self):
-        for node in list(lst):
-            if hasattr(node, 'dock_widget') and node.dock_widget:
-                node.dock_widget.close()
-                node.dock_widget.deleteLater()
         lst.clear()
         dock_widget_lst.clear()
-        self.scene.clear()
         undo_manager.clean_file("Undo")
         undo_manager.clean_file("Redo")
-        app.processEvents()
+        while QApplication.overrideCursor() is not None:
+            QApplication.restoreOverrideCursor()
 
     def test_graphics_initialization(self):
         """Verify Graphics canvas setup with Container and Scene."""
