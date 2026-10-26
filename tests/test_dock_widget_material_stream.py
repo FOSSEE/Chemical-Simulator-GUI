@@ -10,6 +10,12 @@ sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main', 'python'))
 # Break circular import between Graphics and Container
 mock_graphics = MagicMock()
 mock_container = MagicMock()
+_saved_modules = {
+    'utils.Graphics': sys.modules.get('utils.Graphics'),
+    'python.utils.Graphics': sys.modules.get('python.utils.Graphics'),
+    'utils.Container': sys.modules.get('utils.Container'),
+    'python.utils.Container': sys.modules.get('python.utils.Container'),
+}
 sys.modules['utils.Graphics'] = mock_graphics
 sys.modules['python.utils.Graphics'] = mock_graphics
 sys.modules['utils.Container'] = mock_container
@@ -17,6 +23,13 @@ sys.modules['python.utils.Container'] = mock_container
 
 from PyQt5.QtWidgets import QApplication, QTableWidget
 from DockWidgets.DockWidgetMaterialStream import DockWidgetMaterialStream
+
+# Clean up mocked modules so other test suites import the real modules
+for _mod_name, _orig in _saved_modules.items():
+    if _orig is not None:
+        sys.modules[_mod_name] = _orig
+    else:
+        sys.modules.pop(_mod_name, None)
 
 app = QApplication.instance()
 if app is None:
