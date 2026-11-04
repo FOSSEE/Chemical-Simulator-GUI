@@ -384,8 +384,12 @@ class Graphics(QDialog, QtWidgets.QGraphicsItem):
            
                             
 class NodeLine(QtWidgets.QGraphicsPathItem):
+    HOP_RADIUS = 6  # size of the bend drawn where two lines cross
+
     def __init__(self, pointA, pointB , socket):
         super(NodeLine, self).__init__()
+        self._route = []
+        self._previous_scene = None
         self._pointA = pointA
         self._pointB = pointB
         self.socket = socket
@@ -399,94 +403,126 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         self.pen.setColor(QtGui.QColor(0,70,70,220))
         self.setPen(self.pen)
 
-    def updatePath(self):
+    def _compute_route(self):
+        """Corner points of the orthogonal route from pointA to pointB."""
+        ax, ay = self._pointA.x(), self._pointA.y()
+        bx, by = self._pointB.x(), self._pointB.y()
 
-        if (self._pointB.x() - self._pointA.x()) < 30:
-            path = QtGui.QPainterPath()
-            midptx = (self.pointA.x() + 13)
-    
-            ctrl1_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-            ctrl2_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-            pt1 = QtCore.QPointF(midptx , self.pointA.y())
-            path.moveTo(pt1)
-            path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
-
-            if abs(self.pointB.x()-midptx) > 150:                
-                ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
-                ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
-                pt2 = QtCore.QPointF(midptx , self.pointA.y()+100)
-                path.cubicTo(ctrl1_2, ctrl2_2, pt2)
-                path.moveTo(pt2)
-
-                ctrl1_3 = QtCore.QPointF(midptx, self.pointA.y()+100)
-                ctrl2_3 = QtCore.QPointF(midptx, self.pointA.y()+100)
-                pt3 = QtCore.QPointF(self.pointB.x()-13, self.pointA.y()+100)
-                path.cubicTo(ctrl1_3, ctrl2_3, pt3)
-                path.moveTo(pt3)
-
-                ctrl1_4 = QtCore.QPointF(self.pointB.x()-13, self.pointA.y()+100)
-                ctrl2_4 = QtCore.QPointF(self.pointB.x()-13, self.pointA.y()+100)
-                pt4 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                path.cubicTo(ctrl1_4, ctrl2_4, pt4)
-                path.moveTo(pt4)
-
-                ctrl1_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                ctrl2_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                pt5 = QtCore.QPointF(self.pointB.x(), self.pointB.y())
-                path.cubicTo(ctrl1_5, ctrl2_5, pt5)
-                path.moveTo(pt5)
-
-                self.setPath(path)
-                return
+        if (bx - ax) < 30:
+            # Target is behind the source: step out, go around, step back in
+            midptx = ax + 13
+            if abs(bx - midptx) > 150:
+                midy = ay + 100
             else:
-                ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
-                ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
-                pt2 = QtCore.QPointF(midptx , max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                path.cubicTo(ctrl1_2, ctrl2_2, pt2)
-                path.moveTo(pt2)
+                midy = max(ay, by) - abs(ay - by) / 2
+            return [(ax, ay), (midptx, ay), (midptx, midy),
+                    (bx - 13, midy), (bx - 13, by), (bx, by)]
 
-                ctrl1_3 = QtCore.QPointF(midptx, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                ctrl2_3 = QtCore.QPointF(midptx, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                pt3 = QtCore.QPointF(self.pointB.x()-13,  max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                path.cubicTo(ctrl1_3, ctrl2_3, pt3)
-                path.moveTo(pt3)
+        midptx = 0.5 * (ax + bx)
+        return [(ax, ay), (midptx, ay), (midptx, by), (bx, by)]
 
-                ctrl1_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                ctrl2_4 = QtCore.QPointF(self.pointB.x()-13, max(self.pointB.y(), self.pointA.y())-(abs(self.pointA.y()-self.pointB.y())/2))
-                pt4 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                path.cubicTo(ctrl1_4, ctrl2_4, pt4)
-                path.moveTo(pt4)
+    def _route_rect(self):
+        """Bounding rect of the route, padded so hops are included."""
+        if not self._route:
+            return QtCore.QRectF()
+        xs = [x for x, _ in self._route]
+        ys = [y for _, y in self._route]
+        r = self.HOP_RADIUS
+        return QtCore.QRectF(min(xs) - r, min(ys) - r,
+                             max(xs) - min(xs) + 2 * r, max(ys) - min(ys) + 2 * r)
 
-                ctrl1_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                ctrl2_5 = QtCore.QPointF(self.pointB.x()-13, self.pointB.y())
-                pt5 = QtCore.QPointF(self.pointB.x(), self.pointB.y())
-                path.cubicTo(ctrl1_5, ctrl2_5, pt5)
-                path.moveTo(pt5)
+    def _vertical_segments(self):
+        """(x, y_min, y_max) for every vertical segment of the route."""
+        segs = []
+        for (x1, y1), (x2, y2) in zip(self._route, self._route[1:]):
+            if x1 == x2 and y1 != y2:
+                segs.append((x1, min(y1, y2), max(y1, y2)))
+        return segs
 
-                self.setPath(path)
-                return
-        
+    def _other_lines(self, rect, scene=None):
+        scene = scene if scene is not None else self.scene()
+        if scene is None or rect.isNull():
+            return []
+        return [item for item in scene.items(rect, QtCore.Qt.IntersectsItemBoundingRect)
+                if isinstance(item, NodeLine) and item is not self]
+
+    def _find_hops(self):
+        """
+        Map route segment index -> x positions where this line must hop.
+        Only horizontal segments hop, and only over vertical segments of other
+        lines, so every crossing gets exactly one hop whichever line is drawn
+        first.
+        """
+        r = self.HOP_RADIUS
+        horizontals = []
+        for i, ((x1, y1), (x2, y2)) in enumerate(zip(self._route, self._route[1:])):
+            if y1 == y2 and x1 != x2:
+                horizontals.append((i, min(x1, x2), max(x1, x2), y1))
+        if not horizontals:
+            return {}
+
+        hops = {}
+        for other in self._other_lines(self._route_rect()):
+            for vx, vy_min, vy_max in other._vertical_segments():
+                for i, x_min, x_max, y in horizontals:
+                    # Strict crossing only: skip touches at segment ends and
+                    # crossings too close to a corner to fit a hop
+                    if x_min + r < vx < x_max - r and vy_min + 0.5 < y < vy_max - 0.5:
+                        hops.setdefault(i, []).append(vx)
+        return hops
+
+    def _rebuild_path(self):
+        """Draw the route, adding a semicircular hop at every crossing."""
         path = QtGui.QPainterPath()
-        path.moveTo(self.pointA)
-        midptx = 0.5*(self.pointA.x() + self.pointB.x())
- 
-        ctrl1_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-        ctrl2_1 = QtCore.QPointF(self.pointA.x(), self.pointA.y())
-        pt1 = QtCore.QPointF(midptx , self.pointA.y())
-        path.cubicTo(ctrl1_1, ctrl2_1, pt1) 
-        path.moveTo(pt1)
+        if not self._route:
+            self.setPath(path)
+            return
 
-        ctrl1_2 = QtCore.QPointF(midptx, self.pointA.y())
-        ctrl2_2 = QtCore.QPointF(midptx, self.pointA.y())
-        pt2 = QtCore.QPointF(midptx , self.pointB.y())
-        path.cubicTo(ctrl1_2, ctrl2_2, pt2)
-        path.moveTo(pt2)
-
-        ctrl1_3 = QtCore.QPointF(midptx, self.pointB.y())
-        ctrl2_3 = QtCore.QPointF(midptx, self.pointB.y())
-        path.cubicTo(ctrl1_3, ctrl2_3, self.pointB)
-        path.moveTo(self.pointB)
+        r = self.HOP_RADIUS
+        hops = self._find_hops()
+        path.moveTo(*self._route[0])
+        for i, ((x1, y1), (x2, y2)) in enumerate(zip(self._route, self._route[1:])):
+            if i in hops:
+                direction = 1 if x2 > x1 else -1
+                last_x = x1
+                for hx in sorted(set(hops[i]), key=lambda x: (x - x1) * direction):
+                    start_x = hx - direction * r
+                    if (start_x - last_x) * direction < 0:
+                        continue  # overlaps the previous hop
+                    path.lineTo(start_x, y1)
+                    # Arc over the top of the crossing line
+                    if direction > 0:
+                        path.arcTo(QtCore.QRectF(hx - r, y1 - r, 2 * r, 2 * r), 180, -180)
+                    else:
+                        path.arcTo(QtCore.QRectF(hx - r, y1 - r, 2 * r, 2 * r), 0, 180)
+                    last_x = hx + direction * r
+            path.lineTo(x2, y2)
         self.setPath(path)
+
+    def _refresh_crossing_lines(self, rect, scene=None):
+        """Redraw other lines in `rect`, since their hops over this line may have changed."""
+        for other in self._other_lines(rect, scene):
+            other._rebuild_path()
+
+    def updatePath(self):
+        old_rect = self._route_rect()
+        self._route = self._compute_route()
+        self._rebuild_path()
+        self._refresh_crossing_lines(old_rect.united(self._route_rect()))
+
+    def itemChange(self, change, value):
+        # Keep hops correct when a line is added to or removed from a scene
+        if change == QtWidgets.QGraphicsItem.ItemSceneChange:
+            self._previous_scene = self.scene()
+        elif change == QtWidgets.QGraphicsItem.ItemSceneHasChanged:
+            previous_scene, self._previous_scene = self._previous_scene, None
+            rect = self._route_rect()
+            if previous_scene is not None and previous_scene is not self.scene():
+                self._refresh_crossing_lines(rect, previous_scene)
+            if self.scene() is not None:
+                self._rebuild_path()
+                self._refresh_crossing_lines(rect)
+        return super(NodeLine, self).itemChange(change, value)
 
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
