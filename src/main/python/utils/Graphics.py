@@ -50,11 +50,9 @@ from python.utils.Streams import *
 from python.utils.UnitOperations import *
 from python.utils.ComponentSelector import *
 
-class Graphics(QDialog, QtWidgets.QGraphicsItem):
+class Graphics(object):
 
     def __init__(self, container, graphicsView=None):
-        QDialog.__init__(self)
-        QtWidgets.QGraphicsItem.__init__(self)
 
         # 🔹 Store reference to parent container
         self.container = container

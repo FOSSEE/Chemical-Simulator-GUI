@@ -274,6 +274,53 @@ class TestOMChemModels(unittest.TestCase):
         dc.paramsetter(dc_params)
         self.assertEqual(dc.numStage, "10")
 
+    def test_conversion_reactor(self):
+        cr = ConvReactor(
+            name="R1",
+            Nr=1,
+            b=1,
+            X=0.85,
+            Z=1,
+            a=[[-1, 1]],
+            operation="Isothermal",
+            Tdef=350.15
+        )
+        self.assertEqual(cr.type, 'ConvReactor')
+        self.assertEqual(cr.name, 'R1')
+        self.assertEqual(cr.Nr, '1')
+        self.assertEqual(cr.b, '1')
+        self.assertEqual(cr.X, '0.85')
+        self.assertEqual(cr.Z, '1')
+        self.assertEqual(cr.a, '{{-1, 1}}')
+        self.assertEqual(cr.operation, 'Isothermal')
+        self.assertEqual(cr.Tdef, '350.15')
+
+        # Connect streams
+        in_stm = MagicMock()
+        in_stm.name = "ReactorFeed"
+        out_stm = MagicMock()
+        out_stm.name = "ReactorProd"
+        cr.connect([in_stm], [out_stm])
+
+        self.assertEqual(cr.InputStms, [in_stm])
+        self.assertEqual(cr.OutputStms, [out_stm])
+
+        # Test OM_Flowsheet_Init
+        init_code = cr.OM_Flowsheet_Init(["A", "B"])
+        self.assertIn("Simulator.Streams.Energy_Stream EngStm;", init_code)
+        self.assertIn("Simulator.Unit_Operations.ConversionReactor R1", init_code)
+        self.assertIn("Nr = 1", init_code)
+        self.assertIn("X = 0.85", init_code)
+        self.assertIn("a = {{-1, 1}}", init_code)
+        self.assertIn("operation = Isothermal", init_code)
+        self.assertIn("Tdef = 350.15", init_code)
+
+        # Test OM_Flowsheet_Eqn
+        eqn_code = cr.OM_Flowsheet_Eqn(["A", "B"])
+        self.assertIn("connect(ReactorFeed.Out,R1.In);", eqn_code)
+        self.assertIn("connect(ReactorProd.In,R1.Out);", eqn_code)
+        self.assertIn("connect(EngStm.In,R1.energy);", eqn_code)
+
 
 if __name__ == "__main__":
     unittest.main()
