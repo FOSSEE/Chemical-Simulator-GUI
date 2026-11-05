@@ -1019,11 +1019,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.input, self.output = self.initialize_sockets(self.type)
 
         # Store original dimensions for resize support
-        self._orig_width = self.rect.width()
-        self._orig_height = self.rect.height()
         self._orig_pic = self.pic.copy()
-        self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
-        self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
+        self._capture_socket_geometry()
 
         # Add resize handle at bottom-right corner
         self._resize_handle = ResizeHandle(self)
@@ -1273,6 +1270,16 @@ class NodeItem(QtWidgets.QGraphicsItem):
                     orig.width(), orig.height()
                 )
                 socket.update()
+
+    def _capture_socket_geometry(self):
+        """Use the current size and socket rects as the reference for
+        _reposition_sockets. Must be called whenever sockets are rebuilt,
+        since rebuilt sockets are laid out at the current (possibly resized)
+        size, not the original one."""
+        self._orig_width = self.rect.width()
+        self._orig_height = self.rect.height()
+        self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
+        self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
 
     def _update_connected_lines(self):
         """Update endpoints of all lines connected to this node."""
@@ -1525,10 +1532,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # ------------------------------------------------------------
         # 7. Update original socket geometry
         # ------------------------------------------------------------
-        self._orig_input_rects = [
-            QtCore.QRectF(socket.rect)
-            for socket in self.input
-        ]
+        self._capture_socket_geometry()
 
         # ------------------------------------------------------------
         # 8. Update connected lines
@@ -1836,10 +1840,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # 7. Update original socket geometry
         # ---------------------------------------------------------
 
-        self._orig_output_rects = [
-            QtCore.QRectF(socket.rect)
-            for socket in self.output
-        ]
+        self._capture_socket_geometry()
 
         # ---------------------------------------------------------
         # 8. Update connected lines
