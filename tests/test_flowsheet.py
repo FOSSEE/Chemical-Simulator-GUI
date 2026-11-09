@@ -158,7 +158,11 @@ class TestFlowsheetSimulationLifecycle(unittest.TestCase):
         self.flowsheet.add_unit_operations(out_stream)
 
         msg = []
+        self.flowsheet.send_for_simulation_Eqn = MagicMock()
+
         self.flowsheet.simulate_EQN(msg)
+
+        self.flowsheet.send_for_simulation_Eqn.assert_called_once_with(msg)
 
         # Check generated Flowsheet.mo
         self.assertTrue(os.path.exists(self.flowsheet.Flomo_path))
