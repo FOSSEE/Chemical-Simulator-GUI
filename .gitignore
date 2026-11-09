@@ -114,3 +114,8 @@ src/main/python/Chemical Simulator GUI.exe
 *.csv
 *_external_functions.json
 FlowsheetSEQ.csv
+# Test coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
