@@ -113,15 +113,34 @@ class TestBinPhaseEnv(unittest.TestCase):
         mock_warning.assert_called_once()
         self.assertIn("select two different compounds", mock_warning.call_args[0][2])
 
-    def test_get_omc_path_resolution(self):
-        """Verify get_omc_path returns a valid path when OpenModelica is available."""
-        omc_path = self.widget.get_omc_path()
-        self.assertTrue(os.path.exists(omc_path))
+
+    @patch('python.utils.Bin_Phase_env.os.path.exists')
+    @patch('python.utils.Bin_Phase_env.shutil.which')
+    @patch('python.utils.Bin_Phase_env.os.environ.get')
+    def test_get_omc_path_resolution(self, mock_env, mock_which, mock_exists):
+        """Verify OMC path resolution without requiring OpenModelica installation."""
+        mock_env.return_value = None
+        mock_exists.side_effect = lambda path: path == '/usr/bin/omc'
+        mock_which.return_value = None
+
+        self.assertEqual(self.widget.get_omc_path(), '/usr/bin/omc')
+
+        mock_which.return_value = '/custom/bin/omc'
+        self.assertEqual(self.widget.get_omc_path(), '/custom/bin/omc')
+
+        mock_which.return_value = None
+        mock_exists.side_effect = None
+        mock_exists.return_value = False
+
+        with self.assertRaises(FileNotFoundError):
+            self.widget.get_omc_path()
 
     @patch('python.utils.Bin_Phase_env.QMessageBox.critical')
     @patch('python.utils.Bin_Phase_env.Popen')
-    def test_plot_handles_omc_failure(self, mock_popen, mock_critical):
-        """Verify error message is displayed when OpenModelica execution fails or produces no csv."""
+    @patch('python.utils.Bin_Phase_env.BinPhaseEnv.get_omc_path',
+           return_value='/mock/omc')
+    def test_plot_handles_omc_failure(self, mock_get_omc, mock_popen, mock_critical):
+        """Verify error message is displayed when simulation produces no CSV."""
         self.widget.T_xy()
         self.widget.comboBox.setCurrentText("Water")
         self.widget.comboBox_2.setCurrentText("Ethanol")
@@ -132,30 +151,36 @@ class TestBinPhaseEnv(unittest.TestCase):
         mock_popen.return_value = mock_proc
 
         self.widget.plot()
+
+        mock_get_omc.assert_called_once()
+        mock_popen.assert_called_once()
         mock_critical.assert_called_once()
         self.assertIn("Simulation Error", mock_critical.call_args[0][1])
 
+    @patch('python.utils.Bin_Phase_env.BinPhaseEnv.get_omc_path',
+           return_value='/mock/omc')
     @patch('python.utils.Bin_Phase_env.Popen')
-    def test_successful_simulation_creates_plot_tab(self, mock_popen):
-        """Verify successful csv output parses dew/bubble points and adds plot tab."""
+    def test_successful_simulation_creates_plot_tab(self, mock_popen, mock_get_omc):
+        """Verify successful CSV output parses dew/bubble points and adds plot tab."""
         self.widget.T_xy()
         self.widget.comboBox.setCurrentText("Water")
         self.widget.comboBox_2.setCurrentText("Ethanol")
         self.widget.comboBox_3.setCurrentText("RaoultsLaw")
         self.widget.points.setText("2")
 
-        headers = ["time", '"x[1,1]"', '"y[1,1]"', '"T[1]"', '"x[2,1]"', '"y[2,1]"', '"T[2]"']
+        headers = ["time", '"x[1,1]"', '"y[1,1]"', '"T[1]"',
+                   '"x[2,1]"', '"y[2,1]"', '"T[2]"']
         row1 = ["0.0", "0.1", "0.2", "370.0", "0.5", "0.6", "365.0"]
         row2 = ["1.0", "0.15", "0.25", "371.0", "0.55", "0.65", "366.0"]
 
         def fake_popen(*args, **kwargs):
-            # os.chdir(self.sim_dir_path) has been executed by self.plot()
             import csv
             with open("Simulator.Graph_res.csv", "w", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)
                 writer.writerow(row1)
                 writer.writerow(row2)
+
             m = MagicMock()
             m.communicate.return_value = ("Success", "")
             return m
@@ -165,10 +190,13 @@ class TestBinPhaseEnv(unittest.TestCase):
         initial_tabs = self.widget.tabWidget.count()
         self.widget.plot()
 
+        mock_get_omc.assert_called_once()
+        mock_popen.assert_called_once()
         self.assertEqual(self.widget.tabWidget.count(), initial_tabs + 1)
         self.assertEqual(len(self.widget.datay), 2)
         self.assertEqual(len(self.widget.datax1), 2)
         self.assertEqual(len(self.widget.datax2), 2)
+
 
 
 if __name__ == '__main__':
