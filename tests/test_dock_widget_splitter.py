@@ -57,11 +57,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def splitter_widget(qtbot):
+def splitter_widget():
     obj = MockSplitterObj()
     container = MockContainerInstance()
     widget = DockWidgetSplitter("Splitter1", "Splitter", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 

@@ -51,11 +51,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def comp_sep_widget(qtbot):
+def comp_sep_widget():
     obj = MockCompoundSeparatorObj()
     container = MockContainerInstance()
     widget = DockWidgetCompoundSeparator("CompSep1", "CompoundSeparator", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 

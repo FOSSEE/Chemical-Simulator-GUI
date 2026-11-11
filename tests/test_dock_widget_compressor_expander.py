@@ -61,11 +61,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def comp_widget(qtbot):
+def comp_widget():
     obj = MockCompressorObj()
     container = MockContainerInstance()
     widget = DockWidgetCompressorExpander("Compressor1", "Compressor", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 

@@ -58,11 +58,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def mixer_widget(qtbot):
+def mixer_widget():
     obj = MockMixerObj()
     container = MockContainerInstance()
     widget = DockWidgetMixer("Mixer1", "Mixer", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 
@@ -104,11 +103,11 @@ def test_dock_widget_mixer_param_submission(mixer_widget, monkeypatch):
     mock_node.update_input_ports.assert_called_once_with(4)
 
 
-def test_dock_widget_mixer_btn_click(mixer_widget, qtbot, monkeypatch):
+def test_dock_widget_mixer_btn_click(mixer_widget):
     widget, obj, _ = mixer_widget
-    monkeypatch.setattr("python.utils.Graphics.lst", [])
+    sys.modules['python.utils.Graphics'].lst = []
 
     widget.ni_combo.setCurrentText("3")
-    qtbot.mouseClick(widget.btn, Qt.LeftButton)
+    widget.btn.click()
 
     obj.param_setter.assert_called_once_with([3, "Minimum"])

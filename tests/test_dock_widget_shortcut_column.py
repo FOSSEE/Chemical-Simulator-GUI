@@ -54,11 +54,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def shortcut_widget(qtbot):
+def shortcut_widget():
     obj = MockShortcutColumnObj()
     container = MockContainerInstance()
     widget = DockWidgetShortcutColumn("Shortcut1", "ShortcutColumn", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 

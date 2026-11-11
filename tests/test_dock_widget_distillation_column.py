@@ -53,11 +53,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def dist_col_widget(qtbot):
+def dist_col_widget():
     obj = MockDistillationColumnObj()
     container = MockContainerInstance()
     widget = DockWidgetDistillationColumn("DistCol1", "DistillationColumn", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 

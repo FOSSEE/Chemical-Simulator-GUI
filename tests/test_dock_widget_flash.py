@@ -57,11 +57,10 @@ class MockContainerInstance:
 
 
 @pytest.fixture
-def flash_widget(qtbot):
+def flash_widget():
     obj = MockFlashObj()
     container = MockContainerInstance()
     widget = DockWidgetFlash("Flash1", "Flash", obj, container)
-    qtbot.addWidget(widget)
     return widget, obj, container
 
 
