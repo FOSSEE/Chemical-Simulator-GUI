@@ -1,5 +1,6 @@
 import os
 import sys
+from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
 from PyQt5.QtWidgets import QApplication
@@ -13,9 +14,9 @@ _saved_modules = {k: sys.modules.get(k) for k in [
     'utils.Graphics', 'python.utils.Graphics', 'utils.Container', 'python.utils.Container'
 ]}
 
-mock_graphics = MagicMock()
-mock_container = MagicMock()
+mock_graphics = ModuleType('python.utils.Graphics')
 mock_graphics.lst = []
+mock_container = MagicMock()
 
 sys.modules['utils.Graphics'] = mock_graphics
 sys.modules['python.utils.Graphics'] = mock_graphics
@@ -94,7 +95,9 @@ def test_dock_widget_splitter_param_submit(splitter_widget, monkeypatch):
     widget, obj, _ = splitter_widget
     mock_node = MagicMock()
     mock_node.obj = obj
-    monkeypatch.setattr("python.utils.Graphics.lst", [mock_node])
+
+    import python.utils.Graphics as g_mod
+    monkeypatch.setattr(g_mod, "lst", [mock_node])
 
     if hasattr(widget, 'stream_edits') and len(widget.stream_edits) == 2:
         widget.stream_edits[0].setText("0.6")

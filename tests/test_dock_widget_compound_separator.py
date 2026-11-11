@@ -1,6 +1,5 @@
 import os
 import sys
-from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
 from PyQt5.QtWidgets import QApplication
@@ -10,25 +9,30 @@ for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 
     if p not in sys.path:
         sys.path.insert(0, p)
 
-if 'python.utils.Graphics' not in sys.modules:
-    mock_mod = ModuleType('python.utils.Graphics')
-    mock_mod.lst = []
-    sys.modules['python.utils.Graphics'] = mock_mod
-    sys.modules['utils.Graphics'] = mock_mod
-else:
-    mock_mod = sys.modules['python.utils.Graphics']
-    if not hasattr(mock_mod, 'lst'):
-        mock_mod.lst = []
+_saved_modules = {k: sys.modules.get(k) for k in [
+    'utils.Graphics', 'python.utils.Graphics', 'utils.Container', 'python.utils.Container'
+]}
 
-if 'python.utils.Container' not in sys.modules:
-    sys.modules['python.utils.Container'] = MagicMock()
-    sys.modules['utils.Container'] = sys.modules['python.utils.Container']
+mock_graphics = MagicMock()
+mock_container = MagicMock()
+mock_graphics.lst = []
+
+sys.modules['utils.Graphics'] = mock_graphics
+sys.modules['python.utils.Graphics'] = mock_graphics
+sys.modules['utils.Container'] = mock_container
+sys.modules['python.utils.Container'] = mock_container
 
 app = QApplication.instance()
 if app is None:
     app = QApplication(sys.argv)
 
 from DockWidgets.DockWidgetCompoundSeparator import DockWidgetCompoundSeparator
+
+for k, v in _saved_modules.items():
+    if v is None:
+        sys.modules.pop(k, None)
+    else:
+        sys.modules[k] = v
 
 
 class MockCompoundSeparatorObj:

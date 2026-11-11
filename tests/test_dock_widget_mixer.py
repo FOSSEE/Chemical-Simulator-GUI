@@ -1,8 +1,8 @@
 import os
 import sys
+from types import ModuleType
 from unittest.mock import MagicMock
 import pytest
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -10,14 +10,13 @@ for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 
     if p not in sys.path:
         sys.path.insert(0, p)
 
-# Save original modules
 _saved_modules = {k: sys.modules.get(k) for k in [
     'utils.Graphics', 'python.utils.Graphics', 'utils.Container', 'python.utils.Container'
 ]}
 
-mock_graphics = MagicMock()
-mock_container = MagicMock()
+mock_graphics = ModuleType('python.utils.Graphics')
 mock_graphics.lst = []
+mock_container = MagicMock()
 
 sys.modules['utils.Graphics'] = mock_graphics
 sys.modules['python.utils.Graphics'] = mock_graphics
@@ -30,7 +29,6 @@ if app is None:
 
 from DockWidgets.DockWidgetMixer import DockWidgetMixer
 
-# Restore real modules immediately after import so other tests are not broken
 for k, v in _saved_modules.items():
     if v is None:
         sys.modules.pop(k, None)
@@ -89,9 +87,9 @@ def test_dock_widget_mixer_param_submission(mixer_widget, monkeypatch):
     widget, obj, _ = mixer_widget
     mock_node = MagicMock()
     mock_node.obj = obj
-    
-    # Patch Graphics.lst safely in-scope
-    monkeypatch.setattr("python.utils.Graphics.lst", [mock_node])
+
+    import python.utils.Graphics as g_mod
+    monkeypatch.setattr(g_mod, "lst", [mock_node])
 
     widget.ni_combo.setCurrentText("4")
     widget.cb2.setCurrentText("Average")
@@ -103,9 +101,10 @@ def test_dock_widget_mixer_param_submission(mixer_widget, monkeypatch):
     mock_node.update_input_ports.assert_called_once_with(4)
 
 
-def test_dock_widget_mixer_btn_click(mixer_widget):
+def test_dock_widget_mixer_btn_click(mixer_widget, monkeypatch):
     widget, obj, _ = mixer_widget
-    sys.modules['python.utils.Graphics'].lst = []
+    import python.utils.Graphics as g_mod
+    monkeypatch.setattr(g_mod, "lst", [])
 
     widget.ni_combo.setCurrentText("3")
     widget.btn.click()
