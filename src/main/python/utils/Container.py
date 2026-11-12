@@ -367,7 +367,7 @@ class Container():
                 # Lock all dock widgets to read-only on success
                 for dw in dock_widget_lst:
                     if hasattr(dw, 'set_read_only'):
-                        dw.set_read_only(True)
+                        dw.set_read_only(False)
             else:
                 self.signals.msg_signal.emit(
                     f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
@@ -425,9 +425,19 @@ class Container():
             DockWidget.show_result(dock_widget_lst)
             
             # Re-apply read-only state because show_result recreates the input fields
+            # Keep recreated input fields editable after results are populated
             for dw in dock_widget_lst:
                 if hasattr(dw, 'set_read_only'):
-                    dw.set_read_only(True)
+                    dw.set_read_only(False)
+
+            # Preserve connection-based restrictions for MaterialStream
+            for it in self.graphics.scene.items():
+                if isinstance(it, NodeItem) and getattr(it, "type", "") == "MaterialStream":
+                    try:
+                        if len(it.input[0].in_lines) > 0:
+                            it.obj.disableInputDataTab(it.dock_widget)
+                    except Exception as e:
+                        print(f"[DEBUG] MaterialStream input state update failed: {e}")
 
             # Make all result table items non-editable
             for dw in dock_widget_lst:
