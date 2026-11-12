@@ -543,27 +543,74 @@ class MaterialStream():
 
 
     def disableInputDataTab(self, dockwidget):
+        if dockwidget is None:
+            return
+
         # Disable main inputs
-        dockwidget.comboBox.setDisabled(True)
+        if hasattr(dockwidget, 'comboBox') and dockwidget.comboBox is not None:
+            dockwidget.comboBox.setDisabled(True)
     
         # Safe access helper
         def safe_set_text(widget, key, default=0):
-            if key in self.variables:
-                widget.setText(str(round(float(self.variables[key]['value']),4)))
-            else:
-                widget.setText(str(default))
-                print(f"[DEBUG] Key not found: {key}")
-            widget.setDisabled(True)
+            if hasattr(widget, 'setText') and hasattr(widget, 'setDisabled'):
+                if key in self.variables:
+                    widget.setText(str(round(float(self.variables[key]['value']),4)))
+                else:
+                    widget.setText(str(default))
+                    print(f"[DEBUG] Key not found: {key}")
+                widget.setDisabled(True)
 
-        safe_set_text(dockwidget.input_dict['P'], 'P')
-        safe_set_text(dockwidget.input_dict['T'], 'T')
-        safe_set_text(dockwidget.input_dict['MolFlow'], 'F_p[1]')
+        if hasattr(dockwidget, 'input_dict') and isinstance(dockwidget.input_dict, dict):
+            if 'P' in dockwidget.input_dict:
+                safe_set_text(dockwidget.input_dict['P'], 'P')
+            if 'T' in dockwidget.input_dict:
+                safe_set_text(dockwidget.input_dict['T'], 'T')
+            if 'MolFlow' in dockwidget.input_dict:
+                safe_set_text(dockwidget.input_dict['MolFlow'], 'F_p[1]')
 
-        dockwidget.cbTP.setCurrentText(str(self.thermo_package))
-        dockwidget.cbTP.setDisabled(True)
-        dockwidget.pushButton_2.setDisabled(True)
+        if hasattr(dockwidget, 'cbTP') and dockwidget.cbTP is not None:
+            dockwidget.cbTP.setCurrentText(str(self.thermo_package))
+            dockwidget.cbTP.setDisabled(True)
+
+        if hasattr(dockwidget, 'pushButton_2') and dockwidget.pushButton_2 is not None:
+            dockwidget.pushButton_2.setDisabled(True)
 
         # Disable x_pc values safely
-        for index, k in enumerate(dockwidget.x_pclist):
+        for index, k in enumerate(getattr(dockwidget, 'x_pclist', [])):
             key_name = f"x_pc[1,{index+1}]"
             safe_set_text(k, key_name)
+
+        for attr in ('btn_normalize', 'btn_equalize', 'cbCompositionBasis'):
+            w = getattr(dockwidget, attr, None)
+            if w is not None and hasattr(w, 'setDisabled'):
+                w.setDisabled(True)
+
+    def enableInputDataTab(self, dockwidget):
+        if dockwidget is None:
+            return
+
+        if hasattr(dockwidget, 'comboBox') and dockwidget.comboBox is not None:
+            dockwidget.comboBox.setDisabled(False)
+
+        if hasattr(dockwidget, 'input_dict') and isinstance(dockwidget.input_dict, dict):
+            for k, w in dockwidget.input_dict.items():
+                if hasattr(w, 'setDisabled'):
+                    w.setDisabled(False)
+
+        if hasattr(dockwidget, 'cbTP') and dockwidget.cbTP is not None:
+            dockwidget.cbTP.setDisabled(False)
+
+        if hasattr(dockwidget, 'pushButton_2') and dockwidget.pushButton_2 is not None:
+            dockwidget.pushButton_2.setDisabled(False)
+
+        for le in getattr(dockwidget, 'x_pclist', []):
+            if hasattr(le, 'setDisabled'):
+                le.setDisabled(False)
+
+        for attr in ('btn_normalize', 'btn_equalize', 'cbCompositionBasis'):
+            w = getattr(dockwidget, attr, None)
+            if w is not None and hasattr(w, 'setDisabled'):
+                w.setDisabled(False)
+
+        if hasattr(dockwidget, 'set_read_only'):
+            dockwidget.set_read_only(False)

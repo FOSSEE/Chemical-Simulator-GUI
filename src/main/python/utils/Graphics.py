@@ -373,6 +373,9 @@ class Graphics(object):
                 except Exception as e:
                     print("[DEBUG] load_canvas_from_snapshot: rebuild connection failed:", e)
 
+            if hasattr(container, "update_components_editability"):
+                container.update_components_editability()
+
             self._restore_counters(container.unit_operations)
 
         except Exception as e:
@@ -700,14 +703,9 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 if getattr(self.new_line.target.parent.obj, 'type', None) not in stm:
                     self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
 
-                sc = self.new_line.source.parent
-                tg = self.new_line.target.parent
-                if getattr(sc.obj, 'type', None) == 'MaterialStream':
-                    if len(getattr(sc.input[0], 'in_lines', [])) > 0:
-                        sc.obj.disableInputDataTab(sc.dock_widget)
-                if getattr(tg.obj, 'type', None) == 'MaterialStream':
-                    if len(getattr(tg.input[0], 'in_lines', [])) > 0:
-                        tg.obj.disableInputDataTab(tg.dock_widget)
+                if hasattr(self, "parent") and hasattr(self.parent, "container") and self.parent.container:
+                    if hasattr(self.parent.container, "update_components_editability"):
+                        self.parent.container.update_components_editability()
 
                 try:
                     self.parent.container.graphics.push_snapshot()
@@ -756,14 +754,9 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 if getattr(self.new_line.target.parent.obj, 'type', None) not in stm:
                     self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
 
-                sc = self.new_line.source.parent
-                tg = self.new_line.target.parent
-                if getattr(sc.obj, 'type', None) == 'MaterialStream':
-                    if len(getattr(sc.input[0], 'in_lines', [])) > 0:
-                        sc.obj.disableInputDataTab(sc.dock_widget)
-                if getattr(tg.obj, 'type', None) == 'MaterialStream':
-                    if len(getattr(tg.input[0], 'in_lines', [])) > 0:
-                        tg.obj.disableInputDataTab(tg.dock_widget)
+                if hasattr(self, "parent") and hasattr(self.parent, "container") and self.parent.container:
+                    if hasattr(self.parent.container, "update_components_editability"):
+                        self.parent.container.update_components_editability()
 
                 try:
                     self.parent.container.graphics.push_snapshot()
@@ -1228,6 +1221,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         self.update()
 
+        if hasattr(self, "container") and self.container is not None and hasattr(self.container, "update_components_editability"):
+            self.container.update_components_editability()
+
     def _reposition_sockets(self):
         """Reposition sockets after a resize while keeping their relative
         positions on the component.
@@ -1541,6 +1537,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         self.update()
 
+        if hasattr(self, "container") and self.container is not None and hasattr(self.container, "update_components_editability"):
+            self.container.update_components_editability()
+
         print(
             f"[DEBUG] update_input_ports complete: "
             f"{old_count} -> {new_count}"
@@ -1849,6 +1848,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self._update_connected_lines()
 
         self.update()
+
+        if hasattr(self, "container") and self.container is not None and hasattr(self.container, "update_components_editability"):
+            self.container.update_components_editability()
 
         print(
             f"[DEBUG] update_output_ports complete: "

@@ -568,5 +568,134 @@ class TestInterfaceLocking(ContainerTestBase):
         self.assertEqual(QApplication.overrideCursor().shape(), Qt.ArrowCursor)
 
 
+# =============================================================================
+# 8. Dynamic Component Editability on Connection Changes (Task 2)
+# =============================================================================
+
+class TestDynamicComponentEditability(ContainerTestBase):
+    """Test suite for automatic component editability updates on connection changes."""
+
+    def setUp(self):
+        super().setUp()
+        self.container.disableInterfaceforSimulation = MagicMock()
+        self.flowsheet_patch = patch.object(container_module, "Flowsheet")
+        self.mock_flowsheet_cls = self.flowsheet_patch.start()
+        self.fs = self.mock_flowsheet_cls.return_value
+        self.fs.result_data = [["header"], ["values"]]
+        self.fs.last_error = ""
+
+    def tearDown(self):
+        self.flowsheet_patch.stop()
+        super().tearDown()
+
+    def test_material_stream_becomes_read_only_when_connected_as_output(self):
+        mixer = self.add_node(Mixer())
+        s2 = self.add_node(MaterialStream())
+
+        # Initially s2 has no incoming connection -> editable
+        self.assertTrue(s2.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s2.dock_widget.pushButton_2.isEnabled())
+
+        # Connect mixer output to s2 input
+        self.connect(mixer, 0, s2, 0)
+        self.container.update_components_editability()
+
+        # s2 now has incoming connection -> read-only
+        self.assertFalse(s2.dock_widget.comboBox.isEnabled())
+        self.assertFalse(s2.dock_widget.pushButton_2.isEnabled())
+
+    def test_material_stream_becomes_editable_when_line_deleted(self):
+        mixer = self.add_node(Mixer())
+        s2 = self.add_node(MaterialStream())
+        line = self.connect(mixer, 0, s2, 0)
+        self.container.update_components_editability()
+        self.assertFalse(s2.dock_widget.comboBox.isEnabled())
+
+        # Delete the connection line
+        self.container.delete([line])
+
+        # s2 should immediately become editable
+        self.assertTrue(s2.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s2.dock_widget.pushButton_2.isEnabled())
+
+    def test_material_stream_becomes_editable_when_upstream_node_deleted(self):
+        mixer = self.add_node(Mixer())
+        s2 = self.add_node(MaterialStream())
+        self.connect(mixer, 0, s2, 0)
+        self.container.update_components_editability()
+        self.assertFalse(s2.dock_widget.comboBox.isEnabled())
+
+        # Delete the upstream Mixer node
+        self.container.delete([mixer])
+
+        # s2 should immediately become editable
+        self.assertTrue(s2.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s2.dock_widget.pushButton_2.isEnabled())
+
+    def test_post_simulation_editability_lifecycle(self):
+        """Simulate MS1, MS2 -> Mixer -> MS3, then delete Mixer, assert MS3 editable."""
+        s1 = self.add_node(MaterialStream())
+        s2 = self.add_node(MaterialStream())
+        mixer = self.add_node(Mixer())
+        s3 = self.add_node(MaterialStream())
+
+        self.connect(s1, 0, mixer, 0)
+        self.connect(s2, 0, mixer, 1)
+        self.connect(mixer, 0, s3, 0)
+
+        # Mock successful simulation results
+        self.fs.result_data = [
+            ["time", f"{s3.name}.P", f"{s3.name}.T", f"{s3.name}.TotalMolarFlow"],
+            ["0.0", "101325", "300", "100"],
+            ["1.0", "101325", "310", "100"]
+        ]
+
+        self.container.simulate("EQN")
+
+        # Feed streams s1, s2 should be editable
+        self.assertTrue(s1.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s2.dock_widget.comboBox.isEnabled())
+
+        # Output stream s3 should be disabled / read-only
+        self.assertFalse(s3.dock_widget.comboBox.isEnabled())
+        self.assertFalse(s3.dock_widget.pushButton_2.isEnabled())
+
+        # Now delete the Mixer component
+        self.container.delete([mixer])
+
+        # Since s3 is no longer connected to any component, it must become editable immediately
+        self.assertTrue(s3.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s3.dock_widget.pushButton_2.isEnabled())
+        self.assertTrue(s3.dock_widget.cbTP.isEnabled())
+
+    def test_reconnecting_stream_makes_it_read_only_again(self):
+        s1 = self.add_node(MaterialStream())
+        mixer1 = self.add_node(Mixer())
+        mixer2 = self.add_node(Mixer())
+
+        # Connect mixer1 -> s1
+        line1 = self.connect(mixer1, 0, s1, 0)
+        self.container.update_components_editability()
+        self.assertFalse(s1.dock_widget.comboBox.isEnabled())
+
+        # Disconnect by deleting line1
+        self.container.delete([line1])
+        self.assertTrue(s1.dock_widget.comboBox.isEnabled())
+
+        # Reconnect mixer2 -> s1
+        line2 = self.connect(mixer2, 0, s1, 0)
+        self.container.update_components_editability()
+        self.assertFalse(s1.dock_widget.comboBox.isEnabled())
+
+    def test_isolated_component_remains_editable(self):
+        """A component not connected to anything must always be editable."""
+        mixer = self.add_node(Mixer())
+        s1 = self.add_node(MaterialStream())
+
+        self.container.update_components_editability()
+        self.assertTrue(mixer.dock_widget.btn.isEnabled() if hasattr(mixer.dock_widget, 'btn') else True)
+        self.assertTrue(s1.dock_widget.comboBox.isEnabled())
+
+
 if __name__ == "__main__":
     unittest.main()
