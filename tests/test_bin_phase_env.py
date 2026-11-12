@@ -114,10 +114,13 @@ class TestBinPhaseEnv(unittest.TestCase):
         self.assertIn("select two different compounds", mock_warning.call_args[0][2])
 
 
+    @patch('platform.system')
     @patch('python.utils.Bin_Phase_env.os.path.exists')
     @patch('python.utils.Bin_Phase_env.shutil.which')
     @patch('python.utils.Bin_Phase_env.os.environ.get')
-    def test_get_omc_path_resolution(self, mock_env, mock_which, mock_exists):
+    def test_get_omc_path_resolution(self, mock_env, mock_which, mock_exists, mock_system):
+        """Verify OMC path resolution without requiring OpenModelica installation."""
+        mock_system.return_value = 'Linux'
         """Verify OMC path resolution without requiring OpenModelica installation."""
         mock_env.return_value = None
         mock_exists.side_effect = lambda path: path == '/usr/bin/omc'
