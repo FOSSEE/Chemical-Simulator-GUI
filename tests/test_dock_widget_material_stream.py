@@ -56,7 +56,7 @@ class TestDockWidgetMaterialStreamAmountsTable(unittest.TestCase):
         self.assertEqual(self.table.horizontalHeaderItem(1).text(), "Value")
 
         self.assertEqual(self.table.item(0, 0).text(), "Water(chemsep)")
-        self.assertEqual(self.table.item(0, 1).text(), "0.5")
+        self.assertEqual(self.table.item(0, 1).text(), "0.50")
         self.assertIsNone(self.table.item(0, 2))
 
     def test_populate_amounts_table_mass_fraction_two_columns(self):
@@ -81,7 +81,7 @@ class TestDockWidgetMaterialStreamAmountsTable(unittest.TestCase):
         self.assertEqual(self.table.horizontalHeaderItem(2).text(), "Unit")
 
         self.assertEqual(self.table.item(0, 0).text(), "Water(chemsep)")
-        self.assertEqual(self.table.item(0, 1).text(), "50.0")
+        self.assertEqual(self.table.item(0, 1).text(), "50.00")
         self.assertEqual(self.table.item(0, 2).text(), "mol/s")
 
     def test_populate_amounts_table_mass_flow_three_columns_with_unit(self):
