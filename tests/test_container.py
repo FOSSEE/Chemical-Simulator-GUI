@@ -397,11 +397,11 @@ class TestSimulate(ContainerTestBase):
         self.container.simulate("EQN")
         self.assertTrue(self.any_message_contains(f"Warning: {mixer.name} - Missing Socket Connection(s)."))
 
-    def test_success_sets_dock_widgets_read_only(self):
+    def test_success_keeps_dock_widgets_editable(self):
         dw = MagicMock()
         dock_widget_lst.append(dw)
         self.container.simulate("EQN")
-        dw.set_read_only.assert_called_with(True)
+        dw.set_read_only.assert_called_with(False)
 
     def test_failure_when_result_is_too_short(self):
         dw = MagicMock()
@@ -488,7 +488,7 @@ class TestPopulateResults(ContainerTestBase):
             self.container._populate_results()
 
         mock_show.assert_called_once_with(dock_widget_lst)
-        dock.set_read_only.assert_called_once_with(True)
+        dock.set_read_only.assert_called_once_with(False)
         for r in range(2):
             for c in range(2):
                 flags = table.item(r, c).flags()
