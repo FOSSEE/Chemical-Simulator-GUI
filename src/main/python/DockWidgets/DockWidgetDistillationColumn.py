@@ -16,6 +16,7 @@ from collections import defaultdict
 from python.utils.ComponentSelector import *
 from python.DockWidgets.DistillationColumnStagewiseResults import DistillationColumnStagewiseResults
 from python.utils.Graphics import *
+from python.utils.NumberFormatting import format_result
 
 from python.DockWidgets.DockWidget import BaseDockWidget
 
@@ -261,7 +262,11 @@ class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
                     rowPosition = self.tableWidget.rowCount()
                     self.tableWidget.insertRow(rowPosition)
                     self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(obj.variables[val]['name']))
-                    self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(resultval))
+                    self.tableWidget.setItem(
+                        rowPosition,
+                        1,
+                        QTableWidgetItem(format_result(resultval))
+                    )
                     self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(obj.variables[val]['unit']))
                     self.tableWidget.resizeColumnsToContents()
 
@@ -377,7 +382,10 @@ class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
             T_table = self.stage_res_table.T_table
             T_table.setColumnCount(1)
             for i in range(Nt):
-                T_table.setItem(i, 0, QTableWidgetItem(Stages_T[i]))
+                T_table.setItem(
+                    i, 0,
+                    QTableWidgetItem(format_result(Stages_T[i]))
+                )
 
             x_pc_table = self.stage_res_table.x_pc_table
             x_pc_table.setColumnCount(2*Nc)
@@ -387,8 +395,14 @@ class DockWidgetDistillationColumn(BaseDockWidget, ui_dialog):
 
             for i in range(Nt):
                 for j in range(Nc):
-                    x_pc_table.setItem(i, 2*j, QTableWidgetItem(Stages_x_pc[i][j][1]))
-                    x_pc_table.setItem(i, 2 * j + 1, QTableWidgetItem(Stages_x_pc[i][j][2]))
+                    x_pc_table.setItem(
+                        i, 2*j,
+                        QTableWidgetItem(format_result(Stages_x_pc[i][j][1]))
+                    )
+                    x_pc_table.setItem(
+                        i, 2*j + 1,
+                        QTableWidgetItem(format_result(Stages_x_pc[i][j][2]))
+                    )
 
             for t in tables:
                 t.resizeColumnsToContents()

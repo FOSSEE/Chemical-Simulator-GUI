@@ -10,7 +10,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
-
+from python.utils.NumberFormatting import format_result
 from python.DockWidgets.DockWidget import BaseDockWidget
 
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidgetMaterialStream.ui')
@@ -335,9 +335,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             obj = self.container.fetch_object(name)
 
             def _safe_result(val):
-                if val.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit():
-                    return str(round(float(val), 4))
-                return val
+                return format_result(val)
 
 
             d = {"Mole Fraction":"x_pc", "Mass Fraction":"xm_pc", "Mole Flow":"F_pc", "Mass Flow":"Fm_pc"}
@@ -378,7 +376,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                     compound_no = int(k[k.index(',') + 1]) - 1  # compound from python list
 
                     self._amounts_data[ms_lst[j]][phase_no].append(
-                        (compound_selected[compound_no], _safe_result(resultval), unit_str)
+                        (compound_selected[compound_no], resultval, unit_str)
                     )
 
                     if phase_no == 3 and (compound_no + 1) == len(compound_selected):
@@ -449,7 +447,11 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
                         mrowPosition = self.mTableWidget.rowCount()
                         self.mTableWidget.insertRow(mrowPosition)
                         self.mTableWidget.setItem(mrowPosition , 0, QTableWidgetItem(obj.variables[val.split('.')[1]]['name']))
-                        self.mTableWidget.setItem(mrowPosition , 1, QTableWidgetItem(str(round(float(resultval),4)) if resultval.replace('.','',1).replace('-','',1).replace('e','',1).replace('+','',1).isdigit() else resultval))
+                        self.mTableWidget.setItem(
+                            mrowPosition,
+                            1,
+                            QTableWidgetItem(format_result(resultval))
+                        )
                         self.mTableWidget.setItem(mrowPosition , 2, QTableWidgetItem(obj.variables[val.split('.')[1]]['unit']))
                         self.mTableWidget.resizeColumnsToContents() 
 
@@ -581,7 +583,7 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
             row_pos = table.rowCount()
             table.insertRow(row_pos)
             table.setItem(row_pos, 0, QTableWidgetItem(str(compound)))
-            table.setItem(row_pos, 1, QTableWidgetItem(str(value)))
+            table.setItem(row_pos, 1, QTableWidgetItem(format_result(value)))
             if show_unit:
                 table.setItem(row_pos, 2, QTableWidgetItem(str(unit)))
 

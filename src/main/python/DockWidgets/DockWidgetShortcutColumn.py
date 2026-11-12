@@ -11,6 +11,7 @@ from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
+from python.utils.NumberFormatting import format_result
 
 from python.DockWidgets.DockWidget import BaseDockWidget
 
@@ -152,7 +153,11 @@ class DockWidgetShortcutColumn(BaseDockWidget,ui_dialog):
                     rowPosition = self.tableWidget.rowCount()
                     self.tableWidget.insertRow(rowPosition)
                     self.tableWidget.setItem(rowPosition , 0, QTableWidgetItem(obj.variables[val]['name']))
-                    self.tableWidget.setItem(rowPosition , 1, QTableWidgetItem(resultval))
+                    self.tableWidget.setItem(
+                        rowPosition,
+                        1,
+                        QTableWidgetItem(format_result(resultval))
+                    )
                     self.tableWidget.setItem(rowPosition , 2, QTableWidgetItem(obj.variables[val]['unit']))
                     self.tableWidget.resizeColumnsToContents()
         except Exception as e:
