@@ -1,15 +1,17 @@
 import sys
 import os
 import unittest
+from types import SimpleNamespace
 
 # Ensure Python can find modules under src/main/python
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src', 'main', 'python')))
 
 from utils.UnitOperations import (
-    Mixer, Splitter, Heater, Cooler, Flash, CentrifugalPump, Valve,
+    UnitOperation, Mixer, Splitter, Heater, Cooler, Flash, CentrifugalPump, Valve,
     AdiabaticCompressor, AdiabaticExpander, CompoundSeparator,
     ShortcutColumn, DistillationColumn, ConvertionReactor
 )
+from python.utils.ComponentSelector import compound_selected
 
 
 class TestUnitOperations(unittest.TestCase):
@@ -170,6 +172,57 @@ class TestUnitOperations(unittest.TestCase):
         self.assertEqual(reactor.type, 'ConvertionReactor')
         self.assertEqual(reactor.no_of_inputs, 1)
         self.assertEqual(reactor.no_of_outputs, 1)
+
+
+class TestUnitOperationCodeGeneration(unittest.TestCase):
+    """Regression tests for Modelica code paths that used to crash."""
+
+    def setUp(self):
+        self._saved_compounds = list(compound_selected)
+        compound_selected[:] = ["Water(chemsep)", "Ethanol(chemsep)"]
+
+    def tearDown(self):
+        compound_selected[:] = self._saved_compounds
+
+    def test_initialize_with_multiple_thermo_models(self):
+        unit = UnitOperation()
+        unit.name = 'U1'
+        unit.thermo_pack_req = True
+        unit.extra = ['DistillationColumn.Cond', 'DistillationColumn.DistCol']
+        unit.multidict = ['x']
+        unit.parameters = ['Nt']
+        unit.variables = {'Nt': {'value': 12}}
+        c = UnitOperation.counter
+
+        self.assertEqual(
+            unit.OM_Flowsheet_Initialize(),
+            f'model DistillationColumnCond{c}\n'
+            'extends Simulator.UnitOperations.DistillationColumn.Cond;\n'
+            'extends Simulator.Files.ThermodynamicPackages.RaoultsLaw;\n'
+            f'end DistillationColumnCond{c};\n'
+            f'model DistillationColumnDistCol{c}\n'
+            'extends Simulator.UnitOperations.DistillationColumn.DistCol;\n'
+            f'DistillationColumnCond{c} DistillationColumnCond#x;\n'
+            f'end DistillationColumnDistCol{c};\n'
+            f'DistillationColumnDistCol{c} U1(Nc = 2,C = {{Water, Ethanol}}, Nt = 12);\n',
+        )
+
+    def _column_with_condenser_spec(self, spec):
+        column = DistillationColumn()
+        column.variables['C_Spec']['type'] = spec
+        column.input_stms = {1: SimpleNamespace(name='F')}
+        column.output_stms = {1: SimpleNamespace(name='D'), 2: SimpleNamespace(name='B')}
+        return column
+
+    def test_condenser_fallback_uses_selected_mode(self):
+        column = self._column_with_condenser_spec('Custom')
+        column.mode, column.mode_val = 'T', 350
+        self.assertIn(f'{column.name}.condenser.T=350;\n', column.OM_Flowsheet_Equation())
+
+    def test_unknown_condenser_spec_without_mode_raises(self):
+        column = self._column_with_condenser_spec('Custom')
+        with self.assertRaisesRegex(ValueError, 'Unsupported condenser specification: Custom'):
+            column.OM_Flowsheet_Equation()
 
 
 if __name__ == '__main__':
