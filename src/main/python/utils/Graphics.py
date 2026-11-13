@@ -208,19 +208,27 @@ class Graphics(object):
             import traceback; traceback.print_exc()
 
 
+
     def save_canvas(self):
         try:
             from python.utils.ComponentSelector import compound_selected
 
-            data = {"items": [], "connections": [], "compounds": list(compound_selected)}
+            data = {
+                "items": [],
+                "connections": [],
+                "partial_connections": [],
+                "compounds": list(compound_selected)
+            }
 
             for item in self.scene.items():
                 if isinstance(item, NodeItem):
                     obj = item.obj
                     has_stms = hasattr(obj, "input_stms") and hasattr(obj, "output_stms")
+
                     if has_stms:
                         saved_in, saved_out = obj.input_stms, obj.output_stms
                         obj.input_stms, obj.output_stms = {}, {}
+
                     try:
                         obj_copy = copy.deepcopy(obj)
                     finally:
@@ -235,23 +243,60 @@ class Graphics(object):
                     })
 
             for item in self.scene.items():
-                if isinstance(item, NodeLine):
-                    src = getattr(item, "source", None)
-                    tgt = getattr(item, "target", None)
-                    if src is not None and tgt is not None and src.parent is not None and tgt.parent is not None:
-                        data["connections"].append({
-                            "source_name": src.parent.obj.name,
-                            "source_id": src.id,
-                            "target_name": tgt.parent.obj.name,
-                            "target_id": tgt.id,
-                        })
+                if not isinstance(item, NodeLine):
+                    continue
 
-            print(f"[DEBUG] save_canvas: {len(data['items'])} items, {len(data['connections'])} connections")
+                src = item.source
+                tgt = item.target
+
+                # Complete connection
+                if src is not None and tgt is not None:
+                    if src.parent is None or tgt.parent is None:
+                        continue
+
+                    data["connections"].append({
+                        "source_name": src.parent.obj.name,
+                        "source_id": src.id,
+                        "target_name": tgt.parent.obj.name,
+                        "target_id": tgt.id,
+                    })
+
+                # Partial connection with attached source
+                elif src is not None and tgt is None:
+                    if src.parent is None:
+                        continue
+
+                    data["partial_connections"].append({
+                        "attached_side": "source",
+                        "attached_name": src.parent.obj.name,
+                        "attached_id": src.id,
+                        "free_point": (item.pointB.x(), item.pointB.y()),
+                    })
+
+                # Partial connection with attached target
+                elif src is None and tgt is not None:
+                    if tgt.parent is None:
+                        continue
+
+                    data["partial_connections"].append({
+                        "attached_side": "target",
+                        "attached_name": tgt.parent.obj.name,
+                        "attached_id": tgt.id,
+                        "free_point": (item.pointA.x(), item.pointA.y()),
+                    })
+
+            print(
+                f"[DEBUG] save_canvas: {len(data['items'])} items, "
+                f"{len(data['connections'])} connections, "
+                f"{len(data['partial_connections'])} partial connections"
+            )
+
             return data
 
         except Exception as e:
             print("[DEBUG] save_canvas failed:", e)
             return None
+
 
     def push_snapshot(self):
         from python.utils.undo_manager import push, clean_file
@@ -373,6 +418,92 @@ class Graphics(object):
                 except Exception as e:
                     print("[DEBUG] load_canvas_from_snapshot: rebuild connection failed:", e)
 
+            # Restore partial connections
+            for conn in snapshot.get("partial_connections", []):
+                try:
+                    attached_item = name_to_item.get(conn["attached_name"])
+
+                    if attached_item is None:
+                        continue
+
+                    free_point_data = conn["free_point"]
+                    free_point = QtCore.QPointF(
+                        free_point_data[0],
+                        free_point_data[1]
+                    )
+
+                    attached_side = conn["attached_side"]
+
+                    if attached_side == "source":
+                        socket = next(
+                            (
+                                s for s in attached_item.output
+                                if s.id == conn["attached_id"]
+                            ),
+                            None
+                        )
+
+                        if socket is None:
+                            continue
+
+                        if socket.out_lines:
+                            print("[DEBUG] Partial source socket already occupied.")
+                            continue
+
+                        line = NodeLine(
+                            socket.get_center(),
+                            free_point,
+                            'op'
+                        )
+
+                        line.source = socket
+                        socket.out_lines.append(line)
+
+                    elif attached_side == "target":
+                        socket = next(
+                            (
+                                s for s in attached_item.input
+                                if s.id == conn["attached_id"]
+                            ),
+                            None
+                        )
+
+                        if socket is None:
+                            continue
+
+                        if socket.in_lines:
+                            print("[DEBUG] Partial target socket already occupied.")
+                            continue
+
+                        line = NodeLine(
+                            free_point,
+                            socket.get_center(),
+                            'in'
+                        )
+
+                        line.target = socket
+                        socket.in_lines.append(line)
+
+                    else:
+                        continue
+
+                    self.scene.addItem(line)
+
+                    # Rebuild route and draggable endpoint marker.
+                    line.pointA = line.pointA
+                    line.pointB = line.pointB
+
+                    print(
+                        f"[DEBUG] Restored partial connection: {attached_side}"
+                    )
+
+                except Exception as e:
+                    print(
+                        "[DEBUG] load_canvas_from_snapshot: "
+                        "restore partial connection failed:",
+                        e
+                    )
+
             if hasattr(container, "update_components_editability"):
                 container.update_components_editability()
 
@@ -396,7 +527,10 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         self.socket = socket
         self._source = None
         self._target = None
+        self._dragging_free_endpoint = False
+        self._free_endpoint_radius = 12
         self.setZValue(-1)
+        self.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
         self.setBrush(QtGui.QColor(0,70,70,120))
         self.pen = QtGui.QPen()
         self.pen.setStyle(QtCore.Qt.SolidLine)
@@ -472,6 +606,7 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                         hops.setdefault(i, []).append(vx)
         return hops
 
+
     def _rebuild_path(self):
         """Draw the route, adding a semicircular hop at every crossing."""
         path = QtGui.QPainterPath()
@@ -482,23 +617,66 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         r = self.HOP_RADIUS
         hops = self._find_hops()
         path.moveTo(*self._route[0])
+
         for i, ((x1, y1), (x2, y2)) in enumerate(zip(self._route, self._route[1:])):
             if i in hops:
                 direction = 1 if x2 > x1 else -1
                 last_x = x1
+
                 for hx in sorted(set(hops[i]), key=lambda x: (x - x1) * direction):
                     start_x = hx - direction * r
                     if (start_x - last_x) * direction < 0:
-                        continue  # overlaps the previous hop
+                        continue
+
                     path.lineTo(start_x, y1)
-                    # Arc over the top of the crossing line
+
                     if direction > 0:
                         path.arcTo(QtCore.QRectF(hx - r, y1 - r, 2 * r, 2 * r), 180, -180)
                     else:
                         path.arcTo(QtCore.QRectF(hx - r, y1 - r, 2 * r, 2 * r), 0, 180)
+
                     last_x = hx + direction * r
+
             path.lineTo(x2, y2)
+
+        # Show a draggable marker at the free endpoint of a partial line.
+        if self.source is None or self.target is None:
+            free_point = self._pointA if self.source is None else self._pointB
+            radius = self._free_endpoint_radius
+
+            path.addEllipse(
+                QtCore.QRectF(
+                    free_point.x() - radius,
+                    free_point.y() - radius,
+                    radius * 2,
+                    radius * 2
+                )
+            )
+            self.setZValue(1)
+        else:
+            self.setZValue(-1)
+
         self.setPath(path)
+
+    def shape(self):
+        path = QtGui.QPainterPath()
+
+        # For partial connections, only the free endpoint
+        # should receive mouse events.
+        if self.source is None or self.target is None:
+            free_point = self._pointA if self.source is None else self._pointB
+            radius = self._free_endpoint_radius
+
+            path.addEllipse(QtCore.QRectF(
+                free_point.x() - radius,
+                free_point.y() - radius,
+                radius * 2,
+                radius * 2
+            ))
+            return path
+
+        return super(NodeLine, self).shape()
+
 
     def _refresh_crossing_lines(self, rect, scene=None):
         """Redraw other lines in `rect`, since their hops over this line may have changed."""
@@ -528,6 +706,146 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
     def paint(self, painter, option, widget):
         painter.setPen(self.pen)
         painter.drawPath(self.path())
+
+    def mousePressEvent(self, event):
+        if self.source is None or self.target is None:
+            free_point = self._pointA if self.source is None else self._pointB
+
+            if QtCore.QLineF(
+                event.scenePos(), free_point
+            ).length() <= self._free_endpoint_radius:
+
+                self._dragging_free_endpoint = True
+
+                # Show all component ports while dragging.
+                self._set_all_sockets_visible(True)
+
+                event.accept()
+                return
+
+        event.ignore()
+
+    def mouseMoveEvent(self, event):
+        if self._dragging_free_endpoint:
+            new_point = event.scenePos()
+
+            if self.source is None:
+                self.pointA = new_point
+            else:
+                self.pointB = new_point
+
+            event.accept()
+            return
+
+        event.ignore()
+
+    def mouseReleaseEvent(self, event):
+        if self._dragging_free_endpoint:
+            self._dragging_free_endpoint = False
+
+            self._try_reconnect(event.scenePos())
+
+            # Hide ports after completing the drag.
+            self._set_all_sockets_visible(False)
+
+            event.accept()
+            return
+
+        event.ignore()
+
+
+    def _set_all_sockets_visible(self, visible):
+        if self.scene() is None:
+            return
+
+        for item in self.scene().items():
+            if isinstance(item, NodeItem):
+                for socket in item.input:
+                    if visible:
+                        socket.show()
+                    else:
+                        socket.hide()
+
+                for socket in item.output:
+                    if visible:
+                        socket.show()
+                    else:
+                        socket.hide()
+
+
+    def _try_reconnect(self, scene_pos):
+        """Reconnect a partial line to a compatible free socket."""
+
+        if self.source is not None and self.target is not None:
+            return False
+
+        if self.scene() is None:
+            return False
+
+        candidate = None
+
+        for item in self.scene().items(scene_pos):
+            if isinstance(item, NodeSocket):
+                candidate = item
+                break
+
+        if candidate is None:
+            return False
+
+        stm = ['MaterialStream', 'EngStm']
+
+        # Reconnect free destination to an input socket.
+        if self.source is not None and self.target is None:
+
+            if candidate.type != 'in' or candidate.in_lines:
+                return False
+
+            if candidate.parent is self.source.parent:
+                return False
+
+            self.target = candidate
+            candidate.in_lines.append(self)
+            self.pointB = candidate.get_center()
+
+        # Reconnect free source to an output socket.
+        elif self.source is None and self.target is not None:
+
+            if candidate.type != 'op' or candidate.out_lines:
+                return False
+
+            if candidate.parent is self.target.parent:
+                return False
+
+            self.source = candidate
+            candidate.out_lines.append(self)
+            self.pointA = candidate.get_center()
+
+        else:
+            return False
+
+        # Restore logical component connections.
+        if self.source.parent.obj.type not in stm:
+            self.source.parent.obj.add_connection(
+                0, self.source.id, self.target.parent.obj
+            )
+
+        if self.target.parent.obj.type not in stm:
+            self.target.parent.obj.add_connection(
+                1, self.target.id, self.source.parent.obj
+            )
+
+        # Update component editability.
+        container = getattr(self.source.parent, 'container', None)
+
+        if container and hasattr(container, 'update_components_editability'):
+            container.update_components_editability()
+
+        # Save state for Undo/Redo.
+        if container and hasattr(container, 'graphics'):
+            container.graphics.push_snapshot()
+
+        print("[DEBUG] Partial line successfully reconnected.")
+        return True
 
     @property
     def pointA(self):
@@ -630,6 +948,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line = NodeLine(pointA, pointB ,'op')
             self.out_lines.append(self.new_line)
             self.scene().addItem(self.new_line)    
+            event.accept()
         elif self.type == 'in' and len(self.in_lines) == 0:
             rect = self.boundingRect()
             pointA = self.mapToScene(event.pos())
@@ -638,6 +957,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
             self.new_line = NodeLine(pointA, pointB, 'in')
             self.in_lines.append(self.new_line)
             self.scene().addItem(self.new_line)
+            event.accept()
         else:
             super(NodeSocket, self).mousePressEvent(event)
 
@@ -682,7 +1002,13 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         cursor = QCursor(Qt.ArrowCursor)
         QApplication.instance().setOverrideCursor(cursor)
 
-        item = self.scene().itemAt(event.scenePos().toPoint(), QtGui.QTransform())
+        item = None
+
+        # Find the actual socket under the mouse, ignoring NodeLine markers.
+        for scene_item in self.scene().items(event.scenePos()):
+            if isinstance(scene_item, NodeSocket) and scene_item is not self:
+                item = scene_item
+                break
         stm = ['MaterialStream', 'EngStm']
 
         item_type = getattr(item, 'type', None)
@@ -882,12 +1208,90 @@ class ResizeHandle(QtWidgets.QGraphicsItem):
         else:
             super().mouseMoveEvent(event)
 
-    def mouseReleaseEvent(self, event):
-        if self._dragging:
-            self._dragging = False
-            event.accept()
+
+    def _try_reconnect(self, scene_pos):
+        """Reconnect a partial line to a compatible free socket."""
+
+        if self.source is not None and self.target is not None:
+            return False
+
+        candidate = None
+
+        # Check all items at the drop position, topmost first.
+        for item in self.scene().items(scene_pos):
+            if isinstance(item, NodeSocket):
+                candidate = item
+                break
+
+        if candidate is None:
+            return False
+
+        stm = ['MaterialStream', 'EngStm']
+
+        # Free destination: attached source -> compatible input socket.
+        if self.source is not None and self.target is None:
+            if candidate.type != 'in' or candidate.in_lines:
+                return False
+
+            if candidate.parent is self.source.parent:
+                return False
+
+            self.target = candidate
+            candidate.in_lines.append(self)
+            self.pointB = candidate.get_center()
+
+        # Free source: compatible output socket -> attached target.
+        elif self.source is None and self.target is not None:
+            if candidate.type != 'op' or candidate.out_lines:
+                return False
+
+            if candidate.parent is self.target.parent:
+                return False
+
+            self.source = candidate
+            candidate.out_lines.append(self)
+            self.pointA = candidate.get_center()
+
         else:
-            super().mouseReleaseEvent(event)
+            return False
+
+        # Restore logical component connections.
+        if self.source.parent.obj.type not in stm:
+            self.source.parent.obj.add_connection(
+                0, self.source.id, self.target.parent.obj
+            )
+
+        if self.target.parent.obj.type not in stm:
+            self.target.parent.obj.add_connection(
+                1, self.target.id, self.source.parent.obj
+            )
+
+        # Update component editability.
+        attached_node = self.source.parent
+        container = getattr(attached_node, 'container', None)
+
+        if container and hasattr(container, 'update_components_editability'):
+            container.update_components_editability()
+
+        # Save the new state for Undo/Redo.
+        if container and hasattr(container, 'graphics'):
+            container.graphics.push_snapshot()
+
+        print("[DEBUG] Partial line successfully reconnected.")
+        return True
+
+
+    def mouseReleaseEvent(self, event):
+        if self._dragging_free_endpoint:
+            self._dragging_free_endpoint = False
+
+            scene_pos = event.scenePos()
+            self._try_reconnect(scene_pos)
+
+            event.accept()
+            return
+
+        event.ignore()
 
 
 class NodeItem(QtWidgets.QGraphicsItem):
@@ -1933,17 +2337,118 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         return super(NodeItem, self).itemChange(change, value)
 
+    
+    def _reroute_material_stream(self, direction):
+        """Disconnect one side of a Material Stream connection without deleting its line."""
+
+        if self.type != "MaterialStream":
+            return
+
+        if direction == "destination":
+            if not self.output or not self.output[0].out_lines:
+                return
+
+            line = self.output[0].out_lines[0]
+            old_target = line.target
+            old_source = line.source
+
+            if old_target is None or old_source is None:
+                return
+
+            # Keep the free endpoint at the old destination position.
+            free_point = old_target.get_center() + QtCore.QPointF(-30, 0)
+
+            if line in old_target.in_lines:
+                old_target.in_lines.remove(line)
+
+            # Remove the old logical connection.
+            stm = ["MaterialStream", "EngStm"]
+
+            if old_source.parent.obj.type not in stm:
+                old_source.parent.obj.remove_connection(0, old_source.id)
+
+            if old_target.parent.obj.type not in stm:
+                old_target.parent.obj.remove_connection(1, old_target.id)
+
+            line.target = None
+            line.pointB = free_point
+
+        elif direction == "source":
+            if not self.input or not self.input[0].in_lines:
+                return
+
+            line = self.input[0].in_lines[0]
+            old_source = line.source
+            old_target = line.target
+
+            if old_source is None or old_target is None:
+                return
+
+            # Keep the free endpoint at the old source position.
+            free_point = old_source.get_center() + QtCore.QPointF(30, 0)
+
+            if line in old_source.out_lines:
+                old_source.out_lines.remove(line)
+
+            # Remove the old logical connection.
+            stm = ["MaterialStream", "EngStm"]
+
+            if old_source.parent.obj.type not in stm:
+                old_source.parent.obj.remove_connection(0, old_source.id)
+
+            if old_target.parent.obj.type not in stm:
+                old_target.parent.obj.remove_connection(1, old_target.id)
+
+            line.source = None
+            line.pointA = free_point
+
+        if self.container and hasattr(self.container, "update_components_editability"):
+            self.container.update_components_editability()
+
+       # Save the rerouted state for Undo/Redo.
+        if self.container and hasattr(self.container, "graphics"):
+            self.container.graphics.push_snapshot()
+
+        print(f"[DEBUG] Material Stream {direction} disconnected.")
+
+
     def contextMenuEvent(self, event):
         menu = QMenu()
+
+        reroute_destination_action = None
+        reroute_source_action = None
+
+        if self.type == "MaterialStream":
+            reroute_destination_action = menu.addAction("Reroute Destination")
+            reroute_source_action = menu.addAction("Reroute Source")
+
+            # Show an action as disabled when that side is not connected.
+            reroute_destination_action.setEnabled(
+                bool(self.output and self.output[0].out_lines)
+            )
+            reroute_source_action.setEnabled(
+                bool(self.input and self.input[0].in_lines)
+            )
+
+            menu.addSeparator()
+
         delete_action = menu.addAction("Delete")
         action = menu.exec_(event.screenPos())
-        if action == delete_action:
+
+        if action == reroute_destination_action:
+            self._reroute_material_stream("destination")
+
+        elif action == reroute_source_action:
+            self._reroute_material_stream("source")
+
+        elif action == delete_action:
             if hasattr(self, "container") and self.container:
                 self.container.delete([self])
             else:
                 main_window = findMainWindow(self)
                 if main_window and hasattr(main_window, "container"):
                     main_window.container.delete([self])
+
         
 def findMainWindow(self):
     '''
