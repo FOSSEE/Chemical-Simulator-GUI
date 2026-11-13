@@ -104,13 +104,9 @@ class UnitOperation():
         self.OM_data_init = ''
 
         if(self.thermo_pack_req):
-            if len(self.extra)>1:   
-                for i in range(len(self.extra)):
-                    latest = ''
-                    for j in range(self.extra[i]):
-                        if self.extra[i][j]!='.':
-                            latest += self.extra[i][j]
-                        self.for_naming[i] = latest   
+            if len(self.extra)>1:
+                # Modelica model names cannot contain '.', e.g. 'DistillationColumn.Cond'
+                self.for_naming = [e.replace('.', '') for e in self.extra]
 
         if(self.thermo_pack_req):
             if len(self.extra)==1:
@@ -133,10 +129,9 @@ class UnitOperation():
                         self.OM_data_init += ('extends Simulator.UnitOperations.'+self.extra[i]+';\n')
                         for j in range(len(self.extra)-1):
                             self.OM_data_init += (self.for_naming[j] + str(self.counter) +' ' + self.for_naming[j] + '#' + self.multidict[j] + ';\n')
+                        self.OM_data_init += ('end '+self.for_naming[i]+str(self.counter)+';\n')
 
-                            self.OM_data_init += ('end '+self.for_naming[i]+str(self.counter)+';\n')
-
-                    self.OM_data_init += self.for_naming[i] + str(self.counter) + ' ' + self.for_naming + '(Nc = ' + str(len(self.compounds))
+                self.OM_data_init += self.for_naming[-1] + str(self.counter) + ' ' + self.name + '(Nc = ' + str(len(self.compounds))
                  
             C = ', '.join(_normalize_compound_name(c) for c in self.compounds)
             self.OM_data_init += ',C = {' + C + '}'  
@@ -426,9 +421,12 @@ class DistillationColumn(UnitOperation):
             self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[1].name + '.F_pc[1,:' +
                                str(self.compounds.index(self.variables['C_Spec']['comp']) + 1) + '] = ' + str(
                                self.variables['C_Spec']['value']) + ';\n')
-        else:
+        elif self.mode:
             self.OM_data_eqn = self.OM_data_eqn + (
-                    self.name + '.Condenser.' + self.mode + '=' + str(self.modeVal) + ';\n')
+                    self.name + '.condenser.' + self.mode + '=' + str(self.mode_val) + ';\n')
+        else:
+            raise ValueError(
+                "Unsupported condenser specification: " + str(self.variables['C_Spec']['type']))
 
         if self.variables['R_Spec']['type'] == "Product Molar Flow   (mol/s)":
             self.OM_data_eqn = self.OM_data_eqn + (self.output_stms[2].name + '.' + 'F_p[1] = ' + str(
