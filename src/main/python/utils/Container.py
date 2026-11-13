@@ -149,10 +149,72 @@ class Container():
                     print(f"[DEBUG] delete: error deleting item {getattr(item, 'name', None)}: {e}")
 
             if items_to_delete:
+                self.update_components_editability()
                 self.graphics.push_snapshot()
 
         except Exception as e:
             print("[DEBUG] delete: outer exception:", e)
+
+    def update_components_editability(self):
+        """
+        Recalculate and update the editable/read-only state of every component
+        in the scene based strictly on its current connection state.
+
+        - If a component has an incoming connection (connected to the output of an upstream component):
+          Its property window becomes read-only / disabled (e.g., product stream).
+        - If a component has NO incoming connections (feed stream or isolated component):
+          Its property window becomes editable immediately, even post-simulation.
+        - If a component is completely disconnected from all other components:
+          Its property window is immediately re-enabled.
+        """
+        try:
+            scene = getattr(self, "scene", None)
+            if scene is None and hasattr(self, "graphics"):
+                scene = getattr(self.graphics, "scene", None)
+            if scene is None:
+                return
+
+            for item in scene.items():
+                if not isinstance(item, NodeItem):
+                    continue
+
+                dw = getattr(item, "dock_widget", None)
+                if dw is None:
+                    continue
+
+                # Check if item has any incoming connection from an upstream component's output
+                has_incoming_connection = False
+                for sock in getattr(item, "input", []):
+                    if len(getattr(sock, "in_lines", [])) > 0:
+                        has_incoming_connection = True
+                        break
+
+                # Check if item has any outgoing connection
+                has_outgoing_connection = False
+                for sock in getattr(item, "output", []):
+                    if len(getattr(sock, "out_lines", [])) > 0:
+                        has_outgoing_connection = True
+                        break
+
+                is_connected = has_incoming_connection or has_outgoing_connection
+
+                if getattr(item, "type", "") == "MaterialStream":
+                    if has_incoming_connection:
+                        if hasattr(item.obj, "disableInputDataTab"):
+                            item.obj.disableInputDataTab(dw)
+                        elif hasattr(dw, "set_read_only"):
+                            dw.set_read_only(True)
+                    else:
+                        if hasattr(item.obj, "enableInputDataTab"):
+                            item.obj.enableInputDataTab(dw)
+                        elif hasattr(dw, "set_read_only"):
+                            dw.set_read_only(False)
+                else:
+                    if not is_connected or not has_incoming_connection:
+                        if hasattr(dw, "set_read_only"):
+                            dw.set_read_only(False)
+        except Exception as e:
+            print(f"[DEBUG] update_components_editability failed: {e}")
 
     def fetch_object(self, name):
         for i in self.unit_operations:
@@ -396,11 +458,8 @@ class Container():
                             it.update_tooltip_selectedVar()
                         except Exception as tooltip_err:
                             print(f"[DEBUG] update_tooltip_selectedVar failed for {it.name}: {tooltip_err}")
-                        try:
-                            if len(it.input[0].in_lines) > 0:
-                                it.obj.disableInputDataTab(it.dock_widget)
-                        except Exception:
-                            pass
+
+                self.update_components_editability()
 
                 # Step 9: Populate Results Tabs (via signal for thread-safety)
                 self.signals.results_ready.emit()
@@ -430,14 +489,8 @@ class Container():
                 if hasattr(dw, 'set_read_only'):
                     dw.set_read_only(False)
 
-            # Preserve connection-based restrictions for MaterialStream
-            for it in self.graphics.scene.items():
-                if isinstance(it, NodeItem) and getattr(it, "type", "") == "MaterialStream":
-                    try:
-                        if len(it.input[0].in_lines) > 0:
-                            it.obj.disableInputDataTab(it.dock_widget)
-                    except Exception as e:
-                        print(f"[DEBUG] MaterialStream input state update failed: {e}")
+            # Preserve connection-based restrictions for all components
+            self.update_components_editability()
 
             # Make all result table items non-editable
             for dw in dock_widget_lst:
