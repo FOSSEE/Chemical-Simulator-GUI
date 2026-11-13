@@ -207,6 +207,75 @@ class TestMaterialStreamModelicaGeneration(unittest.TestCase):
         self.assertEqual(self.stream.start_dict["MW_p"], "{20, 18, 22}")
         self.assertEqual(self.stream.start_dict["Pvap_c"], "{5000, 6000}")
 
+    def test_get_start_values_serializes_mass_fractions_and_phase_totals(self):
+        for phase in range(1, 4):
+            for compound_index in range(1, 3):
+                self.stream.variables[f"xm_pc[{phase},{compound_index}]"]["value"] = phase
+            for prop in ("F_p", "Cp_p", "H_p", "S_p", "Fm_p"):
+                self.stream.variables[f"{prop}[{phase}]"]["value"] = phase * 10
+
+        self.stream.get_start_values()
+
+        self.assertEqual(self.stream.start_dict["xm_pc"], "{{1, 1}, {2, 2}, {3, 3}}")
+        for prop in ("F_p", "Cp_p", "H_p", "S_p", "Fm_p"):
+            self.assertEqual(self.stream.start_dict[prop], "{10, 20, 30}", prop)
+
+    def test_get_start_values_ignores_missing_variables(self):
+        del self.stream.variables["x_pc[2,1]"]
+
+        self.stream.get_start_values()
+
+        self.assertEqual(self.stream.start_dict, {"P": 101325, "T": 300})
+
+    def test_flowsheet_equation_adds_non_default_mode_specification(self):
+        self.stream.mode2 = "H_p[1]"
+        self.stream.variables["H_p[1]"]["value"] = 500
+
+        eqn_code = self.stream.OM_Flowsheet_Equation(["Water", "Ethanol"], "Eqn")
+
+        self.assertIn("MaterialStream1.H_p[1] = 500;", eqn_code)
+
+
+class TestMaterialStreamTooltips(unittest.TestCase):
+    """Unit tests for tooltip text in every flash specification mode."""
+
+    def setUp(self):
+        MaterialStream.counter = 1
+        compound_selected.clear()
+        self.stream = MaterialStream(["Water(chemsep)", "Ethanol(chemsep)"])
+
+    def test_tooltip_shows_both_mode_variables(self):
+        modes = {
+            "PT": ("P", "T"),
+            "PH": ("P", "H_p[1]"),
+            "PVF": ("P", "xvap"),
+            "TVF": ("T", "xvap"),
+            "PS": ("P", "S_p[1]"),
+        }
+        for mode, (mode1, mode2) in modes.items():
+            with self.subTest(mode=mode):
+                tooltip = self.stream.param_getter_tooltip(mode)
+
+                self.assertEqual((self.stream.mode1, self.stream.mode2), (mode1, mode2))
+                for key in (mode1, mode2):
+                    var = self.stream.variables[key]
+                    self.assertEqual(tooltip[var["name"]], f"{var['value']} {var['unit']}")
+                self.assertEqual(tooltip["Mole Flow"], "100 mol/s")
+                self.assertEqual(tooltip["Thermo Package"], "RaoultsLaw")
+
+    def test_composition_skips_missing_compound_entries(self):
+        del self.stream.variables["x_pc[1,2]"]
+
+        self.assertEqual(self.stream.param_getter("PT")["x_pc"], [0.5])
+        self.assertEqual(self.stream.param_getter_tooltip("PT")["Mole Fraction"], "[0.5] ")
+
+    def test_selected_variable_tooltip_keeps_non_numeric_values(self):
+        self.stream.variables["P"]["value"] = "unknown"
+
+        tooltip = self.stream.param_getter_tooltip_selectedVar()
+
+        self.assertEqual(tooltip["Pressure"], "unknown Pa")
+
 
 if __name__ == "__main__":
     unittest.main()
