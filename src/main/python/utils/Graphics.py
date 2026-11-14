@@ -640,7 +640,7 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
             path.lineTo(x2, y2)
 
         # Show a draggable marker at the free endpoint of a partial line.
-        if self.source is None or self.target is None:
+        if (self.source is None) != (self.target is None):
             free_point = self._pointA if self.source is None else self._pointB
             radius = self._free_endpoint_radius
 
@@ -663,7 +663,7 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
 
         # For partial connections, only the free endpoint
         # should receive mouse events.
-        if self.source is None or self.target is None:
+        if (self.source is None) != (self.target is None):
             free_point = self._pointA if self.source is None else self._pointB
             radius = self._free_endpoint_radius
 
