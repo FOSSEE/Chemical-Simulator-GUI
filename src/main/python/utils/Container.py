@@ -36,6 +36,7 @@ class Container():
         self.thermo_package = None
         self.compounds = None
         self.flowsheet = None
+        self.simulation_successful = False
         self.conn = defaultdict(list)
         self.op = defaultdict(list)
         self.ip = defaultdict(list)
@@ -155,22 +156,18 @@ class Container():
         except Exception as e:
             print("[DEBUG] delete: outer exception:", e)
 
+
     def update_components_editability(self):
         """
-        Recalculate and update the editable/read-only state of every component
-        in the scene based strictly on its current connection state.
-
-        - If a component has an incoming connection (connected to the output of an upstream component):
-          Its property window becomes read-only / disabled (e.g., product stream).
-        - If a component has NO incoming connections (feed stream or isolated component):
-          Its property window becomes editable immediately, even post-simulation.
-        - If a component is completely disconnected from all other components:
-          Its property window is immediately re-enabled.
+        Update component editability based on simulation state
+        and current incoming connections.
         """
         try:
             scene = getattr(self, "scene", None)
+
             if scene is None and hasattr(self, "graphics"):
                 scene = getattr(self.graphics, "scene", None)
+
             if scene is None:
                 return
 
@@ -179,42 +176,45 @@ class Container():
                     continue
 
                 dw = getattr(item, "dock_widget", None)
+
                 if dw is None:
                     continue
 
-                # Check if item has any incoming connection from an upstream component's output
-                has_incoming_connection = False
-                for sock in getattr(item, "input", []):
-                    if len(getattr(sock, "in_lines", [])) > 0:
-                        has_incoming_connection = True
-                        break
+                has_incoming_connection = any(
+                    len(getattr(sock, "in_lines", [])) > 0
+                    for sock in getattr(item, "input", [])
+                )
 
-                # Check if item has any outgoing connection
-                has_outgoing_connection = False
-                for sock in getattr(item, "output", []):
-                    if len(getattr(sock, "out_lines", [])) > 0:
-                        has_outgoing_connection = True
-                        break
+                # MaterialStream editability depends directly on
+                # whether it has an incoming connection.
+                if item.type == "MaterialStream":
 
-                is_connected = has_incoming_connection or has_outgoing_connection
-
-                if getattr(item, "type", "") == "MaterialStream":
                     if has_incoming_connection:
-                        if hasattr(item.obj, "disableInputDataTab"):
+                        try:
                             item.obj.disableInputDataTab(dw)
-                        elif hasattr(dw, "set_read_only"):
+                        finally:
                             dw.set_read_only(True)
                     else:
-                        if hasattr(item.obj, "enableInputDataTab"):
-                            item.obj.enableInputDataTab(dw)
-                        elif hasattr(dw, "set_read_only"):
-                            dw.set_read_only(False)
-                else:
-                    if not is_connected or not has_incoming_connection:
-                        if hasattr(dw, "set_read_only"):
-                            dw.set_read_only(False)
+                        item.obj.enableInputDataTab(dw)
+                        dw.set_read_only(False)
+
+                    continue
+
+                # Other components remain editable before
+                # a successful simulation.
+                if not self.simulation_successful:
+                    if hasattr(dw, "set_read_only"):
+                        dw.set_read_only(False)
+                    continue
+
+                # After successful simulation, components with
+                # incoming connections become read-only.
+                if hasattr(dw, "set_read_only"):
+                    dw.set_read_only(has_incoming_connection)
+
         except Exception as e:
             print(f"[DEBUG] update_components_editability failed: {e}")
+
 
     def fetch_object(self, name):
         for i in self.unit_operations:
@@ -242,11 +242,15 @@ class Container():
             self.signals.msg_signal.emit(f"<span style=\"color:red\">{stderr}</span>")
 
     # ----------------- Simulation -----------------
+
     def simulate(self, mode):
         """Run simulation (safe + verbose)."""
 
         # Lock UI while simulating
         self.disableInterfaceforSimulation(True)
+
+        # Reset simulation state before every new attempt
+        self.simulation_successful = False
 
         try:
             print("[DEBUG] ==== Starting Container.simulate ====")
@@ -275,29 +279,41 @@ class Container():
                             pass
 
                         show_warning = False
-                        
+
                         # Calculate total connections
-                        total_in = sum(len(getattr(ip, "in_lines", [])) for ip in getattr(item, "input", []))
-                        total_out = sum(len(getattr(op, "out_lines", [])) for op in getattr(item, "output", []))
-                        
+                        total_in = sum(
+                            len(getattr(ip, "in_lines", []))
+                            for ip in getattr(item, "input", [])
+                        )
+                        total_out = sum(
+                            len(getattr(op, "out_lines", []))
+                            for op in getattr(item, "output", [])
+                        )
+
                         if item.type in ['MaterialStream', 'EngStm']:
-                            # Streams only need to be connected on one side (feed or product)
+                            # Streams only need to be connected on one side
                             if total_in == 0 and total_out == 0:
                                 show_warning = True
                                 missing_connections.append((item.name, "unconnected"))
                         else:
-                            # Standard operations must have all their created sockets connected
+                            # Standard operations must have all created sockets connected
                             for ip in getattr(item, "input", []):
                                 if len(getattr(ip, "in_lines", [])) == 0:
                                     show_warning = True
                                     missing_connections.append((item.name, "input"))
+
                             for op in getattr(item, "output", []):
                                 if len(getattr(op, "out_lines", [])) == 0:
                                     show_warning = True
                                     missing_connections.append((item.name, "output"))
 
                         if show_warning:
-                            warnings_html += f"<br><span style='color:#999900'>Warning: {item.name} - Missing Socket Connection(s).</span>"
+                            warnings_html += (
+                                f"<br><span style='color:#999900'>"
+                                f"Warning: {item.name} - Missing Socket Connection(s)."
+                                f"</span>"
+                            )
+
                     except Exception as e:
                         print("[DEBUG] Error checking connections:", item, e)
 
@@ -309,6 +325,7 @@ class Container():
             # Step 2: Prepare Compounds
             # ----------------------------
             compounds = getattr(self, "compounds", None)
+
             if not compounds:
                 try:
                     compounds = globals().get("compound_selected", None)
@@ -325,19 +342,22 @@ class Container():
             # ----------------------------
             try:
                 self.flowsheet = Flowsheet()
+
                 if compounds:
                     compound_names = [
                         c[:c.index('(')].strip() if '(' in c else c.strip()
                         for c in compounds
                     ]
+
                     self.flowsheet.add_compound_list(compound_names)
                     print("[DEBUG] Flowsheet compounds added:", compound_names)
+
             except Exception as e:
                 self.signals.msg_signal.emit(
-                    f"<span style='color:red'>[{self.current_time()}] Failed to prepare Flowsheet: {e}</span>"
+                    f"<span style='color:red'>[{self.current_time()}] "
+                    f"Failed to prepare Flowsheet: {e}</span>"
                 )
                 print("[DEBUG] Failed to create Flowsheet:", e)
-                self.disableInterfaceforSimulation(False)
                 return
 
             # ----------------------------
@@ -347,7 +367,11 @@ class Container():
                 try:
                     self.flowsheet.add_unit_operations(uo)
                 except Exception as e:
-                    print("[DEBUG] Failed to add unit operation:", getattr(uo, "name", uo), e)
+                    print(
+                        "[DEBUG] Failed to add unit operation:",
+                        getattr(uo, "name", uo),
+                        e
+                    )
 
             print("[DEBUG] Added unit operations:", len(self.unit_operations))
 
@@ -359,122 +383,226 @@ class Container():
 
             def try_get_other_node_from_line(ln, this_item):
                 for a, b in [
-                    ("start_item", "end_item"), ("end_item", "start_item"),
-                    ("source", "target"), ("target", "source"),
-                    ("from_node", "to_node"), ("to_node", "from_node"),
+                    ("start_item", "end_item"),
+                    ("end_item", "start_item"),
+                    ("source", "target"),
+                    ("target", "source"),
+                    ("from_node", "to_node"),
+                    ("to_node", "from_node"),
                 ]:
                     try:
                         if hasattr(ln, a) and hasattr(ln, b):
                             a_val, b_val = getattr(ln, a), getattr(ln, b)
+
                             if a_val is this_item:
                                 other = b_val
                             elif b_val is this_item:
                                 other = a_val
                             else:
                                 continue
+
                             if other:
-                                return getattr(getattr(other, "obj", other), "name", getattr(other, "name", None))
+                                return getattr(
+                                    getattr(other, "obj", other),
+                                    "name",
+                                    getattr(other, "name", None)
+                                )
+
                     except Exception:
                         continue
+
                 return getattr(ln, "name", "UnknownLine")
 
             for it in self.graphics.scene.items():
                 if isinstance(it, NodeItem):
-                    uo_name = getattr(it.obj, "name", getattr(it, "name", None))
+                    uo_name = getattr(
+                        it.obj,
+                        "name",
+                        getattr(it, "name", None)
+                    )
+
                     if not uo_name:
                         continue
+
                     for idx, port in enumerate(getattr(it, "input", [])):
                         for ln in getattr(port, "in_lines", []):
                             other = try_get_other_node_from_line(ln, it)
                             self.ip[uo_name].append((idx, other))
+
                     for idx, port in enumerate(getattr(it, "output", [])):
                         for ln in getattr(port, "out_lines", []):
                             other = try_get_other_node_from_line(ln, it)
                             self.op[uo_name].append((idx, other))
 
-            print("[DEBUG] Built ip/op maps. IP:", len(self.ip), "OP:", len(self.op))
+            print(
+                "[DEBUG] Built ip/op maps. IP:",
+                len(self.ip),
+                "OP:",
+                len(self.op)
+            )
 
             # ----------------------------
             # Step 6: Simulation
             # ----------------------------
             print("[DEBUG] Calling Flowsheet simulate.")
             self.result = None
+
             if mode == 'SM':
                 self.signals.msg_signal.emit(
-                    f"<span>[{self.current_time()}] Simulating in <b>Sequential</b> mode ... </span>"
+                    f"<span>[{self.current_time()}] "
+                    f"Simulating in <b>Sequential</b> mode ... </span>"
                 )
+
                 try:
                     self.flowsheet.simulate_SM(self.ip, self.op)
-                    self.result = getattr(self.flowsheet, "result_data", [])
+                    self.result = getattr(
+                        self.flowsheet,
+                        "result_data",
+                        []
+                    )
+
                 except Exception as e:
                     print("[DEBUG] Sequential Mode Simulation failed:", e)
+
                     self.signals.msg_signal.emit(
-                        f"<span style='color:red'>[{self.current_time()}] Sequential Mode failed: {e}</span>"
+                        f"<span style='color:red'>[{self.current_time()}] "
+                        f"Sequential Mode failed: {e}</span>"
                     )
+
                     self.result = None
+
             else:
                 self.signals.msg_signal.emit(
-                    f"<span>[{self.current_time()}] Simulating in <b>Equation</b> mode ... </span>"
+                    f"<span>[{self.current_time()}] "
+                    f"Simulating in <b>Equation</b> mode ... </span>"
                 )
+
                 self.flowsheet.simulate_EQN(self.msg)
-                self.result = getattr(self.flowsheet, "result_data", [])
+
+                self.result = getattr(
+                    self.flowsheet,
+                    "result_data",
+                    []
+                )
 
             # ----------------------------
             # Step 7: Success / Failure Report
             # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
+            simulation_succeeded = (
+                isinstance(self.result, (list, tuple))
+                and len(self.result) >= 2
+            )
+
+            if simulation_succeeded:
+
+                self.simulation_successful = True
+
                 self.signals.msg_signal.emit(
-                    f"<span style='color:green'>[{self.current_time()}] Simulation <b>Successful.</b></span>"
+                    f"<span style='color:green'>[{self.current_time()}] "
+                    f"Simulation <b>Successful.</b></span>"
                 )
-                # Lock all dock widgets to read-only on success
+
+                # Temporarily keep widgets enabled.
+                # Actual editability is applied in Step 8.
                 for dw in dock_widget_lst:
                     if hasattr(dw, 'set_read_only'):
                         dw.set_read_only(False)
+
             else:
+
+                self.simulation_successful = False
+
                 self.signals.msg_signal.emit(
-                    f"<span style='color:red'>[{self.current_time()}] Simulation <b>Failed.</b></span>"
+                    f"<span style='color:red'>[{self.current_time()}] "
+                    f"Simulation <b>Failed.</b></span>"
                 )
+
                 try:
-                    error_detail = getattr(self.flowsheet, "last_error", "")
+                    error_detail = getattr(
+                        self.flowsheet,
+                        "last_error",
+                        ""
+                    )
+
                     if error_detail:
-                        safe_error = html.escape(error_detail).replace("\n", "<br/>")
-                        self.signals.msg_signal.emit(
-                            f"<span style='color:red'><b>OpenModelica Error:</b><br/>{safe_error}</span>"
+                        safe_error = html.escape(error_detail).replace(
+                            "\n",
+                            "<br/>"
                         )
+
+                        self.signals.msg_signal.emit(
+                            f"<span style='color:red'>"
+                            f"<b>OpenModelica Error:</b><br/>"
+                            f"{safe_error}</span>"
+                        )
+
                 except Exception as msg_err:
-                    print("[DEBUG] Failed to display simulation error detail:", msg_err)
+                    print(
+                        "[DEBUG] Failed to display simulation error detail:",
+                        msg_err
+                    )
+
                 # Keep dock widgets editable on failure
                 for dw in dock_widget_lst:
                     if hasattr(dw, 'set_read_only'):
                         dw.set_read_only(False)
 
-            # ----------------------------
-            # Step 8: Post-Simulation Updates (only on success)
-            # ----------------------------
-            if isinstance(self.result, (list, tuple)) and len(self.result) >= 2:
-                for it in self.graphics.scene.items():
-                    if isinstance(it, NodeItem) and getattr(it, "type", "") == 'MaterialStream':
-                        try:
-                            it.update_tooltip_selectedVar()
-                        except Exception as tooltip_err:
-                            print(f"[DEBUG] update_tooltip_selectedVar failed for {it.name}: {tooltip_err}")
-
                 self.update_components_editability()
 
-                # Step 9: Populate Results Tabs (via signal for thread-safety)
+            # ----------------------------
+            # Step 8: Post-Simulation Updates
+            # ----------------------------
+            if simulation_succeeded:
+
+                for it in self.graphics.scene.items():
+
+                    if (
+                        isinstance(it, NodeItem)
+                        and getattr(it, "type", "") == 'MaterialStream'
+                    ):
+                        try:
+                            it.update_tooltip_selectedVar()
+
+                        except Exception as tooltip_err:
+                            print(
+                                f"[DEBUG] update_tooltip_selectedVar failed "
+                                f"for {it.name}: {tooltip_err}"
+                            )
+
+                # Apply read-only state based on incoming connections
+                self.update_components_editability()
+
+                # ----------------------------
+                # Step 9: Populate Results Tabs
+                # ----------------------------
                 self.signals.results_ready.emit()
 
         except Exception as e:
+
+            self.simulation_successful = False
+
             print("[DEBUG] Simulation crashed:", e)
+
             self.signals.msg_signal.emit(
-                f"<span style='color:red'>[{self.current_time()}] Simulation error: {e}</span>"
+                f"<span style='color:red'>[{self.current_time()}] "
+                f"Simulation error: {e}</span>"
             )
 
+            # Restore editable state after a crash
+            try:
+                self.update_components_editability()
+            except Exception as editability_error:
+                print(
+                    "[DEBUG] Failed to restore component editability:",
+                    editability_error
+                )
+
         finally:
+
             # Always re-enable UI
             self.disableInterfaceforSimulation(False)
-            print("[DEBUG] ==== Container.simulate finished ====")
 
+            print("[DEBUG] ==== Container.simulate finished ====")
 
 
     # Results Population 
