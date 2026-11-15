@@ -180,6 +180,10 @@ class Container():
                 if dw is None:
                     continue
 
+                # Every connection change ends here, so keep the Connections tab in sync too
+                if hasattr(dw, "refresh_connections"):
+                    dw.refresh_connections()
+
                 has_incoming_connection = any(
                     len(getattr(sock, "in_lines", [])) > 0
                     for sock in getattr(item, "input", [])
