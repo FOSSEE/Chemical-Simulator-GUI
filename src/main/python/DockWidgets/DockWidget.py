@@ -56,11 +56,21 @@ class BaseDockWidget(QDockWidget):
         self.connections_layout = QFormLayout(self.connections_tab)
 
         tabs = getattr(self, 'tabWidget', None)
-        content = self.widget()
-        if tabs is None or (tabs is not content and tabs.parentWidget() is not content):
+        if tabs is None:
             # Single-page docks (Mixer, Splitter, Flash, ...) get wrapped in a tab widget
+            page = self.widget()
+            if page is None:
+                # Splitter and CompoundSeparator place their inputs directly on the dock
+                page = QWidget()
+                for child in self.findChildren(QWidget, options=Qt.FindDirectChildrenOnly):
+                    if child.objectName().startswith('qt_dockwidget'):
+                        continue  # the dock's own float/close buttons
+                    geometry, visible = child.geometry(), child.isVisibleTo(self)
+                    child.setParent(page)
+                    child.setGeometry(geometry)
+                    child.setVisible(visible)
             tabs = QTabWidget()
-            tabs.addTab(content, "Input Data")
+            tabs.addTab(page, "Input Data")
             self.setWidget(tabs)
         tabs.addTab(self.connections_tab, "Connections")
         tabs.currentChanged.connect(lambda _: self.refresh_connections())
