@@ -992,6 +992,7 @@ class NodeSocket(QtWidgets.QGraphicsItem):
         self.parent=parent
         self.id = id
         self.setAcceptHoverEvents(True)
+        self.setZValue(2)
         self.new_line=None
         self.other_line=None
     
@@ -1298,97 +1299,24 @@ class ResizeHandle(QtWidgets.QGraphicsItem):
     def mouseMoveEvent(self, event):
         if self._dragging:
             delta = event.scenePos() - self._start_pos
-            new_w = max(40, self._start_width + delta.x())
-            new_h = max(40, self._start_height + delta.y())
+            min_w = min(40, getattr(self.parent_node, "_orig_width", 40) or 40)
+            min_h = min(40, getattr(self.parent_node, "_orig_height", 40) or 40)
+            new_w = max(min_w, self._start_width + delta.x())
+            new_h = max(min_h, self._start_height + delta.y())
             self.parent_node.resize_node(new_w, new_h)
             event.accept()
         else:
             super().mouseMoveEvent(event)
 
-
-    def _try_reconnect(self, scene_pos):
-        """Reconnect a partial line to a compatible free socket."""
-
-        if self.source is not None and self.target is not None:
-            return False
-
-        candidate = None
-
-        # Check all items at the drop position, topmost first.
-        for item in self.scene().items(scene_pos):
-            if isinstance(item, NodeSocket):
-                candidate = item
-                break
-
-        if candidate is None:
-            return False
-
-        stm = ['MaterialStream', 'EngStm']
-
-        # Free destination: attached source -> compatible input socket.
-        if self.source is not None and self.target is None:
-            if candidate.type != 'in' or candidate.in_lines:
-                return False
-
-            if candidate.parent is self.source.parent:
-                return False
-
-            self.target = candidate
-            candidate.in_lines.append(self)
-            self.pointB = candidate.get_center()
-
-        # Free source: compatible output socket -> attached target.
-        elif self.source is None and self.target is not None:
-            if candidate.type != 'op' or candidate.out_lines:
-                return False
-
-            if candidate.parent is self.target.parent:
-                return False
-
-            self.source = candidate
-            candidate.out_lines.append(self)
-            self.pointA = candidate.get_center()
-
-        else:
-            return False
-
-        # Restore logical component connections.
-        if self.source.parent.obj.type not in stm:
-            self.source.parent.obj.add_connection(
-                0, self.source.id, self.target.parent.obj
-            )
-
-        if self.target.parent.obj.type not in stm:
-            self.target.parent.obj.add_connection(
-                1, self.target.id, self.source.parent.obj
-            )
-
-        # Update component editability.
-        attached_node = self.source.parent
-        container = getattr(attached_node, 'container', None)
-
-        if container and hasattr(container, 'update_components_editability'):
-            container.update_components_editability()
-
-        # Save the new state for Undo/Redo.
-        if container and hasattr(container, 'graphics'):
-            container.graphics.push_snapshot()
-
-        print("[DEBUG] Partial line successfully reconnected.")
-        return True
-
-
     def mouseReleaseEvent(self, event):
-        if self._dragging_free_endpoint:
-            self._dragging_free_endpoint = False
-
-            scene_pos = event.scenePos()
-            self._try_reconnect(scene_pos)
-
+        if self._dragging:
+            self._dragging = False
+            container = getattr(self.parent_node, "container", None)
+            if container and hasattr(container, "graphics"):
+                container.graphics.push_snapshot()
             event.accept()
             return
-
-        event.ignore()
+        super().mouseReleaseEvent(event)
 
 
 class NodeItem(QtWidgets.QGraphicsItem):
@@ -1517,10 +1445,10 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self._orig_pic = self.pic.copy()
         self._capture_socket_geometry()
 
-        # Add resize handle at bottom-right corner
+        # Add resize handle with safe clearance from input/output ports
         self._resize_handle = ResizeHandle(self)
-        self._resize_handle.setPos(self.rect.width() - 12, self.rect.height() - 12)
         self._resize_handle.setZValue(1)
+        self._update_resize_handle_pos()
 
 
     def shape(self):
@@ -1715,8 +1643,8 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # Reposition sockets proportionally
         self._reposition_sockets()
 
-        # Move resize handle to new bottom-right
-        self._resize_handle.setPos(self.rect.width() - 12, self.rect.height() - 12)
+        # Move resize handle maintaining port clearance
+        self._update_resize_handle_pos()
 
         # Update all connected lines
         self._update_connected_lines()
@@ -1769,6 +1697,32 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 )
                 socket.update()
 
+    PORT_HANDLE_CLEARANCE = 8
+
+    def _update_resize_handle_pos(self):
+        """Position the resize handle at the bottom-right with guaranteed
+        clearance from all input and output ports so connecting never
+        accidentally triggers a resize."""
+        if not hasattr(self, "_resize_handle") or self._resize_handle is None:
+            return
+        handle_size = getattr(self._resize_handle, "_size", 12)
+        clearance = self.PORT_HANDLE_CLEARANCE
+
+        hx = float(self.rect.width() - handle_size)
+        hy = float(self.rect.height() - handle_size)
+
+        for socket in list(getattr(self, "input", [])) + list(getattr(self, "output", [])):
+            srect = QtCore.QRectF(socket.rect)
+            padded = srect.adjusted(-clearance, -clearance, clearance, clearance)
+            hrect = QtCore.QRectF(hx, hy, handle_size, handle_size)
+            if padded.intersects(hrect):
+                hy = max(hy, srect.bottom() + clearance)
+
+        self._resize_handle.setPos(hx, hy)
+        if hasattr(self, "text") and self.text is not None:
+            label_y = max(float(self.rect.height()), hy + handle_size - 2)
+            self.text.setPos(self.rect.width() * 0.1, label_y)
+
     def _capture_socket_geometry(self):
         """Use the current size and socket rects as the reference for
         _reposition_sockets. Must be called whenever sockets are rebuilt,
@@ -1778,6 +1732,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self._orig_height = self.rect.height()
         self._orig_input_rects = [QtCore.QRectF(s.rect) for s in self.input]
         self._orig_output_rects = [QtCore.QRectF(s.rect) for s in self.output]
+        self._update_resize_handle_pos()
 
     def _update_connected_lines(self):
         """Update endpoints of all lines connected to this node."""
