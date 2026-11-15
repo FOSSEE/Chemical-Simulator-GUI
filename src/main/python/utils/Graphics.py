@@ -1414,6 +1414,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # ✅ Initialize sockets (ports)
         self.input, self.output = self.initialize_sockets(self.type)
+        self.dock_widget.setup_connections_tab(self)
 
         # Store original dimensions for resize support
         self._orig_pic = self.pic.copy()
