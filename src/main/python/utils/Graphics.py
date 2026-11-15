@@ -518,7 +518,7 @@ class Graphics(object):
 class NodeLine(QtWidgets.QGraphicsPathItem):
     HOP_RADIUS = 6  # size of the bend drawn where two lines cross
 
-    def __init__(self, pointA, pointB , socket):
+    def __init__(self, pointA, pointB, socket):
         super(NodeLine, self).__init__()
         self._route = []
         self._previous_scene = None
@@ -529,13 +529,19 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         self._target = None
         self._dragging_free_endpoint = False
         self._free_endpoint_radius = 12
+        self._hovered = False
         self.setZValue(-1)
-        self.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
-        self.setBrush(QtGui.QColor(0,70,70,120))
+        self.setFlags(
+            QtWidgets.QGraphicsItem.ItemIsSelectable
+            | QtWidgets.QGraphicsItem.ItemIsFocusable
+        )
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(QtCore.Qt.LeftButton | QtCore.Qt.RightButton)
+        self.setBrush(QtGui.QColor(0, 70, 70, 120))
         self.pen = QtGui.QPen()
         self.pen.setStyle(QtCore.Qt.SolidLine)
         self.pen.setWidth(2)
-        self.pen.setColor(QtGui.QColor(0,70,70,220))
+        self.pen.setColor(QtGui.QColor(0, 70, 70, 220))
         self.setPen(self.pen)
 
     def _compute_route(self):
@@ -606,7 +612,6 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                         hops.setdefault(i, []).append(vx)
         return hops
 
-
     def _rebuild_path(self):
         """Draw the route, adding a semicircular hop at every crossing."""
         path = QtGui.QPainterPath()
@@ -675,8 +680,9 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
             ))
             return path
 
-        return super(NodeLine, self).shape()
-
+        stroker = QtGui.QPainterPathStroker()
+        stroker.setWidth(10.0)
+        return stroker.createStroke(self.path())
 
     def _refresh_crossing_lines(self, rect, scene=None):
         """Redraw other lines in `rect`, since their hops over this line may have changed."""
@@ -704,7 +710,14 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         return super(NodeLine, self).itemChange(change, value)
 
     def paint(self, painter, option, widget):
-        painter.setPen(self.pen)
+        pen = QtGui.QPen(self.pen)
+        if self.isSelected():
+            pen.setColor(QtGui.QColor(220, 53, 69))
+            pen.setWidth(3)
+        elif getattr(self, "_hovered", False):
+            pen.setColor(QtGui.QColor(0, 123, 255))
+            pen.setWidth(3)
+        painter.setPen(pen)
         painter.drawPath(self.path())
 
     def mousePressEvent(self, event):
@@ -722,6 +735,17 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
 
                 event.accept()
                 return
+
+            event.ignore()
+            return
+
+        if event.button() in (QtCore.Qt.LeftButton, QtCore.Qt.RightButton):
+            if self.scene() and not (event.modifiers() & QtCore.Qt.ControlModifier):
+                self.scene().clearSelection()
+            self.setSelected(True)
+            self.setFocus()
+            event.accept()
+            return
 
         event.ignore()
 
@@ -753,7 +777,6 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
 
         event.ignore()
 
-
     def _set_all_sockets_visible(self, visible):
         if self.scene() is None:
             return
@@ -771,7 +794,6 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                         socket.show()
                     else:
                         socket.hide()
-
 
     def _try_reconnect(self, scene_pos):
         """Reconnect a partial line to a compatible free socket."""
@@ -847,39 +869,114 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
         print("[DEBUG] Partial line successfully reconnected.")
         return True
 
+    def hoverEnterEvent(self, event):
+        self._hovered = True
+        while QtWidgets.QApplication.overrideCursor() is not None:
+            QtWidgets.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.PointingHandCursor)
+        if self.scene() and self.scene().views():
+            self.scene().views()[0].viewport().setCursor(QtCore.Qt.PointingHandCursor)
+        self.update()
+        super(NodeLine, self).hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        self._hovered = False
+        while QtWidgets.QApplication.overrideCursor() is not None:
+            QtWidgets.QApplication.restoreOverrideCursor()
+        if self.scene() and self.scene().views():
+            self.scene().views()[0].viewport().unsetCursor()
+        self.update()
+        super(NodeLine, self).hoverLeaveEvent(event)
+
+    def delete_connection(self):
+        """Delete this connection line, clean sockets/model, and refresh editability."""
+        if getattr(self, "_hovered", False):
+            self._hovered = False
+            while QtWidgets.QApplication.overrideCursor() is not None:
+                QtWidgets.QApplication.restoreOverrideCursor()
+            if self.scene() and self.scene().views():
+                self.scene().views()[0].viewport().unsetCursor()
+
+        container = None
+        if self.source and getattr(self.source, "parent", None):
+            container = getattr(self.source.parent, "container", None)
+        if container is None and self.target and getattr(self.target, "parent", None):
+            container = getattr(self.target.parent, "container", None)
+
+        if container and hasattr(container, "delete"):
+            container.delete([self])
+            return
+
+        if self.source and getattr(self.source, "parent", None) and hasattr(self.source.parent.obj, "remove_connection"):
+            self.source.parent.obj.remove_connection(0, self.source.id)
+        if self.target and getattr(self.target, "parent", None) and hasattr(self.target.parent.obj, "remove_connection"):
+            self.target.parent.obj.remove_connection(1, self.target.id)
+
+        if self.source and self in getattr(self.source, "out_lines", []):
+            self.source.out_lines.remove(self)
+        if self.target and self in getattr(self.target, "in_lines", []):
+            self.target.in_lines.remove(self)
+
+        if self.scene():
+            self.scene().removeItem(self)
+
+    def contextMenuEvent(self, event):
+        if self.scene():
+            self.scene().clearSelection()
+        self.setSelected(True)
+
+        menu = QtWidgets.QMenu()
+        delete_action = menu.addAction("Delete Connection")
+        action = menu.exec_(event.screenPos())
+        if action == delete_action:
+            self.delete_connection()
+
+    def keyPressEvent(self, event):
+        if event.key() in (QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace):
+            self.delete_connection()
+            event.accept()
+            return
+        super(NodeLine, self).keyPressEvent(event)
+
     @property
     def pointA(self):
         return self._pointA
- 
+
     @pointA.setter
     def pointA(self, point):
         self._pointA = point
         self.updatePath()
- 
+
     @property
     def pointB(self):
         return self._pointB
- 
+
     @pointB.setter
     def pointB(self, point):
         self._pointB = point
         self.updatePath()
- 
+
     @property
     def source(self):
         return self._source
- 
+
     @source.setter
     def source(self, widget):
         self._source = widget
- 
+
     @property
     def target(self):
         return self._target
- 
+
     @target.setter
     def target(self, widget):
         self._target = widget
+
+    def __delete__(self, instance):
+        del self._source
+        del self._target
+        del self._pointA
+        del self._pointB
 
     def __delete__(self,instance):
         del self._source
