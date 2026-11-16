@@ -16,6 +16,7 @@ app = QApplication.instance() or QApplication(sys.argv)
 
 from python.utils.ComponentSelector import compound_selected
 from python.utils.Streams import MaterialStream
+from python.utils import UnitOperations
 from python.utils.UnitOperations import Mixer, Heater
 from python.utils.Graphics import NodeLine, lst, dock_widget_lst
 from python.utils.Container import Container
@@ -91,6 +92,23 @@ class ConnectionsTabTest(unittest.TestCase):
             self.assertEqual(tabs.tabText(tabs.count() - 1), "Connections")
         mixer_tabs = mixer.dock_widget.widget()
         self.assertEqual([mixer_tabs.tabText(i) for i in range(mixer_tabs.count())], ["Input Data", "Connections"])
+
+    def test_every_component_keeps_its_input_tab_next_to_connections(self):
+        objs = [MaterialStream(compound_selected)] + [getattr(UnitOperations, cls)() for cls in (
+            'Heater', 'Cooler', 'Mixer', 'Splitter', 'Flash', 'CentrifugalPump', 'Valve',
+            'AdiabaticCompressor', 'AdiabaticExpander', 'CompoundSeparator',
+            'ShortcutColumn', 'DistillationColumn')]
+        for obj in objs:
+            with self.subTest(component=obj.type):
+                dock = self.add(obj).dock_widget
+                tabs = dock.connections_tab.parentWidget().parentWidget()
+                names = [tabs.tabText(i) for i in range(tabs.count())]
+                self.assertEqual(names[0], "Input Data")
+                self.assertEqual(names[-1], "Connections")
+                # Only one tab bar may sit at the top level of the dock
+                top_level = [t for t in dock.findChildren(QTabWidget)
+                             if t.parentWidget() in (dock, dock.widget()) or t is dock.widget()]
+                self.assertEqual(top_level, [tabs])
 
     def test_rows_follow_port_count_changes(self):
         mixer = self.add(Mixer())
