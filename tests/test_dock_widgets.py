@@ -188,6 +188,7 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
         self.assertGreater(len(dock.input_dict), 0)
 
         # Param submit
+        dock.input_dict[None] = None
         for k, edit in dock.input_dict.items():
             if hasattr(edit, "setText"):
                 edit.setText("350")
@@ -248,7 +249,11 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
             self.assertFalse(dock.rename_component())
             mock_warn.assert_called_once()
 
-        # Valid rename
+        # Valid rename with energy stream cascades and flowsheet result_data
+        heater.EngStms = MagicMock()
+        heater.EngStm1 = MagicMock()
+        heater.EngStm2 = MagicMock()
+        self.container.flowsheet.result_data = [["Heater1.Q"], [1000.0]]
         self.container.fetch_object = MagicMock(return_value=heater)
         mock_node = MagicMock()
         mock_node.text = MagicMock()
@@ -257,6 +262,10 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
         self.assertTrue(dock.rename_component())
         self.assertEqual(dock.name, "HeaterNew")
         self.assertEqual(heater.name, "HeaterNew")
+        self.assertEqual(heater.EngStms.name, "EngStmHeaterNew")
+        self.assertEqual(heater.EngStm1.name, "EngStm1HeaterNew")
+        self.assertEqual(heater.EngStm2.name, "EngStm2HeaterNew")
+        self.assertEqual(self.container.flowsheet.result_data[0][0], "HeaterNew.Q")
         self.assertEqual(mock_node.name, "HeaterNew")
         mock_node.text.setPlainText.assert_called_once_with("HeaterNew")
 
@@ -300,6 +309,14 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
         finally:
             if mock_item in g_mod.lst:
                 g_mod.lst.remove(mock_item)
+
+        # Scene items fallback
+        dock.node_item = None
+        mock_scene_item = MagicMock()
+        mock_scene_item.obj = heater
+        self.container.graphics.scene = MagicMock()
+        self.container.graphics.scene.items.return_value = [mock_scene_item]
+        self.assertEqual(dock.get_node_item(), mock_scene_item)
 
         dock.clear_results()
         self.assertEqual(dock.tableWidget.rowCount(), 0)
