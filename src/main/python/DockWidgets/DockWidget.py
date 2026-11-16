@@ -46,6 +46,70 @@ class BaseDockWidget(QDockWidget):
         curr_name = getattr(self, 'name', None) or getattr(getattr(self, 'obj', None), 'name', None)
         if hasattr(self, 'le_name') and curr_name:
             self.le_name.setText(curr_name)
+        self.refresh_connections()
+
+    def setup_connections_tab(self, node):
+        """Add a Connections tab with one Upstream row per inlet and one
+        Downstream row per outlet of the given NodeItem."""
+        self.node_item = node
+        self.connections_tab = QWidget()
+        self.connections_layout = QFormLayout(self.connections_tab)
+
+        tabs = getattr(self, 'tabWidget', None)
+        if tabs is None:
+            # Single-page docks (Mixer, Splitter, Flash, ...) get wrapped in a tab widget
+            page = self.widget()
+            if page is None:
+                # Splitter and CompoundSeparator place their inputs directly on the dock
+                page = QWidget()
+                for child in self.findChildren(QWidget, options=Qt.FindDirectChildrenOnly):
+                    if child.objectName().startswith('qt_dockwidget'):
+                        continue  # the dock's own float/close buttons
+                    geometry, visible = child.geometry(), child.isVisibleTo(self)
+                    child.setParent(page)
+                    child.setGeometry(geometry)
+                    child.setVisible(visible)
+            tabs = QTabWidget()
+            tabs.addTab(page, "Input Data")
+            self.setWidget(tabs)
+        tabs.addTab(self.connections_tab, "Connections")
+        tabs.currentChanged.connect(lambda _: self.refresh_connections())
+        self.refresh_connections()
+
+    def refresh_connections(self):
+        """Rebuild the Connections tab rows from the node's current sockets and lines."""
+        layout = getattr(self, 'connections_layout', None)
+        node = getattr(self, 'node_item', None)
+        if layout is None or node is None:
+            return
+        while layout.rowCount():
+            layout.removeRow(0)
+
+        for label, sockets, lines_attr, end in (("Upstream", node.input, 'in_lines', 'source'),
+                                                ("Downstream", node.output, 'out_lines', 'target')):
+            for i, socket in enumerate(sockets, start=1):
+                lines = getattr(socket, lines_attr, [])
+                line = lines[0] if lines else None
+                peer = getattr(line, end, None)
+                connected = peer is not None and getattr(peer, 'parent', None) is not None
+
+                field = QLineEdit(peer.parent.name if connected else "Not Connected")
+                field.setReadOnly(True)
+                btn = QPushButton("Disconnect")
+                btn.setEnabled(connected)
+                # Deferred: disconnecting rebuilds these rows, which deletes the clicked button
+                btn.clicked.connect(lambda _, l=line: QTimer.singleShot(0, lambda: self.disconnect_line(l)))
+
+                row = QHBoxLayout()
+                row.addWidget(field)
+                row.addWidget(btn)
+                layout.addRow(f"{label} {i}:", row)
+
+    def disconnect_line(self, line):
+        """Remove one connection line, using the same path as deleting it on the canvas."""
+        container = getattr(self, 'container', None)
+        if line is not None and container is not None and line.scene() is not None:
+            container.delete([line])
 
     def setup_name_editor(self):
         """
