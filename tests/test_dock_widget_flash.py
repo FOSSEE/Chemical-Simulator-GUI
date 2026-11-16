@@ -94,10 +94,12 @@ def test_dock_widget_flash_param_submission(flash_widget):
     widget.check2.setChecked(True)
     widget.le3.setText("200000")
 
+    widget.show()
     widget.param()
 
     obj.param_setter.assert_called_once()
     assert widget.dict[1] is True
+    assert not widget.isVisible()
     assert widget.dict[2] == 350.5
     assert widget.dict[3] is True
     assert widget.dict[4] == 200000.0

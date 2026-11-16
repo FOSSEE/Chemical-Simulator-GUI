@@ -94,10 +94,12 @@ def test_dock_widget_mixer_param_submission(mixer_widget, monkeypatch):
     widget.ni_combo.setCurrentText("4")
     widget.cb2.setCurrentText("Average")
 
+    widget.show()
     widget.param()
 
     obj.param_setter.assert_called_once_with([4, "Average"])
     assert widget.dict == [4, "Average"]
+    assert not widget.isVisible()
     mock_node.update_input_ports.assert_called_once_with(4)
 
 

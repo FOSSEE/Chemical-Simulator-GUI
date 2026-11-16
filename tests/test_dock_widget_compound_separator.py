@@ -1,6 +1,6 @@
 import os
 import sys
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 from PyQt5.QtWidgets import QApplication
 
@@ -9,41 +9,10 @@ for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 
     if p not in sys.path:
         sys.path.insert(0, p)
 
-_saved_modules = {k: sys.modules.get(k) for k in [
-    'utils.Graphics', 'python.utils.Graphics', 'utils.Container', 'python.utils.Container'
-]}
-
-mock_graphics = MagicMock()
-mock_container = MagicMock()
-mock_graphics.lst = []
-
-sys.modules['utils.Graphics'] = mock_graphics
-sys.modules['python.utils.Graphics'] = mock_graphics
-sys.modules['utils.Container'] = mock_container
-sys.modules['python.utils.Container'] = mock_container
-
-app = QApplication.instance()
-if app is None:
-    app = QApplication(sys.argv)
-
-from DockWidgets.DockWidgetCompoundSeparator import DockWidgetCompoundSeparator
-
-for k, v in _saved_modules.items():
-    if v is None:
-        sys.modules.pop(k, None)
-    else:
-        sys.modules[k] = v
-
-
-class MockCompoundSeparatorObj:
-    def __init__(self, name="CompSep1"):
-        self.name = name
-        self.variables = {
-            "comp_list": ["Water", "Ethanol"],
-            "sep_stream": {"name": "Separation Stream", "value": "Top"},
-            "split_ratio": {"name": "Split Ratio", "value": [0.9, 0.1]}
-        }
-        self.param_setter = MagicMock()
+import python.utils.Container
+from python.utils.ComponentSelector import compound_selected
+from python.utils.UnitOperations import CompoundSeparator
+from python.DockWidgets.DockWidgetCompoundSeparator import DockWidgetCompoundSeparator
 
 
 class MockContainerInstance:
@@ -54,24 +23,64 @@ class MockContainerInstance:
         self.graphics.graphicsView.horizontalScrollBar.return_value.value.return_value = 100
 
 
+@pytest.fixture(autouse=True)
+def setup_compounds():
+    app = QApplication.instance() or QApplication(sys.argv)
+    compound_selected.clear()
+    compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
+    yield app
+    compound_selected.clear()
+    while QApplication.overrideCursor() is not None:
+        QApplication.restoreOverrideCursor()
+
+
 @pytest.fixture
-def comp_sep_widget():
-    obj = MockCompoundSeparatorObj()
+def comp_sep_fixture():
+    obj = CompoundSeparator("CompSep1")
+    obj.param_setter = MagicMock()
     container = MockContainerInstance()
-    widget = DockWidgetCompoundSeparator("CompSep1", "CompoundSeparator", obj, container)
+    widget = DockWidgetCompoundSeparator(obj.name, "CompoundSeparator", obj, container)
     return widget, obj, container
 
 
-def test_dock_widget_compound_separator_init(comp_sep_widget):
-    widget, obj, _ = comp_sep_widget
-    assert widget.name == "CompSep1"
+def test_dock_widget_compound_separator_init(comp_sep_fixture):
+    widget, obj, _ = comp_sep_fixture
+    assert widget.name == obj.name
     assert widget.type == "CompoundSeparator"
-    assert widget.obj == obj
-    assert widget.windowTitle() == "CompSep1"
+    assert widget.obj is obj
+    assert widget.windowTitle() == obj.name
+    assert len(widget.input_dict) >= 4
 
 
-def test_dock_widget_compound_separator_param_submission(comp_sep_widget):
-    widget, obj, _ = comp_sep_widget
-    if hasattr(widget, 'param'):
-        widget.param()
-        assert obj.param_setter.called or hasattr(widget, 'dict')
+def test_dock_widget_compound_separator_param_success(comp_sep_fixture):
+    widget, obj, _ = comp_sep_fixture
+    # input_dict: [radio1, radio2, combo1, lineEdit1, combo2, lineEdit2]
+    widget.input_dict[0].setChecked(True)
+    widget.input_dict[1].setChecked(False)
+
+    # Set valid values for compound lines
+    widget.input_dict[3].setText("0.8")
+    widget.input_dict[5].setText("0.2")
+
+    widget.show()
+    widget.param()
+
+    obj.param_setter.assert_called_once()
+    assert not widget.isVisible()
+
+
+def test_dock_widget_compound_separator_param_empty_shows_error(comp_sep_fixture):
+    widget, _, _ = comp_sep_fixture
+    widget.show_error = MagicMock()
+
+    widget.input_dict[3].setText("")
+    widget.param()
+    widget.show_error.assert_called_once()
+
+
+def test_dock_widget_compound_separator_update_compounds(comp_sep_fixture):
+    widget, obj, _ = comp_sep_fixture
+    compound_selected.append("Methanol(chemsep)")
+    widget.update_compounds()
+    # Now there are 3 compounds, so input_dict has 2 radios + 3*(combo+line) = 8 items
+    assert len(widget.input_dict) == 8

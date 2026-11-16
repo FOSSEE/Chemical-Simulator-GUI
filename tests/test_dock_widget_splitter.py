@@ -1,192 +1,393 @@
 import os
 import sys
-import unittest
 from unittest.mock import MagicMock, patch
-
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+import pytest
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import Qt
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main'))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main', 'python'))
+for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 'src', 'main', 'python')]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-from PyQt5.QtWidgets import QApplication, QTextBrowser, QGraphicsView, QMessageBox
-app = QApplication.instance() or QApplication([])
-
-from python.utils.Container import Container
 from python.utils.ComponentSelector import compound_selected
-from python.utils.Streams import MaterialStream
 from python.utils.UnitOperations import Splitter
 from python.DockWidgets.DockWidgetSplitter import DockWidgetSplitter
 
 
-class TestDockWidgetSplitter(unittest.TestCase):
-    def setUp(self):
-        compound_selected.clear()
-        compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
-        Splitter.counter = 1
-        MaterialStream.counter = 1
-
-        self.browser = QTextBrowser()
-        self.view = QGraphicsView()
-        self.container = Container(self.browser, self.view)
-        self.view.setScene(self.container.graphics.scene)
-
-        self.splitter = Splitter()
-        self.splitter.name = "Splitter1"
-        self.container.unit_operations.append(self.splitter)
-        self.widget = DockWidgetSplitter(
-            self.splitter.name, "Splitter", self.splitter, self.container
-        )
-
-    def _build_connected_node(self):
-        """Attach an inlet MaterialStream and 2 outlet MaterialStreams on the graphics scene."""
-        in_ms = MaterialStream()
-        in_ms.name = "InMS"
-        in_ms.variables['F_p[1]'] = {'value': 100.0}
-        in_ms.variables['Fm_p[1]'] = {'value': 1800.0}
-
-        out1 = MaterialStream()
-        out1.name = "OutMS1"
-        out2 = MaterialStream()
-        out2.name = "OutMS2"
-
-        node_splitter = self.container.graphics.create_node_item(self.splitter, self.container)
-        self.container.graphics.scene.addItem(node_splitter)
-
-        # Mock connected input line
-        in_line = MagicMock()
-        in_line.source.parent.obj = in_ms
-        node_splitter.input[0].in_lines = [in_line]
-
-        # Mock connected output lines
-        out_line1 = MagicMock()
-        out_line1.target.parent.obj = out1
-        node_splitter.output[0].out_lines = [out_line1]
-
-        out_line2 = MagicMock()
-        out_line2.target.parent.obj = out2
-        node_splitter.output[1].out_lines = [out_line2]
-
-        return node_splitter
-
-    def test_init_and_rebuild_stream_fields(self):
-        self.assertEqual(self.widget.windowTitle(), "Splitter1")
-        self.assertEqual(len(self.widget.stream_edits), 2)
-        self.assertEqual(self.widget.get_stream_unit(), "")
-
-        # Change output count to 3 -> rebuilds fields and defaults to 1/3 each
-        self.widget.no_combo.setCurrentText("3")
-        self.assertEqual(len(self.widget.stream_edits), 3)
-        self.assertAlmostEqual(
-            sum(float(e.text()) for e in self.widget.stream_edits), 1.0, places=5
-        )
-
-    def test_calc_type_switching_and_units(self):
-        self.widget.cb2.setCurrentText("Molar_Flow")
-        self.assertEqual(self.widget.get_stream_unit(), "mol/s")
-        self.assertTrue(all(u.text() == "mol/s" for u in self.widget.stream_units))
-
-        self.widget.cb2.setCurrentText("Mass_Flow")
-        self.assertEqual(self.widget.get_stream_unit(), "g/s")
-        self.assertTrue(all(u.text() == "g/s" for u in self.widget.stream_units))
-
-        self.widget.cb2.setCurrentText("Split_Ratio")
-        self.assertEqual(self.widget.get_stream_unit(), "")
-
-    def test_equalize_and_normalize_split_ratio_and_flows(self):
-        # Split_Ratio equalize & normalize
-        self.widget.equalize_streams()
-        self.assertAlmostEqual(float(self.widget.stream_edits[0].text()), 0.5, places=5)
-
-        self.widget.stream_edits[0].setText("3.0")
-        self.widget.stream_edits[1].setText("1.0")
-        self.widget.normalize_streams()
-        self.assertAlmostEqual(float(self.widget.stream_edits[0].text()), 0.75, places=5)
-        self.assertAlmostEqual(float(self.widget.stream_edits[1].text()), 0.25, places=5)
-
-        # Zero values warning in normalize_streams
-        with patch.object(QMessageBox, "warning") as mock_warn:
-            self.widget.stream_edits[0].setText("0")
-            self.widget.stream_edits[1].setText("0")
-            self.widget.normalize_streams()
-            mock_warn.assert_called_once()
-
-        # Molar_Flow with missing inlet -> warning
-        self.widget.cb2.setCurrentText("Molar_Flow")
-        with patch.object(QMessageBox, "warning") as mock_warn:
-            self.widget.equalize_streams()
-            mock_warn.assert_called_once()
-
-        with patch.object(QMessageBox, "warning") as mock_warn:
-            self.widget.stream_edits[0].setText("20")
-            self.widget.stream_edits[1].setText("30")
-            self.widget.normalize_streams()
-            mock_warn.assert_called_once()
-
-        # Connect inlet stream -> Molar_Flow & Mass_Flow equalize, normalize, auto_distribute
-        self._build_connected_node()
-        self.assertEqual(self.widget.get_input_flow("Molar_Flow"), 100.0)
-        self.assertEqual(self.widget.get_input_flow("Mass_Flow"), 1800.0)
-
-        self.widget.equalize_streams()
-        self.assertAlmostEqual(float(self.widget.stream_edits[0].text()), 50.0, places=4)
-
-        self.widget.stream_edits[0].setText("10")
-        self.widget.stream_edits[1].setText("30")
-        self.widget.normalize_streams()
-        self.assertAlmostEqual(float(self.widget.stream_edits[0].text()), 25.0, places=4)
-        self.assertAlmostEqual(float(self.widget.stream_edits[1].text()), 75.0, places=4)
-
-        self.widget.auto_distribute_from_input()
-        self.assertAlmostEqual(float(self.widget.stream_edits[0].text()), 50.0, places=4)
-
-    def test_param_submit_validation_and_connected_names(self):
-        node_splitter = self._build_connected_node()
-        self.widget.update_connected_component_names()
-        self.assertEqual(self.widget.stream_names[0].text(), "OutMS1")
-        self.assertEqual(self.widget.stream_names[1].text(), "OutMS2")
-
-        # Autosize check
-        self.widget._has_autosized = False
-        self.widget._autosize()
-        self.assertTrue(self.widget._has_autosized)
-
-        with patch.object(QMessageBox, "warning") as mock_warn:
-            # Empty input
-            self.widget.stream_edits[0].setText("")
-            self.widget.param()
-            # Negative input
-            self.widget.stream_edits[0].setText("-0.2")
-            self.widget.param()
-            # Split ratios not summing to 1.0
-            self.widget.stream_edits[0].setText("0.3")
-            self.widget.stream_edits[1].setText("0.3")
-            self.widget.param()
-            # Invalid non-numeric input -> ValueError
-            self.widget.stream_edits[0].setText("abc")
-            self.widget.param()
-            self.assertEqual(mock_warn.call_count, 4)
-
-        # Valid Split_Ratio submission
-        self.widget.stream_edits[0].setText("0.6")
-        self.widget.stream_edits[1].setText("0.4")
-        self.widget.show()
-        self.widget.param()
-        self.assertFalse(self.widget.isVisible())
-        self.assertEqual(len(node_splitter.output), 2)
-
-        # Valid Molar_Flow submission (including auto-split when both 0, and mismatch warning)
-        self.widget.cb2.setCurrentText("Molar_Flow")
-        with patch.object(QMessageBox, "warning") as mock_warn:
-            self.widget.stream_edits[0].setText("10")
-            self.widget.stream_edits[1].setText("10")
-            self.widget.param()
-            mock_warn.assert_called_once()
-
-        self.widget.stream_edits[0].setText("0")
-        self.widget.stream_edits[1].setText("0")
-        self.widget.param()
+class MockSocket:
+    def __init__(self, socket_id=1, parent=None):
+        self.id = socket_id
+        self.parent = parent
+        self.in_lines = []
+        self.out_lines = []
 
 
-if __name__ == '__main__':
-    unittest.main()
+class MockLine:
+    def __init__(self, source_socket, target_socket):
+        self.source = source_socket
+        self.target = target_socket
+
+
+class MockNodeItem:
+    def __init__(self, obj, num_inputs=1, num_outputs=2):
+        self.obj = obj
+        self.input = [MockSocket(socket_id=i, parent=self) for i in range(num_inputs)]
+        self.output = [MockSocket(socket_id=i, parent=self) for i in range(num_outputs)]
+        self.update_output_ports = MagicMock()
+
+
+class MockGraphicsView:
+    def __init__(self, items=None):
+        self._items = items or []
+        self._scroll_bar = MagicMock()
+        self._scroll_bar.value.return_value = 100
+
+    def items(self):
+        return list(self._items)
+
+    def horizontalScrollBar(self):
+        return self._scroll_bar
+
+
+class MockContainerInstance:
+    def __init__(self):
+        self.graphics = MagicMock()
+        self.graphics.graphicsView = MockGraphicsView()
+
+
+@pytest.fixture(autouse=True)
+def setup_app_and_compounds():
+    app = QApplication.instance() or QApplication(sys.argv)
+    compound_selected.clear()
+    compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
+    yield app
+    compound_selected.clear()
+    while QApplication.overrideCursor() is not None:
+        QApplication.restoreOverrideCursor()
+
+
+@pytest.fixture
+def splitter_fixture():
+    obj = Splitter("Splitter1")
+    container = MockContainerInstance()
+    node_item = MockNodeItem(obj, num_inputs=1, num_outputs=2)
+    container.graphics.graphicsView._items.append(node_item)
+    widget = DockWidgetSplitter("Splitter1", "Splitter", obj, container)
+    return widget, obj, container, node_item
+
+
+def test_splitter_initialization(splitter_fixture):
+    widget, obj, _, _ = splitter_fixture
+    assert widget.name == "Splitter1"
+    assert widget.type == "Splitter"
+    assert widget.obj is obj
+    assert widget.windowTitle() == obj.name
+    assert widget.no_combo.currentText() == "2"
+    assert widget.cb2.currentText() == "Split_Ratio"
+    assert len(widget.stream_edits) == 2
+
+
+def test_equalize_streams_split_ratio(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    widget.cb2.setCurrentText("Split_Ratio")
+    widget.equalize_streams()
+    assert float(widget.stream_edits[0].text()) == pytest.approx(0.5, 0.001)
+    assert float(widget.stream_edits[1].text()) == pytest.approx(0.5, 0.001)
+
+
+def test_equalize_streams_flow_missing_input(splitter_fixture):
+    widget, _, container, _ = splitter_fixture
+    container.graphics.graphicsView._items.clear()
+    widget.cb2.setCurrentText("Molar_Flow")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.equalize_streams()
+        mock_warn.assert_called_once()
+        assert "Input Missing" in mock_warn.call_args[0][1]
+
+
+def test_equalize_streams_molar_flow_success(splitter_fixture):
+    widget, _, _, node_item = splitter_fixture
+    widget.cb2.setCurrentText("Molar_Flow")
+
+    source_obj = MagicMock()
+    source_obj.variables = {'F_p[1]': {'value': 100.0}}
+    source_node = MagicMock()
+    source_node.obj = source_obj
+    source_socket = MockSocket(1, parent=source_node)
+    line = MockLine(source_socket, node_item.input[0])
+    node_item.input[0].in_lines.append(line)
+
+    widget.equalize_streams()
+    assert float(widget.stream_edits[0].text()) == pytest.approx(50.0, 0.001)
+    assert float(widget.stream_edits[1].text()) == pytest.approx(50.0, 0.001)
+
+
+def test_normalize_streams_zero_sum(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    for edit in widget.stream_edits:
+        edit.setText("0.0")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.normalize_streams()
+        mock_warn.assert_called_once()
+        assert "Cannot normalize zero values" in mock_warn.call_args[0][2]
+
+
+def test_normalize_streams_split_ratio(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    widget.cb2.setCurrentText("Split_Ratio")
+    widget.stream_edits[0].setText("2.0")
+    widget.stream_edits[1].setText("6.0")
+    widget.normalize_streams()
+    assert float(widget.stream_edits[0].text()) == pytest.approx(0.25, 0.001)
+    assert float(widget.stream_edits[1].text()) == pytest.approx(0.75, 0.001)
+
+
+def test_normalize_streams_flow_missing_input(splitter_fixture):
+    widget, _, container, _ = splitter_fixture
+    container.graphics.graphicsView._items.clear()
+    widget.cb2.setCurrentText("Mass_Flow")
+    widget.stream_edits[0].setText("2.0")
+    widget.stream_edits[1].setText("6.0")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.normalize_streams()
+        mock_warn.assert_called_once()
+        assert "Input Missing" in mock_warn.call_args[0][1]
+
+
+def test_normalize_streams_flow_success(splitter_fixture):
+    widget, _, _, node_item = splitter_fixture
+    widget.cb2.setCurrentText("Mass_Flow")
+
+    source_obj = MagicMock()
+    source_obj.variables = {'Fm_p[1]': {'value': 200.0}}
+    source_node = MagicMock()
+    source_node.obj = source_obj
+    source_socket = MockSocket(1, parent=source_node)
+    line = MockLine(source_socket, node_item.input[0])
+    node_item.input[0].in_lines.append(line)
+
+    widget.stream_edits[0].setText("10.0")
+    widget.stream_edits[1].setText("30.0")
+    widget.normalize_streams()
+    assert float(widget.stream_edits[0].text()) == pytest.approx(50.0, 0.001)
+    assert float(widget.stream_edits[1].text()) == pytest.approx(150.0, 0.001)
+
+
+def test_get_input_flow_various_conditions(splitter_fixture):
+    widget, _, container, node_item = splitter_fixture
+
+    # 1. No node item
+    container.graphics.graphicsView._items.clear()
+    assert widget.get_input_flow("Molar_Flow") is None
+
+    # 2. Node item with no input socket
+    container.graphics.graphicsView._items.append(node_item)
+    node_item.input.clear()
+    assert widget.get_input_flow("Molar_Flow") is None
+
+    # 3. Input socket with no in_lines
+    node_item.input.append(MockSocket(1, parent=node_item))
+    assert widget.get_input_flow("Molar_Flow") is None
+
+    # 4. Valid lines for Molar_Flow and Mass_Flow
+    source_obj = MagicMock()
+    source_obj.name = "InStream"
+    source_obj.variables = {
+        'F_p[1]': {'value': 123.45},
+        'Fm_p[1]': {'value': 678.90}
+    }
+    source_node = MagicMock()
+    source_node.obj = source_obj
+    source_socket = MockSocket(1, parent=source_node)
+    line = MockLine(source_socket, node_item.input[0])
+    node_item.input[0].in_lines.append(line)
+
+    assert widget.get_input_flow("Molar_Flow") == pytest.approx(123.45)
+    assert widget.get_input_flow("Mass_Flow") == pytest.approx(678.90)
+
+
+def test_auto_distribute_from_input(splitter_fixture):
+    widget, _, _, node_item = splitter_fixture
+    widget.cb2.setCurrentText("Split_Ratio")
+    # Returns early for Split_Ratio
+    widget.auto_distribute_from_input()
+
+    widget.cb2.setCurrentText("Molar_Flow")
+    # If no inlet flow, zeroes out
+    widget.auto_distribute_from_input()
+    for edit in widget.stream_edits:
+        assert edit.text() == "0.000000"
+
+    # With negative inlet flow
+    source_obj = MagicMock()
+    source_obj.variables = {'F_p[1]': {'value': -50.0}}
+    source_node = MagicMock()
+    source_node.obj = source_obj
+    source_socket = MockSocket(1, parent=source_node)
+    node_item.input[0].in_lines = [MockLine(source_socket, node_item.input[0])]
+    widget.auto_distribute_from_input()
+
+    # With positive inlet flow (e.g. 10.0 split over 2 outlets)
+    source_obj.variables['F_p[1]']['value'] = 10.0
+    widget.auto_distribute_from_input()
+    assert float(widget.stream_edits[0].text()) == pytest.approx(5.0, 0.0001)
+    assert float(widget.stream_edits[1].text()) == pytest.approx(5.0, 0.0001)
+
+
+def test_on_output_count_changed(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    widget.no_combo.setCurrentText("3")
+    assert len(widget.stream_edits) == 3
+    assert float(widget.stream_edits[0].text()) == pytest.approx(1.0 / 3.0, 0.0001)
+
+    # Change to Molar Flow and then change count
+    widget.cb2.setCurrentText("Molar_Flow")
+    widget.no_combo.setCurrentText("4")
+    assert len(widget.stream_edits) == 4
+
+
+def test_fun_calculation_type_toggle(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    widget.cb2.setCurrentText("Molar_Flow")
+    for u in widget.stream_units:
+        assert u.text() == "mol/s"
+
+    widget.cb2.setCurrentText("Mass_Flow")
+    for u in widget.stream_units:
+        assert u.text() == "g/s"
+
+    widget.cb2.setCurrentText("Split_Ratio")
+    for u in widget.stream_units:
+        assert u.text() == ""
+
+
+def test_param_validation_and_submission(splitter_fixture):
+    widget, obj, _, node_item = splitter_fixture
+    obj.param_setter = MagicMock()
+
+    # 1. Empty field
+    widget.stream_edits[0].setText("")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "Invalid Input" in mock_warn.call_args[0][1]
+
+    # 2. Negative field
+    widget.stream_edits[0].setText("-0.5")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "cannot be negative" in mock_warn.call_args[0][2]
+
+    # 3. Non-numeric field
+    widget.stream_edits[0].setText("abc")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "valid numeric values" in mock_warn.call_args[0][2]
+
+    # 4. Split Ratio sum != 1.0
+    widget.cb2.setCurrentText("Split_Ratio")
+    widget.stream_edits[0].setText("0.3")
+    widget.stream_edits[1].setText("0.3")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "Invalid Split Ratio" in mock_warn.call_args[0][1]
+
+    # 5. Split Ratio valid submission
+    widget.stream_edits[0].setText("0.6")
+    widget.stream_edits[1].setText("0.4")
+    widget.param()
+    obj.param_setter.assert_called_once_with([2, "Split_Ratio", 0.6, 0.4])
+    node_item.update_output_ports.assert_called_once_with(2)
+
+    # 6. Molar Flow without input stream
+    widget.cb2.setCurrentText("Molar_Flow")
+    widget.stream_edits[0].setText("50.0")
+    widget.stream_edits[1].setText("50.0")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "Input Missing" in mock_warn.call_args[0][1]
+
+    # 7. Molar Flow with input stream but wrong total
+    source_obj = MagicMock()
+    source_obj.variables = {'F_p[1]': {'value': 100.0}}
+    source_node = MagicMock()
+    source_node.obj = source_obj
+    source_socket = MockSocket(1, parent=source_node)
+    node_item.input[0].in_lines = [MockLine(source_socket, node_item.input[0])]
+
+    widget.stream_edits[0].setText("30.0")
+    widget.stream_edits[1].setText("30.0")
+    with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+        widget.param()
+        mock_warn.assert_called_once()
+        assert "Invalid Flow" in mock_warn.call_args[0][1]
+
+    # 8. Molar Flow with total == 0 (auto distribute)
+    widget.stream_edits[0].setText("0.0")
+    widget.stream_edits[1].setText("0.0")
+    obj.param_setter.reset_mock()
+    widget.param()
+    obj.param_setter.assert_called_once_with([2, "Molar_Flow", 50.0, 50.0])
+
+    # 9. Molar Flow with exact matching sum
+    widget.stream_edits[0].setText("70.0")
+    widget.stream_edits[1].setText("30.0")
+    obj.param_setter.reset_mock()
+    widget.param()
+    obj.param_setter.assert_called_once_with([2, "Molar_Flow", 70.0, 30.0])
+
+
+def test_update_connected_component_names(splitter_fixture):
+    widget, _, container, node_item = splitter_fixture
+
+    # Case A: Splitter node not found
+    container.graphics.graphicsView._items.clear()
+    widget.update_connected_component_names()
+
+    # Case B: Outputs not connected
+    container.graphics.graphicsView._items.append(node_item)
+    widget.update_connected_component_names()
+    assert widget.stream_names[0].text() == "Not Connected"
+
+    # Case C: Connected to target node with target.parent.obj.name
+    target_obj1 = MagicMock()
+    target_obj1.name = "Comp1"
+    target_node1 = MagicMock()
+    target_node1.obj = target_obj1
+    target_sock1 = MockSocket(1, parent=target_node1)
+    node_item.output[0].out_lines = [MockLine(node_item.output[0], target_sock1)]
+
+    # Case D: Connected to target node with target.parent.parent.obj.name
+    target_obj2 = MagicMock()
+    target_obj2.name = "Comp2"
+    target_parent2 = MagicMock()
+    target_parent2.obj = target_obj2
+    target_node2 = MagicMock()
+    del target_node2.obj
+    target_node2.parent = target_parent2
+    target_sock2 = MockSocket(2, parent=target_node2)
+    node_item.output[1].out_lines = [MockLine(node_item.output[1], target_sock2)]
+
+    widget.update_connected_component_names()
+    assert widget.stream_names[0].text() == "Comp1"
+    assert widget.stream_names[1].text() == "Comp2"
+
+
+def test_splitter_show_event_and_autosize(splitter_fixture):
+    widget, _, _, _ = splitter_fixture
+    main_window = QMainWindow()
+    main_window.addDockWidget(Qt.LeftDockWidgetArea, widget)
+    widget._has_autosized = False
+    widget._autosize()
+    assert widget._has_autosized is True
+
+    # Floating widget autosize branch
+    widget.setFloating(True)
+    widget._has_autosized = False
+    widget._autosize()
+    assert widget._has_autosized is True

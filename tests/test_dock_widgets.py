@@ -14,8 +14,9 @@ app = QApplication.instance() or QApplication([])
 from python.utils.ComponentSelector import compound_selected
 from python.utils.UnitOperations import (
     Mixer, Splitter, Flash, CompoundSeparator,
-    AdiabaticCompressor, ShortcutColumn, DistillationColumn
+    AdiabaticCompressor, ShortcutColumn, DistillationColumn, Heater
 )
+from python.DockWidgets.DockWidget import BaseDockWidget, DockWidget
 from python.DockWidgets.DockWidgetMixer import DockWidgetMixer
 from python.DockWidgets.DockWidgetSplitter import DockWidgetSplitter
 from python.DockWidgets.DockWidgetFlash import DockWidgetFlash
@@ -161,6 +162,206 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
         dock = DockWidgetDistillationColumn("DistCol1", "DistillationColumn", dc, self.container)
         self.assertEqual(dock.windowTitle(), "DistCol1")
         self.assertIsNotNone(dock.cb1.currentText())
+
+    # ----------------- DockWidget1 (Heater / Generic Unit Ops) ----------------- #
+
+    def test_dock_widget1_initialization_modes_and_param(self):
+        heater = Heater()
+        heater.name = "Heater1"
+        heater.param_setter = MagicMock()
+        self.container.unit_operations.append(heater)
+
+        mock_item = MagicMock()
+        mock_item.name = "Heater1"
+        mock_item.obj = heater
+        mock_item.update_tooltip = MagicMock()
+        self.container.graphics.graphicsView = MagicMock()
+        self.container.graphics.graphicsView.items.return_value = [mock_item]
+        self.container.graphics.graphicsView.horizontalScrollBar.return_value.value.return_value = 100
+
+        dock = DockWidget("Heater1", "Heater", heater, self.container)
+        self.assertEqual(dock.windowTitle(), "Heater1")
+        self.assertGreater(dock.comboBox.count(), 0)
+
+        # Switch modes
+        dock.comboBox.setCurrentIndex(1)
+        self.assertGreater(len(dock.input_dict), 0)
+
+        # Param submit
+        dock.input_dict[None] = None
+        for k, edit in dock.input_dict.items():
+            if hasattr(edit, "setText"):
+                edit.setText("350")
+        dock.show()
+        dock.param()
+        heater.param_setter.assert_called_once()
+        mock_item.update_tooltip.assert_called_once()
+
+    def test_dock_widget1_param_empty_shows_error(self):
+        heater = Heater()
+        heater.name = "Heater2"
+        dock = DockWidget("Heater2", "Heater", heater, self.container)
+        dock.show_error = MagicMock()
+
+        for k, edit in dock.input_dict.items():
+            if hasattr(edit, "setText"):
+                edit.setText("")
+                break
+        dock.param()
+        dock.show_error.assert_called_once()
+
+    def test_dock_widget1_results_category(self):
+        heater = Heater()
+        heater.name = "Heater1"
+        self.container.result = [["Heater1.Tout", "Heater1.Q"], [360.0, 12000.0]]
+        self.container.fetch_object = MagicMock(return_value=heater)
+
+        dock = DockWidget("Heater1", "Heater", heater, self.container)
+        dock.results_category("Heater1")
+        self.assertGreater(dock.tableWidget.rowCount(), 0)
+
+    # ----------------- BaseDockWidget Rename and Utilities ----------------- #
+
+    def test_base_dock_widget_rename_validation(self):
+        heater = Heater()
+        heater.name = "Heater1"
+        self.container.flowsheet = MagicMock()
+        self.container.flowsheet.unit_operations = {"Heater1": heater}
+        self.container.flowsheet.streams = {}
+        self.container.undo_manager = MagicMock()
+        self.container.result = [["Heater1.Tout"], [350.0]]
+
+        dock = DockWidget("Heater1", "Heater", heater, self.container)
+        dock.le_name.setText("Heater1")
+        # Same name -> True
+        self.assertTrue(dock.rename_component())
+
+        # Empty name -> Warning
+        dock.le_name.setText("   ")
+        from unittest.mock import patch
+        with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+            self.assertFalse(dock.rename_component())
+            mock_warn.assert_called_once()
+
+        # Invalid characters (hyphen / space) -> Warning
+        dock.le_name.setText("Invalid-Name")
+        with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+            self.assertFalse(dock.rename_component())
+            mock_warn.assert_called_once()
+
+        # Valid rename with energy stream cascades and flowsheet result_data
+        heater.EngStms = MagicMock()
+        heater.EngStm1 = MagicMock()
+        heater.EngStm2 = MagicMock()
+        self.container.flowsheet.result_data = [["Heater1.Q"], [1000.0]]
+        self.container.fetch_object = MagicMock(return_value=heater)
+        mock_node = MagicMock()
+        mock_node.text = MagicMock()
+        dock.node_item = mock_node
+        dock.le_name.setText("HeaterNew")
+        self.assertTrue(dock.rename_component())
+        self.assertEqual(dock.name, "HeaterNew")
+        self.assertEqual(heater.name, "HeaterNew")
+        self.assertEqual(heater.EngStms.name, "EngStmHeaterNew")
+        self.assertEqual(heater.EngStm1.name, "EngStm1HeaterNew")
+        self.assertEqual(heater.EngStm2.name, "EngStm2HeaterNew")
+        self.assertEqual(self.container.flowsheet.result_data[0][0], "HeaterNew.Q")
+        self.assertEqual(mock_node.name, "HeaterNew")
+        mock_node.text.setPlainText.assert_called_once_with("HeaterNew")
+
+    def test_base_dock_widget_set_read_only(self):
+        heater = Heater()
+        heater.name = "HeaterReadOnly"
+        dock = DockWidget("HeaterReadOnly", "Heater", heater, self.container)
+        dock.x_pclist = [MagicMock()]
+        dock.calculationGroupBox = MagicMock()
+        btn = MagicMock()
+        grid = MagicMock()
+        grid.count.return_value = 1
+        item = MagicMock()
+        from PyQt5.QtWidgets import QPushButton
+        mock_btn = QPushButton("Submit")
+        item.widget.return_value = mock_btn
+        grid.itemAt.return_value = item
+        dock.gridLayout = grid
+
+        dock.set_read_only(True)
+        self.assertFalse(dock.comboBox.isEnabled())
+        self.assertFalse(mock_btn.isEnabled())
+        dock.set_read_only(False)
+        self.assertTrue(dock.comboBox.isEnabled())
+        self.assertTrue(mock_btn.isEnabled())
+
+    def test_base_dock_widget_get_node_item_and_clear_results(self):
+        heater = Heater()
+        heater.name = "HeaterGetItem"
+        dock = DockWidget("HeaterGetItem", "Heater", heater, self.container)
+        dock.node_item = None
+
+        mock_item = MagicMock()
+        mock_item.dock_widget = dock
+        from python.utils import Graphics as g_mod
+        g_mod.lst.append(mock_item)
+
+        try:
+            item = dock.get_node_item()
+            self.assertEqual(item, mock_item)
+        finally:
+            if mock_item in g_mod.lst:
+                g_mod.lst.remove(mock_item)
+
+        # Scene items fallback
+        dock.node_item = None
+        mock_scene_item = MagicMock()
+        mock_scene_item.obj = heater
+        self.container.graphics.scene = MagicMock()
+        self.container.graphics.scene.items.return_value = [mock_scene_item]
+        self.assertEqual(dock.get_node_item(), mock_scene_item)
+
+        dock.clear_results()
+        self.assertEqual(dock.tableWidget.rowCount(), 0)
+
+        # BaseDockWidget.show_result
+        mock_dw = MagicMock()
+        mock_dw.name = "MockDW"
+        BaseDockWidget.show_result([mock_dw])
+        mock_dw.results_category.assert_called_once_with("MockDW")
+
+    def test_base_dock_widget_rename_duplicates_and_check(self):
+        heater = Heater()
+        heater.name = "HeaterOrig"
+        mock_existing = MagicMock()
+        mock_existing.name = "ExistingUnit"
+        self.container.unit_operations = [mock_existing]
+
+        dock = DockWidget("HeaterOrig", "Heater", heater, self.container)
+
+        # Duplicate unit operation
+        dock.le_name.setText("ExistingUnit")
+        from unittest.mock import patch
+        with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+            self.assertFalse(dock.rename_component())
+            mock_warn.assert_called()
+
+        # Invalid starts with number
+        dock.le_name.setText("123Bad")
+        with patch("PyQt5.QtWidgets.QMessageBox.warning") as mock_warn:
+            self.assertFalse(dock.rename_component())
+            mock_warn.assert_called()
+
+        # check_and_rename_if_needed
+        dock.le_name.setText("HeaterOrig")
+        self.assertTrue(dock.check_and_rename_if_needed())
+
+    def test_dock_widget_empty_modes_fallback(self):
+        heater = Heater()
+        heater.name = "HeaterNoModes"
+        heater.modes_list = []
+        heater.param_getter = MagicMock(return_value={"Tout": 350})
+
+        dock = DockWidget("HeaterNoModes", "Heater", heater, self.container)
+        self.assertFalse(dock.comboBox.isEnabled())
+        self.assertIn("Tout", dock.input_dict)
 
 
 if __name__ == "__main__":

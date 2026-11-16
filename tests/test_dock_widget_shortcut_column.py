@@ -1,83 +1,103 @@
-﻿import os
+import os
 import sys
-import unittest
-from unittest.mock import MagicMock
-
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+from unittest.mock import MagicMock, patch
+import pytest
+from PyQt5.QtWidgets import QApplication
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main'))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main', 'python'))
+for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 'src', 'main', 'python')]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-from PyQt5.QtWidgets import QApplication, QTextBrowser, QGraphicsView
-app = QApplication.instance() or QApplication([])
-
-from python.utils.Container import Container
+import python.utils.Container
 from python.utils.ComponentSelector import compound_selected
 from python.utils.UnitOperations import ShortcutColumn
-from python.utils.Container import Container
 from python.DockWidgets.DockWidgetShortcutColumn import DockWidgetShortcutColumn
 
 
-class TestDockWidgetShortcutColumn(unittest.TestCase):
-    def setUp(self):
-        compound_selected.clear()
-        compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)", "Methanol(chemsep)"])
-        ShortcutColumn.counter = 1
+class MockContainerInstance:
+    def __init__(self):
+        self.graphics = MagicMock()
+        self.graphics.graphicsView = MagicMock()
+        self.graphics.graphicsView.horizontalScrollBar = MagicMock()
+        self.graphics.graphicsView.horizontalScrollBar.return_value.value.return_value = 100
+        self.result = [[], []]
+        self._objects = {}
 
-        self.browser = QTextBrowser()
-        self.view = QGraphicsView()
-        self.container = Container(self.browser, self.view)
-
-        self.sc = ShortcutColumn()
-        self.sc.name = "SC_1"
-        self.container.unit_operations.append(self.sc)
-        self.widget = DockWidgetShortcutColumn(self.sc.name, "ShortcutColumn", self.sc, self.container)
-
-    def test_init_and_input_params_list(self):
-        self.assertEqual(self.widget.windowTitle(), "SC_1")
-        self.assertEqual(len(self.widget.input_dict), 9)
-        self.assertEqual(self.widget.cb1.count(), 3)
-        self.assertEqual(self.widget.cb5.count(), 2)
-        self.assertGreater(self.widget.cb6.count(), 0)
-
-    def test_update_compounds(self):
-        compound_selected.append("Acetone(chemsep)")
-        self.sc.compounds = list(compound_selected)
-        self.widget.update_compounds()
-        self.assertEqual(self.widget.cb1.count(), 4)
-        self.assertEqual(self.widget.cb2.count(), 4)
-
-    def test_param_submit_valid_and_invalid(self):
-        self.widget.le3.setText("0.02")
-        self.widget.le4.setText("0.98")
-        self.widget.le6.setText("101325")
-        self.widget.le7.setText("101325")
-        self.widget.le8.setText("1.5")
-
-        self.widget.show()
-        self.widget.param()
-        self.assertEqual(self.sc.variables['RR']['value'], 1.5)
-        self.assertFalse(self.widget.isVisible())
-
-        # Invalid float triggers exception handler cleanly
-        self.widget.le8.setText("not_a_number")
-        self.widget.param()
-
-    def test_results_category_populates_table(self):
-        param_key = self.sc.result_parameters[0]
-        self.container.result = [
-            [f"SC_1.{param_key}"],
-            [12.3456],
-        ]
-        self.widget.results_category("SC_1")
-        self.assertEqual(self.widget.tableWidget.rowCount(), 1)
-        self.assertEqual(self.sc.variables[param_key]['value'], 12.3456)
-
-        # Exception branch when result is None
-        self.container.result = None
-        self.widget.results_category("SC_1")
+    def fetch_object(self, name):
+        return self._objects.get(name)
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.fixture(autouse=True)
+def setup_compounds():
+    app = QApplication.instance() or QApplication(sys.argv)
+    compound_selected.clear()
+    compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
+    yield app
+    compound_selected.clear()
+    while QApplication.overrideCursor() is not None:
+        QApplication.restoreOverrideCursor()
+
+
+@pytest.fixture
+def shortcut_fixture():
+    obj = ShortcutColumn("Shortcut1")
+    obj.param_setter = MagicMock()
+    container = MockContainerInstance()
+    container._objects[obj.name] = obj
+    widget = DockWidgetShortcutColumn(obj.name, "ShortcutColumn", obj, container)
+    return widget, obj, container
+
+
+def test_dock_widget_shortcut_column_init(shortcut_fixture):
+    widget, obj, _ = shortcut_fixture
+    assert widget.name == obj.name
+    assert widget.type == "ShortcutColumn"
+    assert widget.obj is obj
+    assert widget.windowTitle() == obj.name
+    assert len(widget.input_dict) == 9
+
+
+def test_dock_widget_shortcut_column_update_compounds(shortcut_fixture):
+    widget, obj, _ = shortcut_fixture
+    obj.variables['HKey']['value'] = 1
+    obj.variables['LKey']['value'] = 2
+    widget.update_compounds()
+    assert widget.cb1.currentText() == "Water"
+    assert widget.cb2.currentText() == "Ethanol"
+
+
+def test_dock_widget_shortcut_column_param_submission(shortcut_fixture):
+    widget, obj, _ = shortcut_fixture
+    # input_dict layout:
+    # 0: cb1 (HKey)
+    # 1: cb2 (LKey)
+    # 2: le1 (HKey_x_pc)
+    # 3: le2 (LKey_x_pc)
+    # 4: cb3 (Ctype)
+    # 5: le3 (Pcond)
+    # 6: le4 (Preb)
+    # 7: le5 (RR)
+    # 8: cbTP (thermo)
+    widget.input_dict[2].setText("0.01")
+    widget.input_dict[3].setText("0.01")
+    widget.input_dict[5].setText("101325")
+    widget.input_dict[6].setText("101325")
+    widget.input_dict[7].setText("1.5")
+
+    widget.show()
+    widget.param()
+
+    obj.param_setter.assert_called_once()
+    assert not widget.isVisible()
+
+
+def test_dock_widget_shortcut_column_results_category(shortcut_fixture):
+    widget, obj, container = shortcut_fixture
+    name = obj.name
+    headers = [f"{name}.Ntmin", f"{name}.RRmin", f"{name}.Nt", f"{name}.Qc", f"{name}.Qr"]
+    values = [8.5, 1.2, 16.0, 50000.0, 60000.0]
+    container.result = [headers, values]
+
+    widget.results_category(name)
+    assert widget.tableWidget.rowCount() == 5
