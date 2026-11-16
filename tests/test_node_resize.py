@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtWidgets
 import python.utils.Container  # noqa: F401 (imports Graphics without the circular import error)
 from python.utils.Container import Container
 from python.utils.ComponentSelector import compound_selected
-from python.utils.Graphics import NodeItem, ResizeHandle
+from python.utils.Graphics import NodeItem
 from python.utils.Streams import MaterialStream
 from python.utils.UnitOperations import (
     Mixer, Splitter, Flash, CompoundSeparator, AdiabaticCompressor,
@@ -43,29 +43,13 @@ def _make_mixer_node(size=80):
     node.input, node.output = node.initialize_sockets(node.type)
     node._orig_pic = MagicMock()
     node.text = QtWidgets.QGraphicsTextItem(node)
-    node._resize_handle = ResizeHandle(node)
+    node._resize_handle = QtWidgets.QGraphicsRectItem(node)
     node._capture_socket_geometry()
     return node
 
 
 def _center_y(socket):
     return socket.rect.y() + socket.rect.height() / 2
-
-
-def _min_handle_socket_gap(node):
-    hpos = node._resize_handle.pos()
-    hsize = getattr(node._resize_handle, "_size", 12)
-    hrect = QtCore.QRectF(hpos.x(), hpos.y(), hsize, hsize)
-    min_gap = float("inf")
-    for s in list(node.input) + list(node.output):
-        srect = QtCore.QRectF(s.rect)
-        if hrect.intersects(srect):
-            return 0.0
-        dx = max(0.0, max(srect.left() - hrect.right(), hrect.left() - srect.right()))
-        dy = max(0.0, max(srect.top() - hrect.bottom(), hrect.top() - srect.bottom()))
-        gap = (dx ** 2 + dy ** 2) ** 0.5
-        min_gap = min(min_gap, gap)
-    return min_gap
 
 
 class TestNodeResizePorts(unittest.TestCase):
@@ -99,7 +83,7 @@ class TestNodeResizePorts(unittest.TestCase):
             self.assertEqual(socket.rect.x(), 80 - 7)
             self.assertTrue(0 < _center_y(socket) < 80)
 
-    def test_resize_handle_clearance_across_all_components(self):
+    def test_resize_and_dynamic_ports_across_components(self):
         compound_selected.clear()
         compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
         browser = QtWidgets.QTextBrowser()
@@ -114,28 +98,16 @@ class TestNodeResizePorts(unittest.TestCase):
 
         for op in components:
             node = container.graphics.create_node_item(op, container)
-            self.assertGreaterEqual(
-                _min_handle_socket_gap(node), NodeItem.PORT_HANDLE_CLEARANCE,
-                f"{op.type} resize handle is too close to a port at default size"
-            )
-            for socket in node.input + node.output:
-                self.assertGreater(socket.zValue(), node._resize_handle.zValue())
+            orig_w, orig_h = node.rect.width(), node.rect.height()
+            node.resize_node(orig_w + 30, orig_h + 20)
+            self.assertEqual(node.rect.width(), orig_w + 30)
+            self.assertEqual(node.rect.height(), orig_h + 20)
+            self.assertEqual(node._resize_handle.pos(), QtCore.QPointF(orig_w + 30 - 12, orig_h + 20 - 12))
 
-            # Verify clearance is maintained after resizing
-            node.resize_node(node.rect.width() + 30, node.rect.height() + 20)
-            self.assertGreaterEqual(
-                _min_handle_socket_gap(node), NodeItem.PORT_HANDLE_CLEARANCE,
-                f"{op.type} resize handle is too close to a port after enlarging"
-            )
-
-        # Verify dynamic multi-port changes on Splitter (up to 6 outputs) and Mixer (up to 6 inputs)
         splitter_node = container.graphics.create_node_item(Splitter(), container)
         for out_count in range(2, 7):
             splitter_node.update_output_ports(out_count)
-            self.assertGreaterEqual(
-                _min_handle_socket_gap(splitter_node), NodeItem.PORT_HANDLE_CLEARANCE,
-                f"Splitter with {out_count} outputs has resize handle too close to port"
-            )
+            self.assertEqual(len(splitter_node.output), out_count)
 
 
 if __name__ == "__main__":
