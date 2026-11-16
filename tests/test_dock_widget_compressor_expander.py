@@ -1,96 +1,89 @@
-import os
+﻿import os
 import sys
+import unittest
 from unittest.mock import MagicMock
-import pytest
-from PyQt5.QtWidgets import QApplication
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-for p in [os.path.join(PROJECT_ROOT, 'src', 'main'), os.path.join(PROJECT_ROOT, 'src', 'main', 'python')]:
-    if p not in sys.path:
-        sys.path.insert(0, p)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main'))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main', 'python'))
 
-_saved_modules = {k: sys.modules.get(k) for k in [
-    'utils.Graphics', 'python.utils.Graphics', 'utils.Container', 'python.utils.Container'
-]}
+from PyQt5.QtWidgets import QApplication, QTextBrowser, QGraphicsView
+app = QApplication.instance() or QApplication([])
 
-mock_graphics = MagicMock()
-mock_container = MagicMock()
-mock_graphics.lst = []
-
-sys.modules['utils.Graphics'] = mock_graphics
-sys.modules['python.utils.Graphics'] = mock_graphics
-sys.modules['utils.Container'] = mock_container
-sys.modules['python.utils.Container'] = mock_container
-
-app = QApplication.instance()
-if app is None:
-    app = QApplication(sys.argv)
-
-from DockWidgets.DockWidgetCompressorExpander import DockWidgetCompressorExpander
-
-for k, v in _saved_modules.items():
-    if v is None:
-        sys.modules.pop(k, None)
-    else:
-        sys.modules[k] = v
+from python.utils.Container import Container
+from python.utils.ComponentSelector import compound_selected
+from python.utils.UnitOperations import AdiabaticCompressor, AdiabaticExpander
+from python.utils.Container import Container
+from python.DockWidgets.DockWidgetCompressorExpander import DockWidgetCompressorExpander
 
 
-class MockCompressorObj:
-    def __init__(self, name="Compressor1"):
-        self.name = name
-        self.type = "Compressor"
-        self.modes_list = ["Outlet Pressure", "Pressure Ratio"]
-        self.variables = {
-            "Outlet Pressure": {"name": "Outlet Pressure", "unit": "Pa"},
-            "Pressure Ratio": {"name": "Pressure Ratio", "unit": ""},
-            "Pout": {"name": "Outlet Pressure", "unit": "Pa"},
-            "eff": {"name": "Adiabatic Efficiency", "unit": "%"}
-        }
-        self.param_setter = MagicMock()
+class TestDockWidgetCompressorExpander(unittest.TestCase):
+    def setUp(self):
+        compound_selected.clear()
+        compound_selected.extend(["Water(chemsep)", "Ethanol(chemsep)"])
+        AdiabaticCompressor.counter = 1
+        AdiabaticExpander.counter = 1
 
-    def param_getter(self, mode="Outlet Pressure"):
-        return {"Pout": "200000", "eff": "75"}
+        self.browser = QTextBrowser()
+        self.view = QGraphicsView()
+        self.container = Container(self.browser, self.view)
+
+        self.comp = AdiabaticCompressor()
+        self.comp.name = "Comp_1"
+        self.container.unit_operations.append(self.comp)
+        self.widget = DockWidgetCompressorExpander(
+            self.comp.name, "AdiabaticCompressor", self.comp, self.container
+        )
+
+    def test_modes_and_mode_selection(self):
+        self.assertGreater(self.widget.comboBox.count(), 0)
+        if self.widget.comboBox.count() > 1:
+            self.widget.comboBox.setCurrentIndex(1)
+            self.assertGreater(self.widget.formLayout.count(), 0)
+
+        # Expander instantiation + empty modes_list branch
+        exp = AdiabaticExpander()
+        exp.name = "Exp_1"
+        exp.modes_list = []
+        exp_widget = DockWidgetCompressorExpander("Exp_1", "AdiabaticExpander", exp, self.container)
+        self.assertFalse(exp_widget.comboBox.isEnabled())
+
+    def test_param_submit_tooltip_update_and_empty_error(self):
+        mock_node = MagicMock()
+        mock_node.name = "Comp_1"
+        with unittest.mock.patch.object(self.view, "items", return_value=[mock_node]):
+            for key, field in self.widget.input_dict.items():
+                if key != "Thermo Package" and field is not None:
+                    field.setText("101325")
+            self.widget.show()
+            self.widget.param()
+            mock_node.update_tooltip.assert_called_once()
+            self.assertFalse(self.widget.isVisible())
+
+        # Empty input triggers show_error() branch
+        self.widget.show_error = MagicMock()
+        for key, field in self.widget.input_dict.items():
+            if key != "Thermo Package" and field is not None:
+                field.setText("")
+                break
+        self.widget.param()
+        self.widget.show_error.assert_called_once()
+
+    def test_results_category_show_and_clear(self):
+        var_key = next(iter(self.comp.variables.keys()))
+        self.container.result = [
+            [f"Comp_1.{var_key}"],
+            [45.678],
+        ]
+        DockWidgetCompressorExpander.show_result([self.widget, object()])
+        self.assertEqual(self.widget.tableWidget.rowCount(), 1)
+
+        self.widget.clear_results()
+        self.assertEqual(self.widget.tableWidget.rowCount(), 0)
 
 
-class MockContainerInstance:
-    def __init__(self):
-        self.graphics = MagicMock()
-        self.graphics.graphicsView = MagicMock()
-        self.graphics.graphicsView.horizontalScrollBar = MagicMock()
-        self.graphics.graphicsView.horizontalScrollBar.return_value.value.return_value = 100
+if __name__ == '__main__':
+    unittest.main()
 
-
-@pytest.fixture
-def comp_widget():
-    obj = MockCompressorObj()
-    container = MockContainerInstance()
-    widget = DockWidgetCompressorExpander("Compressor1", "Compressor", obj, container)
-    return widget, obj, container
-
-
-def test_dock_widget_compressor_initialization(comp_widget):
-    widget, obj, _ = comp_widget
-    assert widget.name == "Compressor1"
-    assert widget.type == "Compressor"
-    assert widget.obj == obj
-    assert widget.windowTitle() == "Compressor1"
-    assert widget.comboBox.count() >= 2
-
-
-def test_dock_widget_compressor_mode_selection(comp_widget):
-    widget, _, _ = comp_widget
-    widget.comboBox.setCurrentIndex(1)
-    assert len(widget.input_dict) > 0
-
-
-def test_dock_widget_compressor_param_submission(comp_widget):
-    widget, obj, _ = comp_widget
-    if "Pout" in widget.input_dict and hasattr(widget.input_dict["Pout"], "setText"):
-        widget.input_dict["Pout"].setText("300000")
-    if "eff" in widget.input_dict and hasattr(widget.input_dict["eff"], "setText"):
-        widget.input_dict["eff"].setText("80")
-
-    widget.param()
-    obj.param_setter.assert_called_once()
-    assert widget.dict.get("Pout") == "300000"
-    assert widget.dict.get("eff") == "80"
