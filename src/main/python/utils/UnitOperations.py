@@ -193,7 +193,17 @@ class UnitOperation():
 
         # Mode setting
         if hasattr(self, 'mode') and self.mode:
-            self.OM_data_eqn += f'{self.name}.{self.mode} = {self.mode_val};\n'
+            mode_value = self.mode_val
+
+            # If mode_val is None, use the selected mode's variable value
+            if mode_value is None:
+                mode_value = self.variables.get(self.mode, {}).get('value')
+
+            # Final fallback: never generate None in Modelica
+            if mode_value is None:
+                mode_value = 1
+
+            self.OM_data_eqn += f'{self.name}.{self.mode} = {mode_value};\n'
 
         return self.OM_data_eqn
 
@@ -864,7 +874,7 @@ class Heater(UnitOperation):
             'Tout'  : {'name':'Outlet Temperature',     'value':298.15,  'unit':'K'},
             'Tdel'  : {'name':'Temperature Increase',   'value':0,       'unit':'K'},
             'Q'     : {'name':'Heat Added',             'value':0,       'unit':'W'},
-            'xvapout':  {'name':'Outlet Vapour',        'value':None,    'unit':''}
+            'xvapout':  {'name':'Outlet Vapour',        'value':1,       'unit':''}
         }
 
 class Cooler(UnitOperation):
@@ -886,8 +896,8 @@ class Cooler(UnitOperation):
             'Eff'   : {'name':'Efficiency',                 'value':1,          'unit':''},
             'Tout'  : {'name':'Outlet Temperature',         'value':298.15,     'unit':'K'},
             'Tdel'  : {'name':'Temperature Increase',       'value':0,          'unit':'K'},
-            'Q'     : {'name':'Heat Added',                 'value':0,          'unit':'W'},
-            'xvap'  : {'name':'Vapour Phase Mole Fraction', 'value':None,       'unit':'g/s'},
+            'Q'     : {'name':'Heat Removed',               'value':0,          'unit':'W'},
+            'xvap'  : {'name':'Outlet Vapour',              'value':1,          'unit':'g/s'},
         }
 
 class AdiabaticCompressor(UnitOperation):

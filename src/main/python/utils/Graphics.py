@@ -1465,6 +1465,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.setMinimumSize(220, 250)
         self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.dock_widget.setFeatures(QDockWidget.AllDockWidgetFeatures)
+        self.dock_widget.resize(400, 600)
         if self.main_window is not None and hasattr(self.main_window, 'addDockWidget'):
             self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
 
@@ -2363,15 +2364,39 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def mouseDoubleClickEvent(self, event):
 
-        self.graphicsView.horizontalScrollBarVal = self.graphicsView.horizontalScrollBar().value()
+        self.graphicsView.horizontalScrollBarVal = (
+            self.graphicsView.horizontalScrollBar().value()
+        )
         self.graphicsView.setInteractive(False)
-        # Purge any destroyed widgets from the stack before accessing
+
         import sip
+
         while stack and sip.isdeleted(stack[-1]):
             stack.pop()
+
         if len(stack):
             stack[-1].hide()
+
         self.dock_widget.show()
+        self.dock_widget.raise_()
+
+        # Restore common default Properties Window size
+        if (
+            self.main_window is not None
+            and hasattr(self.main_window, "resizeDocks")
+        ):
+            self.main_window.resizeDocks(
+                [self.dock_widget],
+                [400],
+                Qt.Horizontal
+            )
+
+            self.main_window.resizeDocks(
+                [self.dock_widget],
+                [600],
+                Qt.Vertical
+            )
+
         stack.append(self.dock_widget)
         self.graphicsView.setInteractive(True)
 

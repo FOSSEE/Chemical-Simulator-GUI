@@ -580,7 +580,7 @@ class MaterialStream():
             key_name = f"x_pc[1,{index+1}]"
             safe_set_text(k, key_name)
 
-        for attr in ('btn_normalize', 'btn_equalize', 'cbCompositionBasis'):
+        for attr in ('btn_normalize', 'btn_equalize'):
             w = getattr(dockwidget, attr, None)
             if w is not None and hasattr(w, 'setDisabled'):
                 w.setDisabled(True)
