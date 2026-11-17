@@ -430,25 +430,41 @@ class DockWidget(BaseDockWidget,ui_dialog):
         #print('mode selection ', self.input_dict)
         self.input_params_list()
             
+
     def input_params_list(self):
         try:
-            #print("input_params_list ", self.input_dict)
-            for c,i in enumerate(self.input_dict):
-                #print(i)
-                if i == None:
+            for c, i in enumerate(self.input_dict):
+                if i is None:
                     continue
-                l = QLineEdit(str(self.obj.variables[i]['value']))
+
+                value = self.obj.variables[i]['value']
+
+                # Replace None with 1 in both GUI and model object
+                if value is None:
+                    value = 1
+                    self.obj.variables[i]['value'] = value
+
+                l = QLineEdit(str(value))
                 l.setFixedWidth(80)
+
                 lay = QGridLayout()
-                lay.addWidget(QLabel(self.obj.variables[i]['name']+":"),0,0, alignment=Qt.AlignLeft)
-                lay.addWidget(l,0,1, alignment=Qt.AlignCenter)
-                lay.addWidget(QLabel(self.obj.variables[i]['unit']),0,2, alignment=Qt.AlignLeft)
+                lay.addWidget(
+                    QLabel(self.obj.variables[i]['name'] + ":"),
+                    0, 0, alignment=Qt.AlignLeft
+                )
+                lay.addWidget(l, 0, 1, alignment=Qt.AlignCenter)
+                lay.addWidget(
+                    QLabel(self.obj.variables[i]['unit']),
+                    0, 2, alignment=Qt.AlignLeft
+                )
+
                 self.formLayout.addRow(lay)
                 self.input_dict[i] = l
+
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-        # moved the function to BaseDockWidget class ( )
+
 
     def param(self):
         try:
@@ -462,12 +478,13 @@ class DockWidget(BaseDockWidget,ui_dialog):
                     continue                  
                 else:
                     #print(self.input_dict[i], i, self.obj.type)
-                    if (self.input_dict[i].text()):
-                        self.dict[i] = self.input_dict[i].text()
+                    value = self.input_dict[i].text().strip()
+
+                    if value:
+                        self.dict[i] = value
                     else:
-                        #print(self.input_dict[i].text())
                         self.show_error()
-                        break
+                        return
             
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
@@ -534,4 +551,4 @@ class DockWidget(BaseDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-            # moved the function to BaseDockWidget class
+            # moved the function to BaseDockWidget classf.setMinimumSize(250, 200)

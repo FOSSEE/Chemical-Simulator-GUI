@@ -157,10 +157,20 @@ class Container():
             print("[DEBUG] delete: outer exception:", e)
 
 
+
     def update_components_editability(self):
         """
         Update component editability based on simulation state
-        and current incoming connections.
+        and incoming connections.
+
+        MaterialStream:
+            - Always editable before successful simulation.
+            - Read-only only after successful simulation
+            when it has an incoming connection.
+
+        Other components:
+            - Read-only after successful simulation
+            when they have incoming connections.
         """
         try:
             scene = getattr(self, "scene", None)
@@ -180,7 +190,6 @@ class Container():
                 if dw is None:
                     continue
 
-                # Every connection change ends here, so keep the Connections tab in sync too
                 if hasattr(dw, "refresh_connections"):
                     dw.refresh_connections()
 
@@ -189,35 +198,37 @@ class Container():
                     for sock in getattr(item, "input", [])
                 )
 
-                # MaterialStream editability depends directly on
-                # whether it has an incoming connection.
                 if item.type == "MaterialStream":
 
-                    if has_incoming_connection:
-                        try:
-                            item.obj.disableInputDataTab(dw)
-                        finally:
-                            dw.set_read_only(True)
+                    # Material Stream must remain editable
+                    # until simulation is successful and
+                    # its inlet is connected.
+                    read_only = (
+                        self.simulation_successful
+                        and has_incoming_connection
+                    )
+
+                    if read_only:
+                        item.obj.disableInputDataTab(dw)
                     else:
                         item.obj.enableInputDataTab(dw)
-                        dw.set_read_only(False)
+
+                    dw.set_read_only(read_only)
 
                     continue
 
-                # Other components remain editable before
-                # a successful simulation.
-                if not self.simulation_successful:
-                    if hasattr(dw, "set_read_only"):
-                        dw.set_read_only(False)
-                    continue
+                # Other components
+                read_only = (
+                    self.simulation_successful
+                    and has_incoming_connection
+                )
 
-                # After successful simulation, components with
-                # incoming connections become read-only.
                 if hasattr(dw, "set_read_only"):
-                    dw.set_read_only(has_incoming_connection)
+                    dw.set_read_only(read_only)
 
         except Exception as e:
             print(f"[DEBUG] update_components_editability failed: {e}")
+
 
 
     def fetch_object(self, name):
