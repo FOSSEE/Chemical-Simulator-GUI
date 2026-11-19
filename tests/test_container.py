@@ -701,6 +701,43 @@ class TestDynamicComponentEditability(ContainerTestBase):
 
         self.assertFalse(s1.dock_widget.comboBox.isEnabled())
 
+    def test_reconnecting_input_invalidates_target_mixer_simulation(self):
+        """Reconnecting an input must invalidate the target Mixer simulation."""
+
+        source = self.add_node(MaterialStream())
+        mixer = self.add_node(Mixer())
+
+        # Simulate a previously successful Mixer.
+        self.container.simulation_successful = True
+        mixer.simulation_valid = True
+
+        source_socket = source.output[0]
+        target_socket = mixer.input[0]
+
+        # Create a partial connection with a free destination endpoint.
+        line = NodeLine(
+            source_socket.get_center(),
+            QPointF(100, 100),
+            'op'
+        )
+        line.source = source_socket
+        source_socket.out_lines.append(line)
+        self.container.scene.addItem(line)
+
+        # Make the target socket available for reconnection.
+        target_socket.setVisible(True)
+
+        # Execute the actual reconnect logic.
+        result = line._try_reconnect(target_socket.get_center())
+
+        # Verify reconnection succeeded.
+        self.assertTrue(result)
+        self.assertIs(line.target, target_socket)
+        self.assertIn(line, target_socket.in_lines)
+
+        # The target Mixer must be invalidated.
+        self.assertFalse(mixer.simulation_valid)
+
     def test_isolated_component_remains_editable(self):
         """A component not connected to anything must always be editable."""
         mixer = self.add_node(Mixer())

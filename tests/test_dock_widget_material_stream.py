@@ -2,7 +2,13 @@ import os
 import sys
 from unittest.mock import MagicMock, patch
 import pytest
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QWidget
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QTableWidget,
+    QWidget,
+    QHeaderView
+)
 from PyQt5.QtCore import Qt
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -93,6 +99,77 @@ def test_populate_amounts_table_mole_flow_three_columns_with_unit():
     assert table.horizontalHeaderItem(1).text() == "Value"
     assert table.horizontalHeaderItem(2).text() == "Unit"
     assert table.item(0, 2).text() == "mol/s"
+
+def test_amounts_table_columns_are_interactive():
+    table = QTableWidget()
+
+    DockWidgetMaterialStream._populate_amounts_table(
+        table,
+        [("Water(chemsep)", 0.5), ("Ethanol(chemsep)", 0.5)],
+        "Mole Fraction"
+    )
+
+    header = table.horizontalHeader()
+
+    assert header.sectionResizeMode(0) == QHeaderView.Interactive
+    assert header.sectionResizeMode(1) == QHeaderView.Interactive
+    assert header.stretchLastSection() is False
+
+
+def test_amounts_table_with_unit_columns_are_interactive():
+    table = QTableWidget()
+
+    DockWidgetMaterialStream._populate_amounts_table(
+        table,
+        [("Water(chemsep)", 50.0, "mol/s")],
+        "Mole Flow"
+    )
+
+    header = table.horizontalHeader()
+
+    assert table.columnCount() == 3
+
+    for column in range(table.columnCount()):
+        assert header.sectionResizeMode(column) == QHeaderView.Interactive
+
+    assert header.stretchLastSection() is False
+
+def test_phase_tables_have_interactive_columns_and_synchronized_widths(stream_fixture):
+    widget, _, _, _ = stream_fixture
+
+    tables = [
+        widget.mTableWidget,
+        widget.lTableWidget,
+        widget.vTableWidget
+    ]
+
+    widths = [
+        [180, 120, 90],
+        [150, 160, 80],
+        [170, 140, 110]
+    ]
+
+    for table, column_widths in zip(tables, widths):
+        table.setColumnCount(3)
+
+        for column, width in enumerate(column_widths):
+            table.setColumnWidth(column, width)
+
+    widget._sync_phase_table_column_widths()
+
+    expected_widths = [
+        max(widths[0][column], widths[1][column], widths[2][column])
+        for column in range(3)
+    ]
+
+    for table in tables:
+        header = table.horizontalHeader()
+
+        assert header.stretchLastSection() is False
+
+        for column in range(3):
+            assert header.sectionResizeMode(column) == QHeaderView.Interactive
+            assert table.columnWidth(column) == expected_widths[column]
 
 
 # ----------------- Stream Initialization and Modes ----------------- #

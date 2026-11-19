@@ -856,6 +856,12 @@ class NodeLine(QtWidgets.QGraphicsPathItem):
                 1, self.target.id, self.source.parent.obj
             )
 
+        # Invalidate simulation for the affected target component.
+        target_node = self.target.parent
+
+        if getattr(target_node.obj, "type", "") not in stm:
+            target_node.simulation_valid = False
+
         # Update component editability.
         container = getattr(self.source.parent, 'container', None)
 
@@ -1126,6 +1132,11 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                 if getattr(self.new_line.target.parent.obj, 'type', None) not in stm:
                     self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
 
+                # Invalidate simulation for the affected component.
+                target_node = self.new_line.target.parent
+
+                if getattr(target_node.obj, "type", "") not in stm:
+                    target_node.simulation_valid = False
                 if hasattr(self, "parent") and hasattr(self.parent, "container") and self.parent.container:
                     if hasattr(self.parent.container, "update_components_editability"):
                         self.parent.container.update_components_editability()
@@ -1176,6 +1187,12 @@ class NodeSocket(QtWidgets.QGraphicsItem):
                     self.new_line.source.parent.obj.add_connection(0, self.new_line.source.id, self.new_line.target.parent.obj)
                 if getattr(self.new_line.target.parent.obj, 'type', None) not in stm:
                     self.new_line.target.parent.obj.add_connection(1, self.new_line.target.id, self.new_line.source.parent.obj)
+
+                # Invalidate simulation for the affected component.
+                target_node = self.new_line.target.parent
+
+                if getattr(target_node.obj, "type", "") not in stm:
+                    target_node.simulation_valid = False
 
                 if hasattr(self, "parent") and hasattr(self.parent, "container") and self.parent.container:
                     if hasattr(self.parent.container, "update_components_editability"):
@@ -1362,6 +1379,11 @@ class ResizeHandle(QtWidgets.QGraphicsItem):
             self.target.parent.obj.add_connection(
                 1, self.target.id, self.source.parent.obj
             )
+        # Invalidate simulation for the affected component.
+        target_node = self.target.parent
+
+        if getattr(target_node.obj, "type", "") not in stm:
+            target_node.simulation_valid = False
 
         # Update component editability.
         attached_node = self.source.parent

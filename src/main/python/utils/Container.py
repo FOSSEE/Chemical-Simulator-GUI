@@ -112,6 +112,15 @@ class Container():
             for item in items_to_delete:
                 try:
                     if isinstance(item, NodeLine):
+                        # Invalidate simulation for the affected target component.
+                        if item.target and item.target.parent:
+                            target_node = item.target.parent
+
+                            if getattr(target_node.obj, "type", "") not in [
+                                "MaterialStream",
+                                "EngStm"
+                            ]:
+                                target_node.simulation_valid = False
                         # Logical cleanup
                         if item.source and item.source.parent and hasattr(item.source.parent.obj, "remove_connection"):
                             item.source.parent.obj.remove_connection(0, item.source.id)
@@ -193,9 +202,11 @@ class Container():
                 if hasattr(dw, "refresh_connections"):
                     dw.refresh_connections()
 
+                input_sockets = getattr(item, "input", [])
+
                 has_incoming_connection = any(
                     len(getattr(sock, "in_lines", [])) > 0
-                    for sock in getattr(item, "input", [])
+                    for sock in input_sockets
                 )
 
                 if item.type == "MaterialStream":
@@ -218,9 +229,18 @@ class Container():
                     continue
 
                 # Other components
+                all_inputs_connected = (
+                    bool(input_sockets)
+                    and all(
+                        len(getattr(sock, "in_lines", [])) > 0
+                        for sock in input_sockets
+                    )
+                )
+
                 read_only = (
                     self.simulation_successful
-                    and has_incoming_connection
+                    and getattr(item, "simulation_valid", False)
+                    and all_inputs_connected
                 )
 
                 if hasattr(dw, "set_read_only"):
@@ -511,6 +531,10 @@ class Container():
             if simulation_succeeded:
 
                 self.simulation_successful = True
+                # Mark all components as valid after successful simulation.
+                for item in self.graphics.scene.items():
+                    if isinstance(item, NodeItem):
+                        item.simulation_valid = True
 
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] "
