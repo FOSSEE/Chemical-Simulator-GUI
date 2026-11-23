@@ -82,6 +82,31 @@ class TestIntroAndAboutPages(unittest.TestCase):
         fossee_btn.click()
         mock_web_open.assert_called_with("https://fossee.in/")
 
+    def test_about_page_logo_missing_returns_none(self):
+        """Without a logo file on disk the page falls back to no logo."""
+        about = AboutPage()
+        with patch('About_page.os.path.exists', return_value=False):
+            self.assertIsNone(about._load_logo())
+
+    def test_about_page_title_font_falls_back_to_smallest_size(self):
+        """A title too wide for every size uses the 18pt fallback font."""
+        font = AboutPage()._fit_title_font("Chemical Simulator", 0)
+        self.assertEqual(font.pointSize(), 18)
+        self.assertTrue(font.bold())
+
+    def test_about_page_title_font_fits_wide_space(self):
+        """With plenty of room the largest size is chosen."""
+        self.assertEqual(AboutPage()._fit_title_font("Sim", 10000).pointSize(), 34)
+
+    def test_about_page_paints_gradient_background(self):
+        """Rendering the page runs paintEvent and fills it with the gradient."""
+        about = AboutPage()
+        about.resize(300, 250)
+        image = about.grab().toImage()
+        self.assertFalse(image.isNull())
+        # Top-left corner gets the gradient's start colour, not the default palette
+        self.assertNotEqual(image.pixelColor(0, 0), about.palette().window().color())
+
 
 if __name__ == "__main__":
     unittest.main()

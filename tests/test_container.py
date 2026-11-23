@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 # Ensure headless Qt
@@ -11,7 +12,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main'))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main', 'python'))
 
-from PyQt5.QtWidgets import QApplication, QGraphicsView, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QFormLayout, QGraphicsView, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout
 from PyQt5.QtCore import QPointF, Qt
 
 # Initialize QApplication once
@@ -190,6 +191,10 @@ class TestAddUnitOperation(ContainerTestBase):
 # =============================================================================
 
 class TestDelete(ContainerTestBase):
+
+    def test_delete_with_invalid_argument_is_ignored(self):
+        self.container.delete(None)  # list(None) raises inside delete
+        self.mock_push_snapshot.assert_not_called()
 
     def test_delete_node_removes_it_everywhere(self):
         mixer = Mixer()
@@ -463,6 +468,72 @@ class TestSimulate(ContainerTestBase):
         # One call per MaterialStream on the canvas
         self.assertEqual(mock_tooltip.call_count, 3)
 
+    def test_failing_clear_results_does_not_stop_simulation(self):
+        _, _, mixer, _ = self.build_mixer_flowsheet()
+        mixer.dock_widget.clear_results = MagicMock(side_effect=RuntimeError("table gone"))
+        self.container.simulate("SM")
+        self.assertTrue(self.any_message_contains("Simulation <b>Successful.</b>"))
+
+    def test_broken_node_is_skipped_by_connection_check(self):
+        _, _, mixer, _ = self.build_mixer_flowsheet()
+        mixer.input = None  # iterating the sockets raises inside the check
+        self.container.simulate("SM")
+        self.assertFalse(self.any_message_contains(f"Warning: {mixer.name}"))
+        self.container.disableInterfaceforSimulation.assert_called_with(False)
+
+    def test_io_maps_resolve_lines_with_from_and_to_nodes(self):
+        s1 = self.add_node(MaterialStream())
+        heater = self.add_node(Heater())
+        line = SimpleNamespace(from_node=s1, to_node=heater)
+        heater.input[0].in_lines.append(line)
+        s1.output[0].out_lines.append(line)
+
+        self.container.simulate("SM")
+
+        self.assertEqual(self.container.ip[heater.obj.name], [(0, s1.obj.name)])
+        self.assertEqual(self.container.op[s1.obj.name], [(0, heater.obj.name)])
+
+    def test_io_maps_fall_back_to_line_name_when_peer_lookup_fails(self):
+        class BrokenPeer:
+            @property
+            def obj(self):
+                raise RuntimeError("deleted")
+
+        heater = self.add_node(Heater())
+        heater.input[0].in_lines.append(
+            SimpleNamespace(from_node=BrokenPeer(), to_node=heater, name="L1"))
+
+        self.container.simulate("SM")
+
+        self.assertEqual(self.container.ip[heater.obj.name], [(0, "L1")])
+
+    def test_unnamed_unit_operation_is_left_out_of_io_maps(self):
+        s1, heater = self.add_node(MaterialStream()), self.add_node(Heater())
+        self.connect(s1, 0, heater, 0)
+        heater.obj.name = ""
+        self.container.simulate("SM")
+        self.assertNotIn("", self.container.ip)
+
+    def test_unprintable_error_detail_is_ignored(self):
+        self.fs.result_data = []
+        self.fs.last_error = object()  # html.escape cannot handle it
+        self.container.simulate("SM")
+        self.assertTrue(self.any_message_contains("Simulation <b>Failed.</b>"))
+        self.assertFalse(self.any_message_contains("OpenModelica Error"))
+
+    def test_tooltip_failure_still_reports_results(self):
+        self.build_mixer_flowsheet()
+        with patch.object(NodeItem, "update_tooltip_selectedVar", side_effect=RuntimeError("bad")):
+            self.container.simulate("SM")
+        self.results_ready.assert_called_once_with()
+
+    def test_crash_with_failing_editability_restore_still_unlocks_ui(self):
+        self.fs.simulate_EQN.side_effect = RuntimeError("omc not found")
+        self.container.update_components_editability = MagicMock(side_effect=RuntimeError("no scene"))
+        self.container.simulate("EQN")
+        self.assertTrue(self.any_message_contains("Simulation error: omc not found"))
+        self.container.disableInterfaceforSimulation.assert_called_with(False)
+
 
 # =============================================================================
 # 6. _populate_results
@@ -587,6 +658,28 @@ class TestDynamicComponentEditability(ContainerTestBase):
     def tearDown(self):
         self.flowsheet_patch.stop()
         super().tearDown()
+
+    def test_editability_update_without_scene_does_nothing(self):
+        self.container.scene = None
+        self.container.graphics.scene = None
+        self.container.update_components_editability()  # must not raise
+
+    def test_editability_update_skips_nodes_without_dock_widget(self):
+        heater = self.add_node(Heater())
+        s1 = self.add_node(MaterialStream())
+        self.connect(heater, 0, s1, 0)
+        heater.dock_widget = None
+
+        self.container.update_components_editability()
+
+        # Other nodes are still processed: the stream's Connections tab shows the heater
+        row = s1.dock_widget.connections_layout.itemAt(0, QFormLayout.FieldRole).layout()
+        upstream = row.itemAt(0).widget()
+        self.assertEqual(upstream.text(), heater.name)
+
+    def test_editability_update_survives_scene_errors(self):
+        with patch.object(self.container.scene, "items", side_effect=RuntimeError("scene deleted")):
+            self.container.update_components_editability()  # must not raise
 
     def test_material_stream_remains_editable_when_connected_before_simulation(self):
         mixer = self.add_node(Mixer())
