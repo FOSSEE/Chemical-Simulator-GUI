@@ -1812,30 +1812,37 @@ class NodeItem(QtWidgets.QGraphicsItem):
                 line.pointA = op.get_center()
 
     def mousePressEvent(self, event):
-        self._press_scene_pos = self.scenePos()
+        if event.button() == Qt.LeftButton:
+            self._press_scene_pos = QtCore.QPointF(self.scenePos())
+        else:
+            self._press_scene_pos = None
+
         super(NodeItem, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         super(NodeItem, self).mouseReleaseEvent(event)
+
         try:
             start = getattr(self, "_press_scene_pos", None)
+
             if start is not None and self.scenePos() != start:
                 self.obj.set_pos(self.scenePos())
+
                 if self.container is not None and hasattr(self.container, "graphics"):
                     self.container.graphics.push_snapshot()
-        except Exception as e:
-            print("[DEBUG] NodeItem.mouseReleaseEvent push failed:", e)
+
+        except Exception:
+            pass
+
         finally:
             self._press_scene_pos = None
 
     def mouseMoveEvent(self, event):
+        if getattr(self, "_press_scene_pos", None) is None:
+            event.ignore()
+            return
+
         super(NodeItem, self).mouseMoveEvent(event)
-
-        # Update node position in model object (if linked)
-        self.current_pos = event.scenePos()
-        if hasattr(self, "obj") and self.obj is not None:
-            self.obj.set_pos(self.current_pos)
-
 
     def update_input_ports(self, new_count):
         """Dynamically change the number of input sockets while preserving
@@ -2399,8 +2406,12 @@ class NodeItem(QtWidgets.QGraphicsItem):
         if len(stack):
             stack[-1].hide()
 
+        print("[BEFORE DOCK]", self.name, self.scenePos())
+
         self.dock_widget.show()
         self.dock_widget.raise_()
+
+        print("[AFTER DOCK]", self.name, self.scenePos())
 
         # Restore common default Properties Window size
         if (
@@ -2469,15 +2480,20 @@ class NodeItem(QtWidgets.QGraphicsItem):
             rect = self.container.graphicsView.sceneRect()
             width = self.boundingRect().width()
             height = self.boundingRect().height()
+
             eWH1 = QPointF(newPos.x() + width, newPos.y() + height)
             eWH2 = QPointF(newPos.x() - width, newPos.y() - height)
+
             if not rect.__contains__(eWH1) or not rect.__contains__(eWH2):
                 newPos.setX(min(rect.right() - width - 40, max(newPos.x(), rect.left())))
                 newPos.setY(min(rect.bottom() - height - 35, max(newPos.y(), rect.top())))
-                self.obj.set_pos(newPos)
+
             return super(NodeItem, self).itemChange(change, newPos)
 
         if change == self.ItemPositionHasChanged and self.scene():
+            if hasattr(self, "obj") and self.obj is not None:
+                self.obj.set_pos(self.scenePos())
+
             self._update_connected_lines()
 
         return super(NodeItem, self).itemChange(change, value)
