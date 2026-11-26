@@ -2,6 +2,9 @@ import os
 import sys
 import unittest
 from unittest.mock import MagicMock
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget, QMainWindow
+from unittest.mock import patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'main'))
@@ -221,6 +224,29 @@ class TestDockWidgetsUnitOperations(unittest.TestCase):
         self.assertGreater(dock.tableWidget.rowCount(), 0)
 
     # ----------------- BaseDockWidget Rename and Utilities ----------------- #
+
+
+    def test_base_dock_widget_autosize(self):
+        class TestContent(QWidget):
+            def sizeHint(self):
+                return QSize(500, 600)
+
+        dock = BaseDockWidget()
+        content = TestContent()
+        dock.setWidget(content)
+
+        mock_screen = MagicMock()
+        mock_screen.availableGeometry.return_value.width.return_value = 1920
+        mock_screen.availableGeometry.return_value.height.return_value = 1080
+
+        with patch(
+            "python.DockWidgets.DockWidget.QApplication.primaryScreen",
+            return_value=mock_screen
+        ):
+            dock._autosize()
+
+        self.assertEqual(dock.width(), 530)
+        self.assertEqual(dock.height(), 650)
 
     def test_base_dock_widget_rename_validation(self):
         heater = Heater()

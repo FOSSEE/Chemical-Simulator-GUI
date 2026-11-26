@@ -112,3 +112,15 @@ def test_dock_widget_mixer_btn_click(mixer_widget, monkeypatch):
     widget.btn.click()
 
     obj.param_setter.assert_called_once_with([3, "Minimum"])
+
+def test_mixer_layout_prevents_vertical_stretch(mixer_widget):
+    widget, _, _ = mixer_widget
+
+    content = widget.widget()
+    layout = content.layout()
+
+    assert layout.indexOf(widget.groupBox) >= 0
+    assert layout.indexOf(widget.btn) >= 0
+
+    from PyQt5.QtWidgets import QSizePolicy
+    assert widget.groupBox.sizePolicy().verticalPolicy() == QSizePolicy.Fixed

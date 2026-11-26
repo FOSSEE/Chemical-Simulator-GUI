@@ -9,6 +9,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
+from PyQt5.QtWidgets import QSizePolicy
 from python.utils.ComponentSelector import *
 from python.utils.Graphics import *
 
@@ -31,14 +32,24 @@ class DockWidgetFlash(BaseDockWidget,ui_dialog):
         _layout = QVBoxLayout(_container)
         _layout.setContentsMargins(6, 6, 6, 6)
         _layout.setSpacing(8)
-        _layout.addWidget(self.setup_name_editor())
+
+        _layout.addWidget(self.setup_name_editor(), 0, Qt.AlignTop)
+
         if hasattr(self, 'groupBox'):
             self.groupBox.setParent(_container)
-            _layout.addWidget(self.groupBox)
+            self.groupBox.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Fixed
+            )
+            self.groupBox.setMinimumSize(0, 0)
+            _layout.addWidget(self.groupBox, 0, Qt.AlignTop)
+
         if hasattr(self, 'btn'):
             self.btn.setParent(_container)
-            _layout.addWidget(self.btn)
-        _layout.addStretch()
+            _layout.addWidget(self.btn, 0, Qt.AlignTop)
+
+        _layout.addStretch(1)
+
         self.setWidget(_container)
 
         self.input_dict = []
