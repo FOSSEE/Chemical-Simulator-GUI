@@ -33,9 +33,27 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
         self.lst = []
         if hasattr(self, 'gridLayout'):
             self.gridLayout.addWidget(self.setup_name_editor(), 0, 0)
+
+        if hasattr(self, 'gridLayoutWidget'):
+            content = QWidget()
+            content_layout = QVBoxLayout(content)
+            content_layout.setContentsMargins(6, 6, 6, 6)
+            content_layout.setSpacing(5)
+
+            self.gridLayoutWidget.setParent(content)
+            self.gridLayoutWidget.setSizePolicy(
+                QSizePolicy.Expanding,
+                QSizePolicy.Fixed
+            )
+            self.gridLayoutWidget.setMinimumSize(0, 0)
+
+            content_layout.addWidget(self.gridLayoutWidget)
+            content_layout.addStretch()
+
+            self.setWidget(content)
         self.input_params_list()
         self.dict = []
-            
+
     def input_params_list(self):
         try:
             if self.type == 'CompoundSeparator':
@@ -78,16 +96,22 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
 
                 self.calculationLayout.setColumnStretch(3, len(self.obj.compounds)+1)
                 self.calculationGroupBox.setLayout(self.calculationLayout)
-                
+
                 btn = QPushButton('Submit')
                 btn.clicked.connect(self.param)
-                
+
                 self.gridLayout.setVerticalSpacing(5)
-                self.gridLayout.addWidget(self.calculationGroupBox,1,0)
+                self.calculationGroupBox.setSizePolicy(
+                    QSizePolicy.Expanding,
+                    QSizePolicy.Fixed
+                )
+                self.calculationGroupBox.setMinimumSize(0, 0)
+
+                self.gridLayout.addWidget(self.calculationGroupBox, 1, 0)
                 self.gridLayout.addWidget(btn,2,0)
 
-                self.input_dict = self.lst            
-                        
+                self.input_dict = self.lst
+
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
@@ -109,7 +133,7 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)
-            
+
 
     def param(self):
         try:
@@ -117,7 +141,7 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
                 if not self.check_and_rename_if_needed():
                     return
             self.dict=[]
-           
+
             self.dict = [self.input_dict[0].isChecked(), self.input_dict[1].isChecked()]
             j = 2
             for i in range(len(self.obj.compounds)):
@@ -127,7 +151,7 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
                     j += 1
                 else:
                     self.show_error()
-                      
+
             self.obj.param_setter(self.dict)
             print(f"[UI] Submit successful for {self.name}")
             if(self.isVisible()):
@@ -138,7 +162,7 @@ class DockWidgetCompoundSeparator(BaseDockWidget,ui_dialog):
                 except Exception:
                     pass
             self.hide()
-            
+
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)

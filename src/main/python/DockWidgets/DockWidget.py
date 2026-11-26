@@ -16,18 +16,20 @@ from python.utils.NumberFormatting import format_result
 class BaseDockWidget(QDockWidget):
     """
     Base class for all DockWidgets in the application.
-    Centralizes common methods (error popups, close events, locking UI) 
+    Centralizes common methods (error popups, close events, locking UI)
     and standardizes variable names across all simulation parameter docks.
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
+        self._has_autosized = False
+
         # Standardized list/dict to hold all input Qt Widgets
         self.input_dict = []
-        
+
         # Standardized list/dict to hold final parameter values for simulation
         self.dict = []
-        
+
     def show_error(self):
         """Standard error popup for missing or invalid data."""
         QMessageBox.about(self, 'Important', "Please fill all fields with data")
@@ -43,10 +45,55 @@ class BaseDockWidget(QDockWidget):
 
     def showEvent(self, event):
         super().showEvent(event)
-        curr_name = getattr(self, 'name', None) or getattr(getattr(self, 'obj', None), 'name', None)
+
+        curr_name = getattr(self, 'name', None) or getattr(
+            getattr(self, 'obj', None), 'name', None
+        )
+
         if hasattr(self, 'le_name') and curr_name:
             self.le_name.setText(curr_name)
+
         self.refresh_connections()
+
+        QTimer.singleShot(0, self._autosize)
+
+    def _autosize(self):
+        try:
+            content = self.widget()
+
+            if content is None:
+                return
+
+            if content.layout():
+                content.layout().activate()
+
+            content.ensurePolished()
+            content.adjustSize()
+
+            hint = content.sizeHint()
+
+            screen = QApplication.primaryScreen().availableGeometry()
+
+            desired_w = min(
+                max(250, hint.width() + 30),
+                int(screen.width() * 0.4)
+            )
+
+            desired_h = min(
+                max(200, hint.height() + 50),
+                int(screen.height() * 0.85)
+            )
+
+            mw = self.parent()
+
+            if isinstance(mw, QMainWindow) and not self.isFloating():
+                mw.resizeDocks([self], [desired_w], Qt.Horizontal)
+                mw.resizeDocks([self], [desired_h], Qt.Vertical)
+            else:
+                self.resize(desired_w, desired_h)
+
+        except Exception as e:
+            print(f"[DockWidget] Autosize failed for {self.windowTitle()}: {e}")
 
     def setup_connections_tab(self, node):
         """Add a Connections tab with one Upstream row per inlet and one
@@ -343,7 +390,7 @@ class BaseDockWidget(QDockWidget):
 ui_dialog,_ = loadUiType(parentPath+'/ui/DockWidgets/DockWidget.ui')
 
 class DockWidget(BaseDockWidget,ui_dialog):
-    
+
     def __init__(self,name,comptype,obj,container, parent=None):
         BaseDockWidget.__init__(self,parent)
         self.name=name
@@ -375,14 +422,25 @@ class DockWidget(BaseDockWidget,ui_dialog):
             tab_layout.addWidget(self.setup_name_editor())
             if hasattr(self, 'groupBox'):
                 self.groupBox.setParent(None)
+                self.groupBox.setSizePolicy(
+                    QSizePolicy.Expanding,
+                    QSizePolicy.Fixed
+                )
+                self.groupBox.setMinimumSize(0, 0)
                 tab_layout.addWidget(self.groupBox)
             if hasattr(self, 'groupBox_2'):
                 self.groupBox_2.setParent(None)
-                tab_layout.addWidget(self.groupBox_2, 1)  # stretch factor
+                self.groupBox_2.setSizePolicy(
+                    QSizePolicy.Expanding,
+                    QSizePolicy.Fixed
+                )
+                self.groupBox_2.setMinimumSize(0, 0)
+                tab_layout.addWidget(self.groupBox_2)
             if hasattr(self, 'pushButton_2'):
                 self.pushButton_2.setParent(None)
                 tab_layout.addWidget(self.pushButton_2)
             self.tab.setLayout(tab_layout)
+            tab_layout.addStretch(1)
         elif hasattr(self, 'tab') and self.tab.layout() is not None:
             self.tab.layout().insertWidget(0, self.setup_name_editor())
 
@@ -393,13 +451,13 @@ class DockWidget(BaseDockWidget,ui_dialog):
         self.input_dict = {}
         self.modes()
         self.comboBox.currentIndexChanged.connect(self.mode_selection)
-       
+
         #print("constructor ", self.input_dict)
         self.pushButton_2.clicked.connect(self.param)
 
         self.dict = {}          # a dictionary
         self.container = container
-        
+
     # input data tab
     def modes(self):
         modes_list = self.obj.modes_list
@@ -420,7 +478,7 @@ class DockWidget(BaseDockWidget,ui_dialog):
     def mode_selection(self):
         self.input_dict= {}
         for i in reversed(range(self.formLayout.count())):
-            self.formLayout.removeRow(i) 
+            self.formLayout.removeRow(i)
         #print(self.comboBox.currentText())
         for i in self.obj.variables:
             if self.obj.variables[i]['name'] == self.comboBox.currentText():
@@ -429,7 +487,7 @@ class DockWidget(BaseDockWidget,ui_dialog):
         self.input_dict = self.obj.param_getter(currentText)
         #print('mode selection ', self.input_dict)
         self.input_params_list()
-            
+
 
     def input_params_list(self):
         try:
@@ -475,7 +533,7 @@ class DockWidget(BaseDockWidget,ui_dialog):
             #print("param.input_dict ", self.input_dict)
             for i in self.input_dict:
                 if (self.input_dict[i] == None):
-                    continue                  
+                    continue
                 else:
                     #print(self.input_dict[i], i, self.obj.type)
                     value = self.input_dict[i].text().strip()
@@ -485,13 +543,13 @@ class DockWidget(BaseDockWidget,ui_dialog):
                     else:
                         self.show_error()
                         return
-            
+
             #print("param ", self.dict)
             self.obj.param_setter(self.dict)
             print(f"[UI] Submit successful for {self.name}")
 
             for i in self.container.graphics.graphicsView.items():
-                try: 
+                try:
                     if(i.name == self.name):
                         i.update_tooltip()
                 except:
@@ -504,7 +562,7 @@ class DockWidget(BaseDockWidget,ui_dialog):
                 except Exception:
                     pass
             self.hide()
-            
+
         except Exception as e:
             print(f"[UI] Submit failed for {self.name}: {e}")
             print(e)

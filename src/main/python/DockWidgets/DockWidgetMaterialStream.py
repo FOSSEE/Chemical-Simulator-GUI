@@ -134,8 +134,6 @@ class DockWidgetMaterialStream(BaseDockWidget, ui_dialog):
 
     def showEvent(self, event):
         super().showEvent(event)
-        if not self._has_autosized:
-            QTimer.singleShot(0, self._autosize)
 
     def _autosize(self):
         if self._has_autosized:

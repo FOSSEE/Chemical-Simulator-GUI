@@ -152,7 +152,7 @@ class GraphicsInteractionTest(_CanvasTest):
 
     # ---------------- NodeItem double click ----------------
 
-    def test_double_click_replaces_open_dock_and_sizes_it(self):
+    def test_double_click_replaces_open_dock(self):
         first, second = self.add(Heater()), self.add(Heater())
         dead = QWidget()
         first.dock_widget.show()
@@ -165,8 +165,6 @@ class GraphicsInteractionTest(_CanvasTest):
         self.assertFalse(first.dock_widget.isVisible())
         self.assertTrue(second.dock_widget.isVisible())
         self.assertNotIn(dead, stack)
-        second.main_window.resizeDocks.assert_any_call([second.dock_widget], [400], Qt.Horizontal)
-        second.main_window.resizeDocks.assert_any_call([second.dock_widget], [600], Qt.Vertical)
 
     # ---------------- Material Stream context menu ----------------
 

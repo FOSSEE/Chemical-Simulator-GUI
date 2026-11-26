@@ -1487,7 +1487,6 @@ class NodeItem(QtWidgets.QGraphicsItem):
         self.dock_widget.setMinimumSize(220, 250)
         self.dock_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.dock_widget.setFeatures(QDockWidget.AllDockWidgetFeatures)
-        self.dock_widget.resize(400, 600)
         if self.main_window is not None and hasattr(self.main_window, 'addDockWidget'):
             self.main_window.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget)
 
@@ -2406,29 +2405,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
         if len(stack):
             stack[-1].hide()
 
-        print("[BEFORE DOCK]", self.name, self.scenePos())
-
         self.dock_widget.show()
         self.dock_widget.raise_()
 
-        print("[AFTER DOCK]", self.name, self.scenePos())
-
-        # Restore common default Properties Window size
-        if (
-            self.main_window is not None
-            and hasattr(self.main_window, "resizeDocks")
-        ):
-            self.main_window.resizeDocks(
-                [self.dock_widget],
-                [400],
-                Qt.Horizontal
-            )
-
-            self.main_window.resizeDocks(
-                [self.dock_widget],
-                [600],
-                Qt.Vertical
-            )
 
         stack.append(self.dock_widget)
         self.graphicsView.setInteractive(True)

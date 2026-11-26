@@ -103,3 +103,15 @@ def test_dock_widget_flash_param_submission(flash_widget):
     assert widget.dict[2] == 350.5
     assert widget.dict[3] is True
     assert widget.dict[4] == 200000.0
+
+def test_flash_layout_prevents_vertical_stretch(flash_widget):
+    widget, _, _ = flash_widget
+
+    content = widget.widget()
+    layout = content.layout()
+
+    assert layout.indexOf(widget.groupBox) >= 0
+    assert layout.indexOf(widget.btn) >= 0
+
+    from PyQt5.QtWidgets import QSizePolicy
+    assert widget.groupBox.sizePolicy().verticalPolicy() == QSizePolicy.Fixed

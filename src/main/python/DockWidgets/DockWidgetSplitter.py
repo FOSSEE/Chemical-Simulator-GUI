@@ -1098,15 +1098,9 @@ class DockWidgetSplitter(BaseDockWidget, ui_dialog):
             import traceback
             traceback.print_exc()
 
-
-    def showEvent(self,event):
-
+    def showEvent(self, event):
         super().showEvent(event)
-
         self.update_connected_component_names()
-
-        if not self._has_autosized:
-            QTimer.singleShot(0,self._autosize)
 
     def _autosize(self):
 
