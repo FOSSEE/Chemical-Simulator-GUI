@@ -644,8 +644,10 @@ class MainApp(QMainWindow,ui):
     def simulate(self, mode):
         print(f"[DEBUG] Simulate called with mode={mode}")
         """Run the simulation safely with UI lock and threading."""
-        self.container.disableInterfaceforSimulation(True)
         try:
+            self.container.disableInterfaceforSimulation(True)
+            self.container.prepare_simulation()
+
             mo_path = None
 
             # ✅ Use saved .mo path if available

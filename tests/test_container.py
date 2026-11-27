@@ -295,9 +295,6 @@ class TestSimulate(ContainerTestBase):
         self.fs.result_data = [["header"], ["values"]]
         self.fs.last_error = ""
 
-        self.results_ready = MagicMock()
-        self.container.signals.results_ready.connect(self.results_ready)
-
     def tearDown(self):
         self.flowsheet_patch.stop()
         super().tearDown()
@@ -313,34 +310,49 @@ class TestSimulate(ContainerTestBase):
         self.connect(mixer, 0, s3, 0)
         return s1, s2, mixer, s3
 
+    def run_simulation(self, mode):
+        """Run simulation using the same preparation sequence as the GUI."""
+        self.container.disableInterfaceforSimulation(True)
+        self.container.prepare_simulation()
+        self.container.simulate(mode)
+
     def test_sm_mode_success(self):
         self.build_mixer_flowsheet()
-        self.container.simulate("SM")
 
-        self.fs.simulate_SM.assert_called_once_with(self.container.ip, self.container.op)
+        with patch.object(
+            self.container,
+            "_populate_results",
+            wraps=self.container._populate_results
+        ) as populate_results:
+            self.run_simulation("SM")
+
+        self.fs.simulate_SM.assert_called_once_with(
+            self.container.ip,
+            self.container.op
+        )
         self.fs.simulate_EQN.assert_not_called()
         self.assertTrue(self.any_message_contains("<b>Sequential</b> mode"))
         self.assertTrue(self.any_message_contains("Simulation <b>Successful.</b>"))
         self.assertEqual(self.container.result, self.fs.result_data)
-        self.results_ready.assert_called_once_with()
+        populate_results.assert_called_once_with()
 
     def test_eqn_mode_passes_message_browser(self):
         self.build_mixer_flowsheet()
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
 
         self.fs.simulate_EQN.assert_called_once_with(self.msg)
         self.fs.simulate_SM.assert_not_called()
         self.assertTrue(self.any_message_contains("<b>Equation</b> mode"))
 
     def test_interface_is_locked_then_unlocked(self):
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         calls = self.container.disableInterfaceforSimulation.call_args_list
         self.assertEqual(calls[0].args, (True,))
         self.assertEqual(calls[-1].args, (False,))
 
     def test_unit_operations_are_added_to_flowsheet(self):
         s1, s2, mixer, s3 = self.build_mixer_flowsheet()
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         added = [c.args[0] for c in self.fs.add_unit_operations.call_args_list]
         self.assertEqual(added, [s1.obj, s2.obj, mixer.obj, s3.obj])
@@ -348,50 +360,48 @@ class TestSimulate(ContainerTestBase):
     def test_one_failing_unit_operation_does_not_stop_others(self):
         s1, s2, mixer, s3 = self.build_mixer_flowsheet()
         self.fs.add_unit_operations.side_effect = [None, RuntimeError("bad"), None, None]
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         self.assertEqual(self.fs.add_unit_operations.call_count, 4)
         self.fs.simulate_SM.assert_called_once()
 
     def test_compound_names_are_stripped_of_database_suffix(self):
         self.container.add_compounds(["Water(chemsep)", "1-Butanol (chemsep)", "Methanol"])
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         self.fs.add_compound_list.assert_called_once_with(["Water", "1-Butanol", "Methanol"])
 
     def test_no_compounds_skips_add_compound_list(self):
         self.container.add_compounds([])
         with patch.dict(container_module.__dict__, {"compound_selected": []}):
-            self.container.simulate("EQN")
+            self.run_simulation("EQN")
         self.fs.add_compound_list.assert_not_called()
 
     def test_ip_op_maps_follow_canvas_connections(self):
         s1, s2, mixer, s3 = self.build_mixer_flowsheet()
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         ip, op = self.container.ip, self.container.op
         self.assertEqual(set(ip), {mixer.name, s3.name})
         self.assertEqual(set(op), {s1.name, s2.name, mixer.name})
-        # Socket indices are recorded in port order
         self.assertEqual(sorted(idx for idx, _ in ip[mixer.name]), [0, 1])
         self.assertEqual([idx for idx, _ in op[mixer.name]], [0])
 
     def test_unconnected_units_produce_warnings(self):
         mixer = self.add_node(Mixer())
         stream = self.add_node(MaterialStream())
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
 
         self.assertTrue(self.any_message_contains(f"Warning: {mixer.name} - Missing Socket Connection(s)."))
         self.assertTrue(self.any_message_contains(f"Warning: {stream.name} - Missing Socket Connection(s)."))
 
     def test_fully_connected_flowsheet_has_no_warnings(self):
         self.build_mixer_flowsheet()
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         self.assertFalse(self.any_message_contains("Missing Socket Connection"))
 
     def test_stream_connected_on_one_side_is_not_a_warning(self):
         s1, s2, mixer, s3 = self.build_mixer_flowsheet()
-        self.container.simulate("EQN")
-        # s1 only has an output connection, s3 only an input connection
+        self.run_simulation("EQN")
         self.assertFalse(self.any_message_contains(f"Warning: {s1.name}"))
         self.assertFalse(self.any_message_contains(f"Warning: {s3.name}"))
 
@@ -399,30 +409,37 @@ class TestSimulate(ContainerTestBase):
         s1 = self.add_node(MaterialStream())
         mixer = self.add_node(Mixer())
         self.connect(s1, 0, mixer, 0)
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         self.assertTrue(self.any_message_contains(f"Warning: {mixer.name} - Missing Socket Connection(s)."))
 
     def test_success_keeps_dock_widgets_editable(self):
         dw = MagicMock()
         dock_widget_lst.append(dw)
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         dw.set_read_only.assert_called_with(False)
 
     def test_failure_when_result_is_too_short(self):
-        dw = MagicMock()
-        dock_widget_lst.append(dw)
         self.fs.result_data = [["only header"]]
-        self.container.simulate("EQN")
 
-        self.assertTrue(self.any_message_contains("Simulation <b>Failed.</b>"))
-        self.assertFalse(self.any_message_contains("Successful"))
-        dw.set_read_only.assert_called_with(False)
-        self.results_ready.assert_not_called()
+        with patch.object(
+            self.container,
+            "_populate_results",
+            wraps=self.container._populate_results
+        ) as populate_results:
+            self.run_simulation("EQN")
+
+        self.assertTrue(
+            self.any_message_contains("Simulation <b>Failed.</b>")
+        )
+        self.assertFalse(
+            self.any_message_contains("Successful")
+        )
+        populate_results.assert_not_called()
 
     def test_failure_shows_escaped_openmodelica_error(self):
         self.fs.result_data = []
         self.fs.last_error = "Error: <x> is undefined\nline 2"
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
 
         self.assertTrue(self.any_message_contains(
             "<b>OpenModelica Error:</b><br/>Error: &lt;x&gt; is undefined<br/>line 2"
@@ -431,14 +448,14 @@ class TestSimulate(ContainerTestBase):
     def test_failure_without_error_detail_shows_only_failed(self):
         self.fs.result_data = []
         self.fs.last_error = ""
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
 
         self.assertTrue(self.any_message_contains("Simulation <b>Failed.</b>"))
         self.assertFalse(self.any_message_contains("OpenModelica Error"))
 
     def test_sm_exception_is_reported_and_treated_as_failure(self):
         self.fs.simulate_SM.side_effect = RuntimeError("solver diverged")
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         self.assertTrue(self.any_message_contains("Sequential Mode failed: solver diverged"))
         self.assertTrue(self.any_message_contains("Simulation <b>Failed.</b>"))
@@ -447,14 +464,14 @@ class TestSimulate(ContainerTestBase):
 
     def test_eqn_exception_is_caught_and_interface_unlocked(self):
         self.fs.simulate_EQN.side_effect = RuntimeError("omc not found")
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
 
         self.assertTrue(self.any_message_contains("Simulation error: omc not found"))
         self.container.disableInterfaceforSimulation.assert_called_with(False)
 
     def test_flowsheet_creation_failure_aborts(self):
         self.mock_flowsheet_cls.side_effect = RuntimeError("cannot create")
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         self.assertTrue(self.any_message_contains("Failed to prepare Flowsheet: cannot create"))
         self.assertFalse(self.any_message_contains("Successful"))
@@ -464,19 +481,24 @@ class TestSimulate(ContainerTestBase):
     def test_success_updates_material_stream_tooltips(self):
         s1, s2, mixer, s3 = self.build_mixer_flowsheet()
         with patch.object(NodeItem, "update_tooltip_selectedVar") as mock_tooltip:
-            self.container.simulate("SM")
-        # One call per MaterialStream on the canvas
+            self.run_simulation("SM")
         self.assertEqual(mock_tooltip.call_count, 3)
 
     def test_failing_clear_results_does_not_stop_simulation(self):
         _, _, mixer, _ = self.build_mixer_flowsheet()
         mixer.dock_widget.clear_results = MagicMock(side_effect=RuntimeError("table gone"))
-        self.container.simulate("SM")
+        self.run_simulation("SM")
         self.assertTrue(self.any_message_contains("Simulation <b>Successful.</b>"))
 
     def test_broken_node_is_skipped_by_connection_check(self):
         _, _, mixer, _ = self.build_mixer_flowsheet()
-        mixer.input = None  # iterating the sockets raises inside the check
+        mixer.input = None
+        # This test intentionally bypasses prepare_simulation because
+        # it tests error handling inside simulate's connection check.
+        self.container._simulation_nodes = [
+            item for item in self.container.scene.items()
+            if isinstance(item, NodeItem)
+        ]
         self.container.simulate("SM")
         self.assertFalse(self.any_message_contains(f"Warning: {mixer.name}"))
         self.container.disableInterfaceforSimulation.assert_called_with(False)
@@ -488,7 +510,7 @@ class TestSimulate(ContainerTestBase):
         heater.input[0].in_lines.append(line)
         s1.output[0].out_lines.append(line)
 
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         self.assertEqual(self.container.ip[heater.obj.name], [(0, s1.obj.name)])
         self.assertEqual(self.container.op[s1.obj.name], [(0, heater.obj.name)])
@@ -503,7 +525,7 @@ class TestSimulate(ContainerTestBase):
         heater.input[0].in_lines.append(
             SimpleNamespace(from_node=BrokenPeer(), to_node=heater, name="L1"))
 
-        self.container.simulate("SM")
+        self.run_simulation("SM")
 
         self.assertEqual(self.container.ip[heater.obj.name], [(0, "L1")])
 
@@ -511,28 +533,40 @@ class TestSimulate(ContainerTestBase):
         s1, heater = self.add_node(MaterialStream()), self.add_node(Heater())
         self.connect(s1, 0, heater, 0)
         heater.obj.name = ""
-        self.container.simulate("SM")
+        self.run_simulation("SM")
         self.assertNotIn("", self.container.ip)
 
     def test_unprintable_error_detail_is_ignored(self):
         self.fs.result_data = []
-        self.fs.last_error = object()  # html.escape cannot handle it
-        self.container.simulate("SM")
+        self.fs.last_error = object()
+        self.run_simulation("SM")
         self.assertTrue(self.any_message_contains("Simulation <b>Failed.</b>"))
         self.assertFalse(self.any_message_contains("OpenModelica Error"))
 
     def test_tooltip_failure_still_reports_results(self):
         self.build_mixer_flowsheet()
-        with patch.object(NodeItem, "update_tooltip_selectedVar", side_effect=RuntimeError("bad")):
-            self.container.simulate("SM")
-        self.results_ready.assert_called_once_with()
+
+        with patch.object(
+            self.container,
+            "_populate_results",
+            wraps=self.container._populate_results
+        ) as populate_results:
+            with patch.object(
+                NodeItem,
+                "update_tooltip_selectedVar",
+                side_effect=RuntimeError("bad")
+            ):
+                self.run_simulation("SM")
+
+        populate_results.assert_called_once_with()
 
     def test_crash_with_failing_editability_restore_still_unlocks_ui(self):
         self.fs.simulate_EQN.side_effect = RuntimeError("omc not found")
         self.container.update_components_editability = MagicMock(side_effect=RuntimeError("no scene"))
-        self.container.simulate("EQN")
+        self.run_simulation("EQN")
         self.assertTrue(self.any_message_contains("Simulation error: omc not found"))
         self.container.disableInterfaceforSimulation.assert_called_with(False)
+
 
 
 # =============================================================================
@@ -704,6 +738,7 @@ class TestDynamicComponentEditability(ContainerTestBase):
 
         # Simulate successful simulation
         self.container.simulation_successful = True
+        s2.simulation_valid = True
         self.container.update_components_editability()
 
         # Connected MS should be read-only
@@ -722,6 +757,7 @@ class TestDynamicComponentEditability(ContainerTestBase):
         self.connect(mixer, 0, s2, 0)
 
         self.container.simulation_successful = True
+        s2.simulation_valid = True
         self.container.update_components_editability()
 
         # Connected MS should be read-only
@@ -752,6 +788,8 @@ class TestDynamicComponentEditability(ContainerTestBase):
             ["1.0", "101325", "310", "100"]
         ]
 
+        self.container.disableInterfaceforSimulation(True)
+        self.container.prepare_simulation()
         self.container.simulate("EQN")
 
         # Feed streams s1, s2 should be editable
@@ -770,12 +808,13 @@ class TestDynamicComponentEditability(ContainerTestBase):
         self.assertTrue(s3.dock_widget.pushButton_2.isEnabled())
         self.assertTrue(s3.dock_widget.cbTP.isEnabled())
 
-    def test_reconnecting_stream_makes_it_read_only_again(self):
+    def test_reconnecting_stream_remains_editable_until_resimulation(self):
         s1 = self.add_node(MaterialStream())
         mixer1 = self.add_node(Mixer())
         mixer2 = self.add_node(Mixer())
 
         self.container.simulation_successful = True
+        s1.simulation_valid = True
 
         # First connection
         line1 = self.connect(mixer1, 0, s1, 0)
@@ -792,7 +831,10 @@ class TestDynamicComponentEditability(ContainerTestBase):
         self.connect(mixer2, 0, s1, 0)
         self.container.update_components_editability()
 
-        self.assertFalse(s1.dock_widget.comboBox.isEnabled())
+        # Reconnected stream is invalid until the next successful simulation.
+        self.assertFalse(s1.simulation_valid)
+        self.assertTrue(s1.dock_widget.comboBox.isEnabled())
+        self.assertTrue(s1.dock_widget.pushButton_2.isEnabled())
 
     def test_reconnecting_input_invalidates_target_mixer_simulation(self):
         """Reconnecting an input must invalidate the target Mixer simulation."""

@@ -1,5 +1,6 @@
 from collections import defaultdict
 import datetime
+import threading
 import html
 import os, sys
 
@@ -20,18 +21,23 @@ from python.DockWidgets.DockWidget import DockWidget
 
 # ----------------- Signals -----------------
 class SimulationSignals(QObject):
-    msg_signal = pyqtSignal(str)  # Thread-safe message signal
-    results_ready = pyqtSignal()  # Emitted when simulation results are ready
+    msg_signal = pyqtSignal(str)
+    results_ready = pyqtSignal()
+    simulation_finished = pyqtSignal(bool) # Emitted when simulation results are ready
 
 
 # ----------------- Container -----------------
-class Container():
+class Container(QObject):
     def __init__(self, msgbrowser, graphicsView):
-        self.signals = SimulationSignals()
+        super().__init__()
+
+        self.signals = SimulationSignals(self)
         self.msg = msgbrowser
         self.signals.msg_signal.connect(self.msg.append)
         self.signals.results_ready.connect(self._populate_results)
-
+        self.signals.simulation_finished.connect(
+            self._on_simulation_finished
+        )
         self.unit_operations = []
         self.thermo_package = None
         self.compounds = None
@@ -87,7 +93,37 @@ class Container():
             print("[DEBUG] add_unit_operation failed:", e)
             return None
 
+    def _on_simulation_finished(self, succeeded):
+        """Apply all GUI updates after the worker finishes."""
+        try:
+            self.simulation_successful = succeeded
 
+            for item in self.graphics.scene.items():
+                if not isinstance(item, NodeItem):
+                    continue
+
+                item.simulation_valid = succeeded
+
+                if succeeded and item.type == "MaterialStream":
+                    try:
+                        item.update_tooltip_selectedVar()
+                    except Exception as e:
+                        print(
+                            "[DEBUG] Tooltip update failed:",
+                            item.name,
+                            e
+                        )
+
+            if succeeded:
+                self._populate_results()
+            else:
+                self.update_components_editability()
+
+        except Exception as e:
+            print("[DEBUG] Simulation completion UI update failed:", e)
+
+        finally:
+            self.disableInterfaceforSimulation(False)
 
     def delete(self, l):
         """
@@ -112,15 +148,17 @@ class Container():
             for item in items_to_delete:
                 try:
                     if isinstance(item, NodeLine):
-                        # Invalidate simulation for the affected target component.
+                        # Invalidate simulation for both connected components.
+                        # After connection removal, both affected components
+                        # should become editable until simulation runs again.
+
+                        if item.source and item.source.parent:
+                            source_node = item.source.parent
+                            source_node.simulation_valid = False
+
                         if item.target and item.target.parent:
                             target_node = item.target.parent
-
-                            if getattr(target_node.obj, "type", "") not in [
-                                "MaterialStream",
-                                "EngStm"
-                            ]:
-                                target_node.simulation_valid = False
+                            target_node.simulation_valid = False
                         # Logical cleanup
                         if item.source and item.source.parent and hasattr(item.source.parent.obj, "remove_connection"):
                             item.source.parent.obj.remove_connection(0, item.source.id)
@@ -165,21 +203,132 @@ class Container():
         except Exception as e:
             print("[DEBUG] delete: outer exception:", e)
 
+    def prepare_simulation(self):
+        """
+        Collect all GUI/scene information on the main thread
+        before starting the simulation worker.
+        """
+        self._simulation_nodes = [
+            item for item in self.graphics.scene.items()
+            if isinstance(item, NodeItem)
+        ]
+
+        self.ip = defaultdict(list)
+        self.op = defaultdict(list)
+
+        # Clear previous results on the GUI thread.
+        for item in self._simulation_nodes:
+            try:
+                if item.dock_widget:
+                    item.dock_widget.clear_results()
+            except Exception as e:
+                print("[DEBUG] Failed to clear results:", e)
+
+        def get_other_node(ln, this_item):
+            for a, b in [
+                ("start_item", "end_item"),
+                ("end_item", "start_item"),
+                ("source", "target"),
+                ("target", "source"),
+                ("from_node", "to_node"),
+                ("to_node", "from_node"),
+            ]:
+                try:
+                    if hasattr(ln, a) and hasattr(ln, b):
+                        a_val = getattr(ln, a)
+                        b_val = getattr(ln, b)
+
+                        if a_val is this_item:
+                            other = b_val
+                        elif b_val is this_item:
+                            other = a_val
+                        else:
+                            continue
+
+                        if other:
+                            return getattr(
+                                getattr(other, "obj", other),
+                                "name",
+                                getattr(other, "name", None)
+                            )
+                except Exception:
+                    continue
+
+            return getattr(ln, "name", "UnknownLine")
+
+        missing_connections = []
+        warnings_html = ""
+
+        for item in self._simulation_nodes:
+            total_in = sum(
+                len(getattr(sock, "in_lines", []))
+                for sock in getattr(item, "input", [])
+            )
+            total_out = sum(
+                len(getattr(sock, "out_lines", []))
+                for sock in getattr(item, "output", [])
+            )
+
+            if item.type in ['MaterialStream', 'EngStm']:
+                if total_in == 0 and total_out == 0:
+                    missing_connections.append((item.name, "unconnected"))
+            else:
+                for sock in getattr(item, "input", []):
+                    if not getattr(sock, "in_lines", []):
+                        missing_connections.append((item.name, "input"))
+
+                for sock in getattr(item, "output", []):
+                    if not getattr(sock, "out_lines", []):
+                        missing_connections.append((item.name, "output"))
+
+            # Build input/output maps.
+            uo_name = getattr(
+                item.obj, "name", getattr(item, "name", None)
+            )
+
+            if not uo_name:
+                continue
+
+            for idx, port in enumerate(getattr(item, "input", [])):
+                for ln in getattr(port, "in_lines", []):
+                    self.ip[uo_name].append(
+                        (idx, get_other_node(ln, item))
+                    )
+
+            for idx, port in enumerate(getattr(item, "output", [])):
+                for ln in getattr(port, "out_lines", []):
+                    self.op[uo_name].append(
+                        (idx, get_other_node(ln, item))
+                    )
+
+        for name, connection_type in missing_connections:
+            warnings_html += (
+                f"<br><span style='color:#999900'>"
+                f"Warning: {name} - Missing Socket Connection(s)."
+                f"</span>"
+            )
+
+        if warnings_html:
+            self.signals.msg_signal.emit(warnings_html)
+
+        print(
+            "[DEBUG] GUI preparation complete:",
+            "Nodes:", len(self._simulation_nodes),
+            "IP:", len(self.ip),
+            "OP:", len(self.op)
+        )
 
 
     def update_components_editability(self):
         """
-        Update component editability based on simulation state
-        and incoming connections.
+        A component becomes read-only only when:
+        - Simulation was successful
+        - Component has an incoming connection
+        - Component has no outgoing connection
 
-        MaterialStream:
-            - Always editable before successful simulation.
-            - Read-only only after successful simulation
-            when it has an incoming connection.
-
-        Other components:
-            - Read-only after successful simulation
-            when they have incoming connections.
+        All components remain editable before simulation.
+        Components become editable again when their connection
+        state changes and they are no longer valid output nodes.
         """
         try:
             scene = getattr(self, "scene", None)
@@ -203,45 +352,35 @@ class Container():
                     dw.refresh_connections()
 
                 input_sockets = getattr(item, "input", [])
+                output_sockets = getattr(item, "output", [])
 
                 has_incoming_connection = any(
                     len(getattr(sock, "in_lines", [])) > 0
                     for sock in input_sockets
                 )
 
-                if item.type == "MaterialStream":
+                has_outgoing_connection = any(
+                    len(getattr(sock, "out_lines", [])) > 0
+                    for sock in output_sockets
+                )
 
-                    # Material Stream must remain editable
-                    # until simulation is successful and
-                    # its inlet is connected.
-                    read_only = (
-                        self.simulation_successful
-                        and has_incoming_connection
-                    )
-
-                    if read_only:
-                        item.obj.disableInputDataTab(dw)
-                    else:
-                        item.obj.enableInputDataTab(dw)
-
-                    dw.set_read_only(read_only)
-
-                    continue
-
-                # Other components
-                all_inputs_connected = (
-                    bool(input_sockets)
-                    and all(
-                        len(getattr(sock, "in_lines", [])) > 0
-                        for sock in input_sockets
-                    )
+                is_output_component = (
+                    has_incoming_connection
+                    and not has_outgoing_connection
                 )
 
                 read_only = (
                     self.simulation_successful
                     and getattr(item, "simulation_valid", False)
-                    and all_inputs_connected
+                    and is_output_component
                 )
+
+                # MaterialStream has its own input-data tab handling.
+                if item.type == "MaterialStream":
+                    if read_only:
+                        item.obj.disableInputDataTab(dw)
+                    else:
+                        item.obj.enableInputDataTab(dw)
 
                 if hasattr(dw, "set_read_only"):
                     dw.set_read_only(read_only)
@@ -281,80 +420,20 @@ class Container():
     def simulate(self, mode):
         """Run simulation (safe + verbose)."""
 
-        # Lock UI while simulating
-        self.disableInterfaceforSimulation(True)
-
         # Reset simulation state before every new attempt
         self.simulation_successful = False
 
+        simulation_succeeded = False
         try:
             print("[DEBUG] ==== Starting Container.simulate ====")
             print("[DEBUG] mode:", mode)
-            print("[DEBUG] scene items count:", len(self.graphics.scene.items()))
+            print("[DEBUG] prepared nodes count:", len(self._simulation_nodes))
             print("[DEBUG] unit_operations (len):", len(self.unit_operations))
             print("[DEBUG] compounds:", getattr(self, 'compounds', None))
 
             self.signals.msg_signal.emit(
                 f"<span>[{self.current_time()}] <b>Starting simulation</b> (mode={mode})</span>"
             )
-
-            # ----------------------------
-            # Step 1: Check Missing Connections
-            # ----------------------------
-            missing_connections = []
-            warnings_html = ''
-
-            for item in self.graphics.scene.items():
-                if isinstance(item, NodeItem):
-                    try:
-                        # Clear old results (if any)
-                        try:
-                            item.dock_widget.clear_results()
-                        except Exception:
-                            pass
-
-                        show_warning = False
-
-                        # Calculate total connections
-                        total_in = sum(
-                            len(getattr(ip, "in_lines", []))
-                            for ip in getattr(item, "input", [])
-                        )
-                        total_out = sum(
-                            len(getattr(op, "out_lines", []))
-                            for op in getattr(item, "output", [])
-                        )
-
-                        if item.type in ['MaterialStream', 'EngStm']:
-                            # Streams only need to be connected on one side
-                            if total_in == 0 and total_out == 0:
-                                show_warning = True
-                                missing_connections.append((item.name, "unconnected"))
-                        else:
-                            # Standard operations must have all created sockets connected
-                            for ip in getattr(item, "input", []):
-                                if len(getattr(ip, "in_lines", [])) == 0:
-                                    show_warning = True
-                                    missing_connections.append((item.name, "input"))
-
-                            for op in getattr(item, "output", []):
-                                if len(getattr(op, "out_lines", [])) == 0:
-                                    show_warning = True
-                                    missing_connections.append((item.name, "output"))
-
-                        if show_warning:
-                            warnings_html += (
-                                f"<br><span style='color:#999900'>"
-                                f"Warning: {item.name} - Missing Socket Connection(s)."
-                                f"</span>"
-                            )
-
-                    except Exception as e:
-                        print("[DEBUG] Error checking connections:", item, e)
-
-            if warnings_html:
-                self.signals.msg_signal.emit(warnings_html)
-                print("[DEBUG] Connection warnings emitted.")
 
             # ----------------------------
             # Step 2: Prepare Compounds
@@ -409,72 +488,6 @@ class Container():
                     )
 
             print("[DEBUG] Added unit operations:", len(self.unit_operations))
-
-            # ----------------------------
-            # Step 5: Build Input/Output Maps
-            # ----------------------------
-            self.ip = defaultdict(list)
-            self.op = defaultdict(list)
-
-            def try_get_other_node_from_line(ln, this_item):
-                for a, b in [
-                    ("start_item", "end_item"),
-                    ("end_item", "start_item"),
-                    ("source", "target"),
-                    ("target", "source"),
-                    ("from_node", "to_node"),
-                    ("to_node", "from_node"),
-                ]:
-                    try:
-                        if hasattr(ln, a) and hasattr(ln, b):
-                            a_val, b_val = getattr(ln, a), getattr(ln, b)
-
-                            if a_val is this_item:
-                                other = b_val
-                            elif b_val is this_item:
-                                other = a_val
-                            else:
-                                continue
-
-                            if other:
-                                return getattr(
-                                    getattr(other, "obj", other),
-                                    "name",
-                                    getattr(other, "name", None)
-                                )
-
-                    except Exception:
-                        continue
-
-                return getattr(ln, "name", "UnknownLine")
-
-            for it in self.graphics.scene.items():
-                if isinstance(it, NodeItem):
-                    uo_name = getattr(
-                        it.obj,
-                        "name",
-                        getattr(it, "name", None)
-                    )
-
-                    if not uo_name:
-                        continue
-
-                    for idx, port in enumerate(getattr(it, "input", [])):
-                        for ln in getattr(port, "in_lines", []):
-                            other = try_get_other_node_from_line(ln, it)
-                            self.ip[uo_name].append((idx, other))
-
-                    for idx, port in enumerate(getattr(it, "output", [])):
-                        for ln in getattr(port, "out_lines", []):
-                            other = try_get_other_node_from_line(ln, it)
-                            self.op[uo_name].append((idx, other))
-
-            print(
-                "[DEBUG] Built ip/op maps. IP:",
-                len(self.ip),
-                "OP:",
-                len(self.op)
-            )
 
             # ----------------------------
             # Step 6: Simulation
@@ -532,20 +545,11 @@ class Container():
 
                 self.simulation_successful = True
                 # Mark all components as valid after successful simulation.
-                for item in self.graphics.scene.items():
-                    if isinstance(item, NodeItem):
-                        item.simulation_valid = True
 
                 self.signals.msg_signal.emit(
                     f"<span style='color:green'>[{self.current_time()}] "
                     f"Simulation <b>Successful.</b></span>"
                 )
-
-                # Temporarily keep widgets enabled.
-                # Actual editability is applied in Step 8.
-                for dw in dock_widget_lst:
-                    if hasattr(dw, 'set_read_only'):
-                        dw.set_read_only(False)
 
             else:
 
@@ -581,41 +585,6 @@ class Container():
                         msg_err
                     )
 
-                # Keep dock widgets editable on failure
-                for dw in dock_widget_lst:
-                    if hasattr(dw, 'set_read_only'):
-                        dw.set_read_only(False)
-
-                self.update_components_editability()
-
-            # ----------------------------
-            # Step 8: Post-Simulation Updates
-            # ----------------------------
-            if simulation_succeeded:
-
-                for it in self.graphics.scene.items():
-
-                    if (
-                        isinstance(it, NodeItem)
-                        and getattr(it, "type", "") == 'MaterialStream'
-                    ):
-                        try:
-                            it.update_tooltip_selectedVar()
-
-                        except Exception as tooltip_err:
-                            print(
-                                f"[DEBUG] update_tooltip_selectedVar failed "
-                                f"for {it.name}: {tooltip_err}"
-                            )
-
-                # Apply read-only state based on incoming connections
-                self.update_components_editability()
-
-                # ----------------------------
-                # Step 9: Populate Results Tabs
-                # ----------------------------
-                self.signals.results_ready.emit()
-
         except Exception as e:
 
             self.simulation_successful = False
@@ -627,20 +596,8 @@ class Container():
                 f"Simulation error: {e}</span>"
             )
 
-            # Restore editable state after a crash
-            try:
-                self.update_components_editability()
-            except Exception as editability_error:
-                print(
-                    "[DEBUG] Failed to restore component editability:",
-                    editability_error
-                )
-
         finally:
-
-            # Always re-enable UI
-            self.disableInterfaceforSimulation(False)
-
+            self.signals.simulation_finished.emit(simulation_succeeded)
             print("[DEBUG] ==== Container.simulate finished ====")
 
 

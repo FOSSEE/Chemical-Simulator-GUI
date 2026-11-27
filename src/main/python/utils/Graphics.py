@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
+from PyQt5.QtCore import QThread
 import PyQt5.QtWidgets as QtWidgets
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5 import QtSvg
