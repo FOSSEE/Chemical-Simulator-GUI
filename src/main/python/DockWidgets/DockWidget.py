@@ -10,8 +10,27 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.uic import loadUiType
 from python.utils.ComponentSelector import *
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QThread
 from python.utils.Graphics import *
 from python.utils.NumberFormatting import format_result
+
+def debug_parent_thread(widget, location):
+    app = QApplication.instance()
+
+    if app is None:
+        return
+
+    current_thread = QThread.currentThread()
+    widget_thread = widget.thread()
+    main_thread = app.thread()
+
+    print(
+        f"[PARENT THREAD] {location} | "
+        f"Current is Main: {current_thread == main_thread} | "
+        f"Widget belongs to Main: {widget_thread == main_thread} | "
+        f"Current matches Widget: {current_thread == widget_thread}"
+    )
 
 class BaseDockWidget(QDockWidget):
     """
@@ -409,7 +428,8 @@ class DockWidget(BaseDockWidget,ui_dialog):
             layout.setContentsMargins(4, 4, 4, 4)
             # Re-parent the tabWidget into the layout
             if hasattr(self, 'tabWidget'):
-                self.tabWidget.setParent(None)  # detach from absolute position
+                debug_parent_thread(self.tabWidget, "DockWidget.py - tabWidget")
+                self.tabWidget.setParent(None) # detach from absolute position
                 layout.addWidget(self.tabWidget)
             content.setLayout(layout)
 

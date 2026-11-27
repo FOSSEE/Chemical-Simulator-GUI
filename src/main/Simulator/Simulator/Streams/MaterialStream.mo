@@ -140,6 +140,8 @@ equation
     x_pc[3, :] = x_pc[1, :];
   end if;
 algorithm
+  MW_p := zeros(3);
+
   for i in 1:Nc loop
     MW_p[:] := MW_p[:] + C[i].MW * x_pc[:, i];
   end for;

@@ -137,9 +137,12 @@ class Flowsheet():
             omc_path = "/usr/bin/omc"
 
         if not os.path.exists(omc_path):
-            if msg:
-                msg.append(f"<span style='color:red'>OMC not found at {omc_path}</span>")
-            raise FileNotFoundError(f"OMC not found at {omc_path}")
+            error_message = f"OMC not found at {omc_path}"
+
+            if msg is not None:
+                msg.append(error_message)
+
+            raise FileNotFoundError(error_message)
 
         return omc_path
 
@@ -156,12 +159,11 @@ class Flowsheet():
     def send_for_simulation_Eqn(self,msg):
         self.result_data = []
         self.last_error = ''
-        self.omc_path = self.get_omc_path(msg)
+        self.omc_path = self.get_omc_path()
         #print(self.omc_path)
         
         if self.sim_method == 'Eqn':
             simpath = self.eqn_mos_path
-            os.chdir(self.sim_dir_path)
             csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
             if os.path.exists(csvpath):
                 os.remove(csvpath)
@@ -175,13 +177,15 @@ class Flowsheet():
                     [self.omc_path, '-s', simpath],
                     stdout=PIPE,
                     stderr=PIPE,
-                    startupinfo=startupinfo
+                    startupinfo=startupinfo,
+                    cwd=self.sim_dir_path
                 )
             else:
                 self.process = Popen(
                     [self.omc_path, '-s', simpath],
                     stdout=PIPE,
-                    stderr=PIPE
+                    stderr=PIPE,
+                    cwd=self.sim_dir_path
                 )
             self.stdout, self.stderr = self.process.communicate()
 
@@ -193,7 +197,6 @@ class Flowsheet():
             stderr_text = self._decode_process_output(self.stderr)
             print(stderr_text)
            
-            os.chdir(self.root_dir)
             csvpath = os.path.join(self.sim_dir_path,'Simulator.Flowsheet.FlowsheetSimulation_res.csv')
             if 'timeSimulation = 0.0,\n' in stdout_text or not os.path.exists(csvpath):
                 self.result_data = []
@@ -210,8 +213,7 @@ class Flowsheet():
         self.result_data = []
         self.last_error = ''
         self.omc_path = self.get_omc_path()
-        os.chdir(self.sim_dir_path)
-        self.process = Popen([self.omc_path, '-s',unitop.name,'.mos'], stdout=PIPE, stderr=PIPE)
+        self.process = Popen([self.omc_path, '-s',unitop.name,'.mos'], stdout=PIPE, stderr=PIPE, cwd=self.sim_dir_path)
         stdout, stderr = self.process.communicate()
         stdout_text = self._decode_process_output(stdout)
         stderr_text = self._decode_process_output(stderr)
@@ -420,7 +422,6 @@ class Flowsheet():
             if not hasattr(unitop, 'type') or unitop.type in ['MaterialStream', 'EngStm']:
                 continue
 
-            os.chdir(self.root_dir)
             self.data = []
 
             inpstms = safe_streams(getattr(unitop, 'input_stms', None))
@@ -484,10 +485,13 @@ class Flowsheet():
 
             # --- Run OMC Simulation Process ---
             self.omc_path = self.get_omc_path()
-            os.chdir(self.sim_dir_path)
-            self.process = Popen([self.omc_path, '-s', f"{model_name}.mos"], stdout=PIPE, stderr=PIPE)
+            self.process = Popen(
+                [self.omc_path, '-s', f"{model_name}.mos"],
+                stdout=PIPE,
+                stderr=PIPE,
+                cwd=self.sim_dir_path
+            )
             self.stdout, self.stderr = self.process.communicate()
-            os.chdir(self.root_dir)
 
             stdout_text = self._decode_process_output(self.stdout)
             stderr_text = self._decode_process_output(self.stderr)
@@ -520,10 +524,12 @@ class Flowsheet():
 
         # --- Aggregate All Results into FlowsheetSEQ.csv ---
         self.dataframes = [pd.read_csv(f) for f in self.csvlist if os.path.exists(f)]
-        os.chdir(self.sim_dir_path)
         if self.dataframes:
             dffinal = pd.concat(self.dataframes, axis=1)
-            dffinal.to_csv('FlowsheetSEQ.csv', index=False)
+            dffinal.to_csv(
+                os.path.join(self.sim_dir_path, 'FlowsheetSEQ.csv'),
+                index=False
+            )
             self.result_data.clear()
             with open(os.path.join(self.sim_dir_path, 'FlowsheetSEQ.csv'), 'r', encoding='utf-8') as resultFile:
                 csvreader = csv.reader(resultFile, delimiter=',')
